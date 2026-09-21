@@ -201,6 +201,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const [defectScenario, setDefectScenario] = useState<NotificationScenario | null>(null)
   const [historyScenario, setHistoryScenario] = useState<NotificationScenario | null>(null)
   const [selectedEventBriefScenario, setSelectedEventBriefScenario] = useState<NotificationScenario | null>(null)
+  const [hoveredInfo, setHoveredInfo] = useState<{
+    scenario: NotificationScenario
+    rect: DOMRect
+  } | null>(null)
   const [deletingScenario, setDeletingScenario] = useState<NotificationScenario | null>(null)
   const [copiedToast, setCopiedToast] = useState<string | null>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null)
@@ -596,7 +600,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       </div>
 
       {/* Spreadsheet Table Container */}
-      <div className="flex-1 overflow-auto bg-white pb-36" ref={tableContainerRef}>
+      <div
+        className="flex-1 overflow-auto bg-white pb-36"
+        ref={tableContainerRef}
+        onScroll={() => setHoveredInfo(null)}
+      >
         <table className="w-full border-collapse text-left text-xs font-sans">
           {/* Header styled like Microsoft Excel / Google Sheets green header */}
           <thead className="bg-[#107C41] text-white sticky top-0 z-20 shadow-xs select-none border-b border-[#0D6535]">
@@ -777,10 +785,20 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
+                            setHoveredInfo(null)
                             setSelectedEventBriefScenario(row)
                           }}
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 transition cursor-pointer shrink-0 opacity-70 hover:opacity-100 group-hover/event:opacity-100"
-                          title="View Event brief details & edit with Gemini AI"
+                          onMouseEnter={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect()
+                            setHoveredInfo({ scenario: row, rect })
+                          }}
+                          onMouseLeave={() => setHoveredInfo(null)}
+                          className={`w-5 h-5 rounded-full flex items-center justify-center transition cursor-pointer shrink-0 ${
+                            row.notes?.trim()
+                              ? 'text-[#0052CC] bg-blue-50/90 hover:bg-blue-100 ring-1 ring-blue-200/60 opacity-100'
+                              : 'text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 opacity-70 hover:opacity-100 group-hover/event:opacity-100'
+                          }`}
+                          aria-label="Event info"
                         >
                           <Info className="w-3.5 h-3.5" />
                         </button>
@@ -1243,6 +1261,64 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           }}
         />
       )}
+
+      {/* Floating Info Tooltip on Hover */}
+      {hoveredInfo && (() => {
+        const isNearTop = hoveredInfo.rect.top < 140
+        const tooltipWidth = 280
+        const left = Math.max(
+          16,
+          Math.min(
+            window.innerWidth - tooltipWidth - 16,
+            hoveredInfo.rect.left + hoveredInfo.rect.width / 2 - tooltipWidth / 2
+          )
+        )
+        const arrowOffset = Math.max(
+          16,
+          Math.min(
+            tooltipWidth - 24,
+            hoveredInfo.rect.left + hoveredInfo.rect.width / 2 - left - 5
+          )
+        )
+
+        return (
+          <div
+            className="fixed z-50 pointer-events-none transition-all duration-150 animate-in fade-in zoom-in-95"
+            style={{
+              top: isNearTop ? `${hoveredInfo.rect.bottom + 8}px` : undefined,
+              bottom: !isNearTop ? `${window.innerHeight - hoveredInfo.rect.top + 8}px` : undefined,
+              left: `${left}px`,
+              width: `${tooltipWidth}px`,
+            }}
+          >
+            {isNearTop && (
+              <div
+                className="w-2.5 h-2.5 bg-[#1C1C1E] rotate-45 border-l border-t border-white/15 -mb-1.5"
+                style={{ marginLeft: `${arrowOffset}px` }}
+              />
+            )}
+            <div className="bg-[#1C1C1E] text-white text-xs rounded-xl p-3 shadow-2xl border border-white/15 backdrop-blur-md space-y-1.5">
+              <div className="flex items-center justify-between gap-1 text-[11px] font-semibold text-slate-300 border-b border-white/10 pb-1.5">
+                <span className="truncate">{hoveredInfo.scenario.governanceEvent}</span>
+                <span className="text-[10px] text-blue-400 font-normal shrink-0">Click to view/edit</span>
+              </div>
+              <div className="text-xs text-slate-100 leading-relaxed break-words whitespace-pre-wrap max-h-48 overflow-y-auto">
+                {hoveredInfo.scenario.notes?.trim() ? (
+                  hoveredInfo.scenario.notes.trim()
+                ) : (
+                  <span className="text-slate-400 italic">No extra info added yet. Click to add.</span>
+                )}
+              </div>
+            </div>
+            {!isNearTop && (
+              <div
+                className="w-2.5 h-2.5 bg-[#1C1C1E] rotate-45 border-r border-b border-white/15 -mt-1.5"
+                style={{ marginLeft: `${arrowOffset}px` }}
+              />
+            )}
+          </div>
+        )
+      })()}
 
       {/* Event Brief & Details Modal with Inline Gemini AI Framing */}
       {selectedEventBriefScenario && (
