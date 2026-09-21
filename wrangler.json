@@ -1,0 +1,16 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "seedling-notifications",
+	"pages_build_output_dir": "./dist",
+	"compatibility_date": "2025-03-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "seedling-notifications-db",
+			"database_id": "4c25248f-fcca-4100-95d9-3505036c1f49"
+		}
+	]
+}

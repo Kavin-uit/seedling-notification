@@ -1,0 +1,49 @@
+import { jsonResponse } from '../_types'
+
+interface Env {
+  GEMINI_API_KEY?: string
+}
+
+export async function onRequestPost(context: { request: Request; env: Env }) {
+  const { request, env } = context
+
+  try {
+    const body: any = await request.json()
+    const apiKey = env.GEMINI_API_KEY || body.apiKey
+
+    if (!apiKey) {
+      return jsonResponse(
+        { error: 'Gemini API key is not configured in server environment (GEMINI_API_KEY) or request payload.' },
+        400
+      )
+    }
+
+    const { contents, systemInstruction, generationConfig } = body
+    const model = body.model || 'gemini-3.6-flash'
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents,
+        systemInstruction,
+        generationConfig,
+      }),
+    })
+
+    const data = await response.json()
+    if (!response.ok) {
+      return jsonResponse(
+        { error: (data as any)?.error?.message || 'Gemini API call failed' },
+        response.status
+      )
+    }
+
+    return jsonResponse(data)
+  } catch (err: any) {
+    return jsonResponse({ error: err.message || 'Server error' }, 500)
+  }
+}
