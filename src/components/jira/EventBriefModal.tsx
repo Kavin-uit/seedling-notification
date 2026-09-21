@@ -23,6 +23,7 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
 }) => {
   if (!scenario) return null
 
+  const [isEditing, setIsEditing] = useState<boolean>(!scenario.notes?.trim())
   const [draftNotes, setDraftNotes] = useState<string>(scenario.notes || '')
   const [isPolishing, setIsPolishing] = useState(false)
   const [polishedSuccess, setPolishedSuccess] = useState(false)
@@ -31,6 +32,7 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
   // Sync draftNotes whenever scenario changes
   useEffect(() => {
     setDraftNotes(scenario.notes || '')
+    setIsEditing(!scenario.notes?.trim())
     setPolishedSuccess(false)
   }, [scenario.id, scenario.notes])
 
@@ -62,8 +64,14 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
     setSaveToast(trimmed ? 'Saved' : 'Cleared')
     setTimeout(() => {
       setSaveToast(null)
-      onClose()
+      setIsEditing(false)
     }, 600)
+  }
+
+  const handleCancel = () => {
+    setDraftNotes(scenario.notes || '')
+    setPolishedSuccess(false)
+    setIsEditing(false)
   }
 
   return (
@@ -105,80 +113,118 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
           </div>
         )}
 
-        {/* Modal Body: Clean iOS Inset Grouped Card with Direct Note Field */}
+        {/* Modal Body: Clean iOS Inset Grouped Card */}
         <div className="px-6 pb-6 pt-1">
           <div className="bg-white rounded-2xl p-4 sm:p-5 border border-black/5 shadow-xs space-y-3">
-            {/* Top Toolbar: Pen Icon Indicator & Gemini AI Frame Action */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-slate-400 text-xs font-medium">
-                <Pencil className="w-3.5 h-3.5" />
-              </div>
+            {!isEditing ? (
+              /* VIEW / INFO MODE: Just clean text, no input box, no AI icon, with Edit button */
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-slate-400 text-xs font-medium">
+                    <Pencil className="w-3.5 h-3.5 opacity-60" />
+                  </div>
 
-              {/* Gemini AI Auto-Frame Button */}
-              <button
-                type="button"
-                disabled={isPolishing || !draftNotes.trim()}
-                onClick={handleAiPolish}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition cursor-pointer disabled:opacity-40"
-                title="Auto-correct spelling & frame into proper English with Gemini AI"
-              >
-                {isPolishing ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
-                ) : (
-                  <GeminiSparkleIcon className="w-3.5 h-3.5 text-purple-600" />
-                )}
-                <span>Gemini AI</span>
-              </button>
-            </div>
-
-            {/* Direct Editable Text Area */}
-            <div className="relative">
-              <textarea
-                autoFocus
-                rows={5}
-                value={draftNotes}
-                onChange={(e) => setDraftNotes(e.target.value)}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                    e.preventDefault()
-                    handleSave()
-                  }
-                }}
-                placeholder="Add description or notes for this event..."
-                className={`w-full text-sm p-3.5 rounded-xl bg-[#F2F2F7]/70 border ${
-                  polishedSuccess
-                    ? 'border-emerald-500 ring-2 ring-emerald-200/60 bg-white'
-                    : 'border-slate-200/80 focus:bg-white focus:border-[#007AFF] focus:ring-3 focus:ring-[#007AFF]/15'
-                } text-[#1C1C1E] placeholder:text-slate-400 resize-none outline-none leading-relaxed transition`}
-              />
-
-              {/* Gemini polish indicator banner */}
-              {polishedSuccess && (
-                <div className="mt-1 flex items-center gap-1 text-[11px] font-medium text-emerald-600 animate-in fade-in">
-                  <Sparkles className="w-3 h-3 text-emerald-600" />
-                  <span>Framed and spelling corrected with Gemini AI</span>
+                  {/* Edit Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-[#007AFF] hover:bg-[#007AFF]/10 transition cursor-pointer"
+                    title="Edit info"
+                  >
+                    <Pencil className="w-3 h-3 stroke-[2.5]" />
+                    <span>Edit</span>
+                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-end gap-2 pt-1">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                className="px-5 py-1.5 rounded-full text-xs font-semibold bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs transition cursor-pointer inline-flex items-center gap-1"
-              >
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Done</span>
-              </button>
-            </div>
+                {/* Read-only plain text display */}
+                <div className="min-h-[70px] pt-1">
+                  {scenario.notes && scenario.notes.trim().length > 0 ? (
+                    <p className="text-sm text-[#1C1C1E] leading-relaxed whitespace-pre-wrap select-text">
+                      {scenario.notes}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">
+                      No extra info added yet. Click Edit to add details.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* EDIT MODE: Textarea, Gemini AI button, Cancel and Done buttons */
+              <div className="space-y-3">
+                {/* Top Toolbar: Pen Icon & Gemini AI Frame Action */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-slate-400 text-xs font-medium">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </div>
+
+                  {/* Gemini AI Auto-Frame Button */}
+                  <button
+                    type="button"
+                    disabled={isPolishing || !draftNotes.trim()}
+                    onClick={handleAiPolish}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition cursor-pointer disabled:opacity-40"
+                    title="Auto-correct spelling & frame into proper English with Gemini AI"
+                  >
+                    {isPolishing ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
+                    ) : (
+                      <GeminiSparkleIcon className="w-3.5 h-3.5 text-purple-600" />
+                    )}
+                    <span>Gemini AI</span>
+                  </button>
+                </div>
+
+                {/* Editable Textarea Field */}
+                <div className="relative">
+                  <textarea
+                    autoFocus
+                    rows={5}
+                    value={draftNotes}
+                    onChange={(e) => setDraftNotes(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                        e.preventDefault()
+                        handleSave()
+                      }
+                    }}
+                    placeholder="Add description or notes for this event..."
+                    className={`w-full text-sm p-3.5 rounded-xl bg-[#F2F2F7]/70 border ${
+                      polishedSuccess
+                        ? 'border-emerald-500 ring-2 ring-emerald-200/60 bg-white'
+                        : 'border-slate-200/80 focus:bg-white focus:border-[#007AFF] focus:ring-3 focus:ring-[#007AFF]/15'
+                    } text-[#1C1C1E] placeholder:text-slate-400 resize-none outline-none leading-relaxed transition`}
+                  />
+
+                  {/* Gemini polish indicator banner */}
+                  {polishedSuccess && (
+                    <div className="mt-1 flex items-center gap-1 text-[11px] font-medium text-emerald-600 animate-in fade-in">
+                      <Sparkles className="w-3 h-3 text-emerald-600" />
+                      <span>Framed and spelling corrected with Gemini AI</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Actions */}
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="px-5 py-1.5 rounded-full text-xs font-semibold bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs transition cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Done</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
