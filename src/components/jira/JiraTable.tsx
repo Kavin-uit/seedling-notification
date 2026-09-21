@@ -793,7 +793,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                             setSelectedEventBrief({ scenario: row, rect })
                           }}
                           onMouseEnter={(e) => {
-                            if (selectedEventBrief) return
+                            if (selectedEventBrief || !row.notes?.trim()) return
                             const rect = e.currentTarget.getBoundingClientRect()
                             setHoveredInfo({ scenario: row, rect })
                           }}
@@ -1267,8 +1267,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
         />
       )}
 
-      {/* Floating Info Tooltip on Hover */}
-      {hoveredInfo && (() => {
+      {/* Floating Info Tooltip on Hover (only if data exists) */}
+      {hoveredInfo && hoveredInfo.scenario.notes?.trim() && (() => {
         const isNearTop = hoveredInfo.rect.top < 140
         const tooltipWidth = 280
         const left = Math.max(
