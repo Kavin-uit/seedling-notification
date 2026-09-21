@@ -17,6 +17,9 @@ import {
   Database,
   Layers,
   ShieldCheck,
+  PlusCircle,
+  Edit3,
+  Search,
 } from 'lucide-react'
 
 interface GeminiAssistantModalProps {
@@ -242,48 +245,149 @@ export const GeminiAssistantModal: React.FC<GeminiAssistantModalProps> = ({
             </div>
           </div>
 
-          {/* Google Suggestion Chips */}
-          <div className="flex items-center gap-2 flex-wrap pt-0.5">
-            <span className="text-[11px] font-semibold text-[#747775] flex items-center gap-1">
-              <GoogleGLogo className="w-3.5 h-3.5" />
-              <span>Try:</span>
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                setUserPrompt(
-                  'Add a new Contribution Engine scenario for "Round-up Spare Change Enabled" with push, email, and CTA to View Settings.'
-                )
-              }
-              className="text-xs px-3 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5"
-            >
-              <GeminiSparkleLogo className="w-3 h-3" />
-              <span>+ Add Round-up Scenario</span>
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setUserPrompt(
-                  'Update status of CONTRIB-7 to "TESTED" with comment "All navigation flows verified on iOS 18".'
-                )
-              }
-              className="text-xs px-3 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5"
-            >
-              <GeminiSparkleLogo className="w-3 h-3" />
-              <span>Update CONTRIB-7 Status</span>
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setUserPrompt(
-                  'Summarize all scenarios currently marked as NAVIGATION NOT WORKING.'
-                )
-              }
-              className="text-xs px-3 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5"
-            >
-              <GeminiSparkleLogo className="w-3 h-3" />
-              <span>Review Navigation Defects</span>
-            </button>
+          {/* Google Suggestion Chips Section */}
+          <div className="space-y-2.5 pt-1">
+            <div className="flex items-center justify-between text-[11px] font-medium text-[#747775]">
+              <div className="flex items-center gap-1.5">
+                <GoogleGLogo className="w-3.5 h-3.5" />
+                <span className="font-semibold text-[#444746]">Suggested Prompts:</span>
+              </div>
+              <span className="text-[10px] text-[#8E918F]">Click any prompt to autofill</span>
+            </div>
+
+            {/* Category: Add Scenarios */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-bold text-[#1A73E8] bg-[#E8F0FE] px-2 py-0.5 rounded-full border border-[#D2E3FC] flex items-center gap-1">
+                <PlusCircle className="w-3 h-3" />
+                <span>Add</span>
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Add a new Contribution Engine scenario for "Round-up Spare Change Enabled" with push, email, and CTA to View Settings.'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#1A73E8]/50"
+              >
+                <span>+ Round-up Spare Change</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Add a new Contribution Engine scenario for "Annual 501(c)(3) Tax Receipt Ready" with email subject "Your Annual Giving Statement Is Ready", push notification, and CTA "Download PDF Receipt".'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#1A73E8]/50"
+              >
+                <span>+ Annual Tax Receipt</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Add a new Governance Engine scenario for "Proposal Quorum Milestone Reached" triggered when 80% voting quorum is met, with push, in-app banner, and CTA "Cast Final Vote".'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#1A73E8]/50"
+              >
+                <span>+ Quorum Voting Milestone</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Add a new Contribution scenario for "Monthly Recurring Donation Failed" with push "Payment issue with recurring gift", email alert, and CTA "Update Payment Method".'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#1A73E8]/50"
+              >
+                <span>+ Recurring Gift Failed</span>
+              </button>
+            </div>
+
+            {/* Category: Update Scenarios */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-bold text-[#A56300] bg-[#FEF7E0] px-2 py-0.5 rounded-full border border-[#FEEFC3] flex items-center gap-1">
+                <Edit3 className="w-3 h-3" />
+                <span>Update</span>
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Update status of CONTRIB-7 to "TESTED" with comment "All navigation flows and deep links verified on iOS 18.2".'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#A56300]/50"
+              >
+                <span>Mark CONTRIB-7 Tested</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Update status of GOV-3 to "PUSH NOTIFICATION NOT WORKING" with comment "Push payload missing auth token on Android 15".'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-rose-400"
+              >
+                <span>Report Defect on GOV-3</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Update CTA of CONTRIB-12 to "Complete KYC Verification" with comment "Updated button copy per product compliance review".'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#A56300]/50"
+              >
+                <span>Update CTA for CONTRIB-12</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Update priority of GOV-1 to "Highest" with comment "Critical blocker for upcoming community voting deadline".'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#A56300]/50"
+              >
+                <span>Escalate GOV-1 to Highest</span>
+              </button>
+            </div>
+
+            {/* Category: Query & QA Audit */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-bold text-[#681DA8] bg-[#F3E8FD] px-2 py-0.5 rounded-full border border-[#E9D2FD] flex items-center gap-1">
+                <Search className="w-3 h-3" />
+                <span>Audit</span>
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'Summarize all scenarios currently marked as NAVIGATION NOT WORKING and identify which engine has more defects.'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#681DA8]/50"
+              >
+                <span>Review Navigation Defects</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setUserPrompt(
+                    'List all scenarios still in "TO DO" status and recommend priority order for QA verification.'
+                  )
+                }
+                className="text-xs px-2.5 py-1 rounded-full bg-[#F0F4F9] hover:bg-[#E3E8EF] text-[#1F1F1F] border border-[#C4C7C5]/40 transition cursor-pointer flex items-center gap-1.5 hover:border-[#681DA8]/50"
+              >
+                <span>Audit Untested "TO DO" Rows</span>
+              </button>
+            </div>
           </div>
 
           {/* AI Result Section (Google Material Design Card) */}
