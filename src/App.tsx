@@ -15,7 +15,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
-  const [isAiSearch, setIsAiSearch] = useState(false)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isGeminiOpen, setIsGeminiOpen] = useState(false)
 
@@ -208,8 +207,6 @@ export default function App() {
         govCount={govCount}
         contribCount={contribCount}
         totalRows={scenarios.length}
-        isAiSearch={isAiSearch}
-        onToggleAiSearch={() => setIsAiSearch((prev) => !prev)}
       />
 
       {/* 2. Main Excel-like Spreadsheet Grid */}
@@ -232,7 +229,6 @@ export default function App() {
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery('')}
             selectedEngine={selectedEngine}
-            isAiSearch={isAiSearch}
           />
         )}
       </main>

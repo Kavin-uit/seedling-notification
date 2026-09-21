@@ -1,5 +1,5 @@
 import React from 'react'
-import { Search, FileSpreadsheet, Sparkles, X } from 'lucide-react'
+import { Search, FileSpreadsheet, X } from 'lucide-react'
 import { GeminiSparkleLogo } from './GeminiAssistantModal'
 
 export type EngineCategoryFilter = 'ALL' | 'Governance' | 'Contribution'
@@ -16,8 +16,6 @@ interface JiraNavbarProps {
   govCount: number
   contribCount: number
   totalRows: number
-  isAiSearch: boolean
-  onToggleAiSearch: () => void
 }
 
 export const JiraNavbar: React.FC<JiraNavbarProps> = ({
@@ -30,8 +28,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   govCount,
   contribCount,
   totalRows,
-  isAiSearch,
-  onToggleAiSearch,
 }) => {
   return (
     <header className="h-13 bg-[#0747A6] text-white flex items-center justify-between px-3 sm:px-4 select-none shrink-0 border-b border-[#0052CC] shadow-xs gap-2 sm:gap-3 flex-nowrap min-w-0">
@@ -142,38 +138,21 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                 onSearchChange('')
               }
             }}
-            placeholder={isAiSearch ? 'AI Search...' : 'Search events, triggers, copy...'}
-            className="w-full bg-white text-slate-900 placeholder:text-slate-400 text-xs rounded pl-7 sm:pl-8 pr-14 sm:pr-16 py-1.5 transition outline-none border border-transparent focus:ring-2 focus:ring-white/80 shadow-xs"
+            placeholder="Search events, triggers, copy..."
+            className="w-full bg-white text-slate-900 placeholder:text-slate-400 text-xs rounded pl-7 sm:pl-8 pr-7 sm:pr-8 py-1.5 transition outline-none border border-transparent focus:ring-2 focus:ring-white/80 shadow-xs"
           />
 
-          <div className="absolute right-1 flex items-center gap-1">
-            {/* Clear 'X' Button */}
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => onSearchChange('')}
-                className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer flex items-center justify-center"
-                title="Clear search (Esc)"
-              >
-                <X className="w-3.5 h-3.5 stroke-[2.5]" />
-              </button>
-            )}
-
-            {/* AI Toggle Button */}
+          {/* Clear 'X' Button */}
+          {searchQuery && (
             <button
               type="button"
-              onClick={onToggleAiSearch}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 transition cursor-pointer border ${
-                isAiSearch
-                  ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300'
-              }`}
-              title={isAiSearch ? 'AI Search Active: Click for Normal Search' : 'Click to Enable AI Search'}
+              onClick={() => onSearchChange('')}
+              className="absolute right-1.5 p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer flex items-center justify-center"
+              title="Clear search (Esc)"
             >
-              <Sparkles className={`w-2.5 h-2.5 ${isAiSearch ? 'text-purple-200' : 'text-slate-400'}`} />
-              <span>AI</span>
+              <X className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
-          </div>
+          )}
         </div>
         {/* Google Gemini Assistant Button */}
         <button
