@@ -1,20 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { NotificationScenario } from '../../types/notification'
 import { polishTextWithGemini } from '../../services/commentAiService'
 import { GeminiSparkleIcon } from './JiraTable'
 import {
   X,
-  Edit3,
+  Pencil,
   Check,
   Loader2,
-  Bell,
-  Mail,
-  Smartphone,
-  ExternalLink,
-  Target,
-  Users,
-  Zap,
-  CheckCircle2,
+  FileText,
+  Sparkles,
 } from 'lucide-react'
 
 interface EventBriefModalProps {
@@ -31,515 +25,217 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
   if (!scenario) return null
 
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState<NotificationScenario>({ ...scenario })
-  const [polishingField, setPolishingField] = useState<string | null>(null)
-  const [polishedSuccessField, setPolishedSuccessField] = useState<string | null>(null)
+  const [draftNotes, setDraftNotes] = useState<string>(scenario.notes || '')
+  const [isPolishing, setIsPolishing] = useState(false)
+  const [polishedSuccess, setPolishedSuccess] = useState(false)
   const [saveToast, setSaveToast] = useState<string | null>(null)
 
-  const handleFieldChange = (field: keyof NotificationScenario, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+  // Sync draftNotes whenever scenario changes
+  useEffect(() => {
+    setDraftNotes(scenario.notes || '')
+    setIsEditing(false)
+    setPolishedSuccess(false)
+  }, [scenario.id, scenario.notes])
 
-  const handleAiPolish = async (field: keyof NotificationScenario, label: string) => {
-    const rawValue = String(formData[field] || '')
-    if (!rawValue.trim() || polishingField) return
-
-    setPolishingField(field)
+  const handleAiPolish = async () => {
+    if (!draftNotes.trim() || isPolishing) return
+    setIsPolishing(true)
     try {
-      const polished = await polishTextWithGemini(rawValue, label)
+      const polished = await polishTextWithGemini(draftNotes, 'event extra info & description')
       if (polished) {
-        setFormData((prev) => ({ ...prev, [field]: polished }))
-        setPolishedSuccessField(field)
-        setTimeout(() => setPolishedSuccessField(null), 2200)
+        setDraftNotes(polished)
+        setPolishedSuccess(true)
+        setTimeout(() => setPolishedSuccess(false), 2400)
       }
     } catch (err) {
-      console.error('Error polishing with Gemini AI:', err)
+      console.error('Failed to polish extra info with Gemini:', err)
     } finally {
-      setPolishingField(null)
+      setIsPolishing(false)
     }
   }
 
   const handleSave = () => {
+    const trimmed = draftNotes.trim()
     const updated: NotificationScenario = {
-      ...formData,
+      ...scenario,
+      notes: trimmed,
       updatedAt: new Date().toISOString(),
     }
     onUpdateScenario(updated)
-    setSaveToast('Changes saved successfully to database!')
+    setSaveToast(trimmed ? 'Extra info saved' : 'Extra info cleared')
     setTimeout(() => {
       setSaveToast(null)
       setIsEditing(false)
-    }, 900)
+    }, 800)
   }
 
   const handleCancel = () => {
-    setFormData({ ...scenario })
+    setDraftNotes(scenario.notes || '')
     setIsEditing(false)
+    setPolishedSuccess(false)
   }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150 select-text"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200 select-text"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[92dvh] overflow-hidden text-[#172B4D] font-sans"
+        className="w-full max-w-lg bg-[#F2F2F7] rounded-[26px] shadow-2xl border border-white/80 flex flex-col overflow-hidden text-[#1C1C1E] font-[-apple-system,BlinkMacSystemFont,'SF_Pro_Text','SF_Pro_Display',system-ui,sans-serif] animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Bar */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-[#FAFBFC]">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span
-              className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
-                scenario.engineCategory === 'Governance'
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                  : 'bg-blue-100 text-blue-800 border border-blue-200'
-              }`}
-            >
-              {scenario.key}
-            </span>
-            <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs font-semibold text-slate-600">
-              {scenario.engineCategory} Engine Brief
-            </span>
+        {/* iOS Drag Handle */}
+        <div className="w-10 h-1 rounded-full bg-slate-300/80 mx-auto mt-2.5 mb-1 shrink-0" />
+
+        {/* iOS Header */}
+        <div className="flex items-start justify-between px-6 pt-2 pb-3">
+          <div className="min-w-0 pr-3 space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  scenario.engineCategory === 'Governance'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                }`}
+              >
+                {scenario.key}
+              </span>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                {scenario.engineCategory} Engine
+              </span>
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-[#1C1C1E] tracking-tight leading-snug truncate">
+              {scenario.governanceEvent}
+            </h2>
           </div>
 
-          <div className="flex items-center gap-2">
-            {!isEditing ? (
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="px-3 py-1.5 rounded-lg bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Edit Brief</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSave}
-                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>Save</span>
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              title="Close modal"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          {/* iOS Circular Close Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300/90 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer shrink-0 mt-0.5"
+            title="Close"
+          >
+            <X className="w-4 h-4 stroke-[2.5]" />
+          </button>
         </div>
 
-        {/* Save Toast Notification */}
+        {/* Save Confirmation Toast */}
         {saveToast && (
-          <div className="bg-emerald-50 border-b border-emerald-200 text-emerald-800 px-5 py-2 text-xs font-medium flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <div className="mx-6 mb-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-semibold flex items-center gap-1.5 animate-in fade-in duration-150">
+            <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600" />
             <span>{saveToast}</span>
           </div>
         )}
 
-        {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
-          {!isEditing ? (
-            /* VIEW MODE */
-            <div className="space-y-5">
-              {/* Event Name & Core Brief */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Event Name
-                </span>
-                <h3 className="text-base sm:text-lg font-bold text-[#172B4D] leading-snug">
-                  {scenario.governanceEvent}
-                </h3>
-              </div>
+        {/* Modal Body: Clean iOS Inset Grouped Card */}
+        <div className="px-6 pb-6 pt-1 space-y-3">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-black/5 shadow-xs space-y-3">
+            {/* Card Header: Label & Edit / Gemini Actions */}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-slate-400" />
+                <span>Extra Info / Description</span>
+              </span>
 
-              {/* Grid: Trigger & Audience */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1.5 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                    <Zap className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Trigger</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed">
-                    {scenario.trigger || <span className="italic text-slate-400">None specified</span>}
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1.5 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                    <Users className="w-3.5 h-3.5 text-blue-500" />
-                    <span>Target Audience</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed">
-                    {scenario.audience || <span className="italic text-slate-400">None specified</span>}
-                  </p>
-                </div>
-              </div>
-
-              {/* Objectives & Desired Outcome */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1.5 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                    <Target className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Communication Objective</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed">
-                    {scenario.communicationObjective || (
-                      <span className="italic text-slate-400">None specified</span>
-                    )}
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1.5 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Desired Outcome</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed">
-                    {scenario.desiredOutcome || (
-                      <span className="italic text-slate-400">None specified</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              {/* Notification Channels Preview Card */}
-              <div className="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-                <div className="bg-slate-100/70 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Configured Notification Channels
-                </div>
-                <div className="p-4 space-y-3.5 divide-y divide-slate-100 bg-white">
-                  {/* Push */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                      <Bell className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Mobile Push Notification</span>
-                    </div>
-                    <p className="text-xs font-medium text-slate-800">
-                      {scenario.pushSubject || 'No subject'}
-                    </p>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      {scenario.pushBody || 'No message body'}
-                    </p>
-                  </div>
-
-                  {/* Email */}
-                  <div className="pt-3 space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                      <Mail className="w-3.5 h-3.5 text-purple-600" />
-                      <span>Email Notification</span>
-                    </div>
-                    <p className="text-xs font-medium text-slate-800">
-                      {scenario.emailSubject || 'No subject'}
-                    </p>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      {scenario.emailBody || 'No email body'}
-                    </p>
-                  </div>
-
-                  {/* In-App & CTA */}
-                  <div className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                        <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>In-App Experience</span>
-                      </div>
-                      <p className="text-xs text-slate-800 mt-1">
-                        {scenario.inAppExperience || 'N/A'}
-                      </p>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                        <ExternalLink className="w-3.5 h-3.5 text-teal-600" />
-                        <span>Call to Action (CTA)</span>
-                      </div>
-                      <p className="text-xs font-bold text-[#0052CC] mt-1">
-                        {scenario.cta || 'View Details'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comments */}
-              {scenario.comments && (
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-amber-50/40 space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
-                    Comments / Notes
-                  </span>
-                  <p className="text-xs text-slate-800 leading-relaxed">{scenario.comments}</p>
-                </div>
+              {/* Pen Edit or Gemini Action */}
+              {!isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-[#007AFF] hover:bg-[#007AFF]/10 transition cursor-pointer"
+                  title="Edit extra info"
+                >
+                  <Pencil className="w-3 h-3 stroke-[2.5]" />
+                  <span>Edit</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={isPolishing || !draftNotes.trim()}
+                  onClick={handleAiPolish}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition cursor-pointer disabled:opacity-40"
+                  title="Auto-correct spelling & frame into proper English with Gemini AI"
+                >
+                  {isPolishing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
+                  ) : (
+                    <GeminiSparkleIcon className="w-3.5 h-3.5 text-purple-600" />
+                  )}
+                  <span>Gemini AI</span>
+                </button>
               )}
             </div>
-          ) : (
-            /* EDIT MODE WITH GEMINI AI ON EACH FIELD */
-            <div className="space-y-4">
-              <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 flex items-center justify-between gap-2 text-xs text-blue-900">
-                <span>
-                  💡 <strong>Gemini AI Active:</strong> Click the sparkle logo (✨) on any field to auto-correct spelling and frame into professional English.
-                </span>
-              </div>
 
-              {/* Event Name Field */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                  <label>Event Name</label>
-                  {formData.governanceEvent.trim().length > 0 && (
+            {/* Field Content: View or Edit */}
+            {!isEditing ? (
+              <div className="min-h-[100px]">
+                {scenario.notes && scenario.notes.trim().length > 0 ? (
+                  <p className="text-sm text-[#1C1C1E] leading-relaxed whitespace-pre-wrap select-text font-normal">
+                    {scenario.notes}
+                  </p>
+                ) : (
+                  <div className="py-7 text-center space-y-2">
+                    <p className="text-xs text-slate-400 font-medium">
+                      No extra info added for this row yet.
+                    </p>
                     <button
                       type="button"
-                      disabled={polishingField === 'governanceEvent'}
-                      onClick={() => handleAiPolish('governanceEvent', 'event name')}
-                      className="px-2 py-0.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer disabled:opacity-60"
-                      title="Gemini AI: Fix spelling & frame event name"
+                      onClick={() => setIsEditing(true)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#007AFF] hover:underline cursor-pointer"
                     >
-                      {polishingField === 'governanceEvent' ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <GeminiSparkleIcon className="w-3 h-3" />
-                      )}
-                      <span>Gemini Frame</span>
+                      <Pencil className="w-3 h-3 stroke-[2.5]" />
+                      <span>Add extra info</span>
                     </button>
-                  )}
-                </div>
-                <input
-                  type="text"
-                  value={formData.governanceEvent}
-                  onChange={(e) => handleFieldChange('governanceEvent', e.target.value)}
-                  className={`w-full text-xs px-3 py-2 rounded-lg border ${
-                    polishedSuccessField === 'governanceEvent'
-                      ? 'border-emerald-500 ring-2 ring-emerald-100'
-                      : 'border-slate-300 focus:border-[#0052CC] focus:ring-2 focus:ring-blue-100'
-                  } outline-none transition`}
-                  placeholder="e.g. Seedling Submitted for Review"
-                />
-              </div>
-
-              {/* Trigger & Audience */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {/* Trigger */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                    <label>Trigger</label>
-                    {formData.trigger.trim().length > 0 && (
-                      <button
-                        type="button"
-                        disabled={polishingField === 'trigger'}
-                        onClick={() => handleAiPolish('trigger', 'trigger description')}
-                        className="px-2 py-0.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer disabled:opacity-60"
-                        title="Gemini AI: Frame trigger"
-                      >
-                        {polishingField === 'trigger' ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <GeminiSparkleIcon className="w-3 h-3" />
-                        )}
-                        <span>AI</span>
-                      </button>
-                    )}
                   </div>
-                  <input
-                    type="text"
-                    value={formData.trigger}
-                    onChange={(e) => handleFieldChange('trigger', e.target.value)}
-                    className={`w-full text-xs px-3 py-2 rounded-lg border ${
-                      polishedSuccessField === 'trigger'
-                        ? 'border-emerald-500 ring-2 ring-emerald-100'
-                        : 'border-slate-300 focus:border-[#0052CC] focus:ring-2 focus:ring-blue-100'
-                    } outline-none transition`}
-                    placeholder="When user initiates..."
-                  />
-                </div>
-
-                {/* Audience */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 block">Target Audience</label>
-                  <input
-                    type="text"
-                    value={formData.audience}
-                    onChange={(e) => handleFieldChange('audience', e.target.value)}
-                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:border-[#0052CC] focus:ring-2 focus:ring-blue-100 outline-none transition"
-                    placeholder="e.g. Donor, Community Member"
-                  />
-                </div>
+                )}
               </div>
-
-              {/* Communication Objective & Desired Outcome */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {/* Objective */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                    <label>Communication Objective</label>
-                    {formData.communicationObjective.trim().length > 0 && (
-                      <button
-                        type="button"
-                        disabled={polishingField === 'communicationObjective'}
-                        onClick={() => handleAiPolish('communicationObjective', 'objective')}
-                        className="px-2 py-0.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer disabled:opacity-60"
-                        title="Gemini AI: Frame objective"
-                      >
-                        {polishingField === 'communicationObjective' ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <GeminiSparkleIcon className="w-3 h-3" />
-                        )}
-                        <span>AI</span>
-                      </button>
-                    )}
-                  </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="relative">
                   <textarea
-                    rows={2}
-                    value={formData.communicationObjective}
-                    onChange={(e) => handleFieldChange('communicationObjective', e.target.value)}
-                    className={`w-full text-xs px-3 py-2 rounded-lg border ${
-                      polishedSuccessField === 'communicationObjective'
-                        ? 'border-emerald-500 ring-2 ring-emerald-100'
-                        : 'border-slate-300 focus:border-[#0052CC] focus:ring-2 focus:ring-blue-100'
-                    } outline-none transition resize-none`}
-                    placeholder="Why we send this notification..."
+                    autoFocus
+                    rows={5}
+                    value={draftNotes}
+                    onChange={(e) => setDraftNotes(e.target.value)}
+                    placeholder="Type extra info or details about this event..."
+                    className={`w-full text-sm p-3.5 rounded-xl bg-[#F2F2F7]/70 border ${
+                      polishedSuccess
+                        ? 'border-emerald-500 ring-2 ring-emerald-200/60 bg-white'
+                        : 'border-slate-200/80 focus:bg-white focus:border-[#007AFF] focus:ring-3 focus:ring-[#007AFF]/15'
+                    } text-[#1C1C1E] placeholder:text-slate-400 resize-none outline-none leading-relaxed transition`}
                   />
-                </div>
 
-                {/* Desired Outcome */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                    <label>Desired Outcome</label>
-                    {formData.desiredOutcome.trim().length > 0 && (
-                      <button
-                        type="button"
-                        disabled={polishingField === 'desiredOutcome'}
-                        onClick={() => handleAiPolish('desiredOutcome', 'desired outcome')}
-                        className="px-2 py-0.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer disabled:opacity-60"
-                        title="Gemini AI: Frame outcome"
-                      >
-                        {polishingField === 'desiredOutcome' ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <GeminiSparkleIcon className="w-3 h-3" />
-                        )}
-                        <span>AI</span>
-                      </button>
-                    )}
-                  </div>
-                  <textarea
-                    rows={2}
-                    value={formData.desiredOutcome}
-                    onChange={(e) => handleFieldChange('desiredOutcome', e.target.value)}
-                    className={`w-full text-xs px-3 py-2 rounded-lg border ${
-                      polishedSuccessField === 'desiredOutcome'
-                        ? 'border-emerald-500 ring-2 ring-emerald-100'
-                        : 'border-slate-300 focus:border-[#0052CC] focus:ring-2 focus:ring-blue-100'
-                    } outline-none transition resize-none`}
-                    placeholder="Action user should take..."
-                  />
-                </div>
-              </div>
-
-              {/* Push Notification Subject & Body */}
-              <div className="space-y-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50/50">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <div className="flex items-center gap-1.5">
-                    <Bell className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Push Notification Copy</span>
-                  </div>
-                  {formData.pushBody.trim().length > 0 && (
-                    <button
-                      type="button"
-                      disabled={polishingField === 'pushBody'}
-                      onClick={() => handleAiPolish('pushBody', 'push notification message')}
-                      className="px-2 py-0.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer disabled:opacity-60"
-                      title="Gemini AI: Polish push message"
-                    >
-                      {polishingField === 'pushBody' ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <GeminiSparkleIcon className="w-3 h-3" />
-                      )}
-                      <span>Frame Push</span>
-                    </button>
+                  {/* Gemini polish indicator banner */}
+                  {polishedSuccess && (
+                    <div className="mt-1 flex items-center gap-1 text-[11px] font-medium text-emerald-600 animate-in fade-in">
+                      <Sparkles className="w-3 h-3 text-emerald-600" />
+                      <span>Framed and spelling corrected with Gemini AI</span>
+                    </div>
                   )}
                 </div>
 
-                <input
-                  type="text"
-                  value={formData.pushSubject}
-                  onChange={(e) => handleFieldChange('pushSubject', e.target.value)}
-                  className="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white focus:border-[#0052CC] outline-none"
-                  placeholder="Push Subject Line"
-                />
-
-                <textarea
-                  rows={2}
-                  value={formData.pushBody}
-                  onChange={(e) => handleFieldChange('pushBody', e.target.value)}
-                  className={`w-full text-xs px-3 py-1.5 rounded-lg border ${
-                    polishedSuccessField === 'pushBody'
-                      ? 'border-emerald-500 ring-2 ring-emerald-100'
-                      : 'border-slate-300 bg-white focus:border-[#0052CC]'
-                  } outline-none resize-none`}
-                  placeholder="Push message body..."
-                />
-              </div>
-
-              {/* Comments Field */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                  <label>Comments / Notes</label>
-                  {formData.comments && formData.comments.trim().length > 0 && (
-                    <button
-                      type="button"
-                      disabled={polishingField === 'comments'}
-                      onClick={() => handleAiPolish('comments', 'QA comment')}
-                      className="px-2 py-0.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer disabled:opacity-60"
-                      title="Gemini AI: Fix spelling and frame comment"
-                    >
-                      {polishingField === 'comments' ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <GeminiSparkleIcon className="w-3 h-3" />
-                      )}
-                      <span>Gemini Frame</span>
-                    </button>
-                  )}
+                {/* Edit Mode Buttons */}
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="px-5 py-1.5 rounded-full text-xs font-semibold bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs transition cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Done</span>
+                  </button>
                 </div>
-                <textarea
-                  rows={2}
-                  value={formData.comments || ''}
-                  onChange={(e) => handleFieldChange('comments', e.target.value)}
-                  className={`w-full text-xs px-3 py-2 rounded-lg border ${
-                    polishedSuccessField === 'comments'
-                      ? 'border-emerald-500 ring-2 ring-emerald-100'
-                      : 'border-slate-300 focus:border-[#0052CC] focus:ring-2 focus:ring-blue-100'
-                  } outline-none transition resize-none`}
-                  placeholder="Add any QA or verification notes..."
-                />
               </div>
-
-              {/* Modal Edit Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Save Changes</span>
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

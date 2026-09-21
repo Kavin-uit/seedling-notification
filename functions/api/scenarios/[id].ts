@@ -19,6 +19,13 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
     const data: any = await request.json()
     const now = new Date().toISOString()
 
+    // Ensure notes column exists in D1 schema
+    try {
+      await env.DB.exec(`ALTER TABLE scenarios ADD COLUMN notes TEXT DEFAULT ''`)
+    } catch {
+      // Column already exists
+    }
+
     // Fetch current row to merge partial updates
     const current = await env.DB.prepare('SELECT * FROM scenarios WHERE id = ?').bind(id).first<ScenarioDbRow>()
     if (!current) {
@@ -74,6 +81,9 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
       comments: data.comments !== undefined && data.comments !== null
         ? String(data.comments).trim()
         : (current.comments ?? ''),
+      notes: data.notes !== undefined && data.notes !== null
+        ? String(data.notes).trim()
+        : (current.notes ?? ''),
       status: validStatus ?? current.status,
       priority: safeStr(data.priority, current.priority),
       environment: safeStr(data.environment, current.environment),
@@ -95,6 +105,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
         in_app_experience = ?,
         cta = ?,
         comments = ?,
+        notes = ?,
         status = ?,
         priority = ?,
         environment = ?,
@@ -115,6 +126,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
         updated.in_app_experience,
         updated.cta,
         updated.comments,
+        updated.notes,
         updated.status,
         updated.priority,
         updated.environment,

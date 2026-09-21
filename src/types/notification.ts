@@ -45,6 +45,7 @@ export interface ScenarioVersion {
     inAppExperience: string
     cta: string
     comments?: string
+    notes?: string
     status: ScenarioStatus
     engineCategory: 'Governance' | 'Contribution'
     priority: PriorityLevel

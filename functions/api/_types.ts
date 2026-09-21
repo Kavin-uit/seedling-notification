@@ -20,6 +20,7 @@ export interface ScenarioDbRow {
   in_app_experience: string
   cta: string
   comments?: string
+  notes?: string
   status: string
   priority: string
   environment: string
@@ -57,6 +58,7 @@ export function mapDbRowToScenario(row: ScenarioDbRow) {
     inAppExperience: row.in_app_experience || '',
     cta: row.cta || '',
     comments: row.comments || '',
+    notes: row.notes || '',
     status: row.status || 'TO DO',
     priority: row.priority || 'Medium',
     environment: row.environment || 'STAGING',
