@@ -200,7 +200,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set())
   const [defectScenario, setDefectScenario] = useState<NotificationScenario | null>(null)
   const [historyScenario, setHistoryScenario] = useState<NotificationScenario | null>(null)
-  const [selectedEventBriefScenario, setSelectedEventBriefScenario] = useState<NotificationScenario | null>(null)
+  const [selectedEventBrief, setSelectedEventBrief] = useState<{
+    scenario: NotificationScenario
+    rect: DOMRect
+  } | null>(null)
   const [hoveredInfo, setHoveredInfo] = useState<{
     scenario: NotificationScenario
     rect: DOMRect
@@ -786,9 +789,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           onClick={(e) => {
                             e.stopPropagation()
                             setHoveredInfo(null)
-                            setSelectedEventBriefScenario(row)
+                            const rect = e.currentTarget.getBoundingClientRect()
+                            setSelectedEventBrief({ scenario: row, rect })
                           }}
                           onMouseEnter={(e) => {
+                            if (selectedEventBrief) return
                             const rect = e.currentTarget.getBoundingClientRect()
                             setHoveredInfo({ scenario: row, rect })
                           }}
@@ -1320,17 +1325,20 @@ export const JiraTable: React.FC<JiraTableProps> = ({
         )
       })()}
 
-      {/* Event Brief & Details Modal with Inline Gemini AI Framing */}
-      {selectedEventBriefScenario && (
+      {/* Event Brief & Details Popover anchored to Info button */}
+      {selectedEventBrief && (
         <EventBriefModal
           scenario={
-            scenarios.find((s) => s.id === selectedEventBriefScenario.id) ||
-            selectedEventBriefScenario
+            scenarios.find((s) => s.id === selectedEventBrief.scenario.id) ||
+            selectedEventBrief.scenario
           }
-          onClose={() => setSelectedEventBriefScenario(null)}
+          anchorRect={selectedEventBrief.rect}
+          onClose={() => setSelectedEventBrief(null)}
           onUpdateScenario={(updated) => {
             onUpdateScenario(updated)
-            setSelectedEventBriefScenario(updated)
+            setSelectedEventBrief((prev) =>
+              prev ? { ...prev, scenario: updated } : null
+            )
           }}
         />
       )}
