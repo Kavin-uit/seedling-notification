@@ -77,14 +77,14 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
     setSaveToast(trimmed ? 'Saved' : 'Cleared')
     setTimeout(() => {
       setSaveToast(null)
-      setIsEditing(false)
-    }, 500)
+      onClose()
+    }, 350)
   }
 
   const handleCancel = () => {
     setDraftNotes(scenario.notes || '')
     setPolishedSuccess(false)
-    setIsEditing(false)
+    onClose()
   }
 
   // Calculate popover positioning if anchorRect is provided
