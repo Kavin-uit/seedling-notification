@@ -224,7 +224,7 @@ export const GeminiAssistantModal: React.FC<GeminiAssistantModalProps> = ({
             <div className="flex items-center justify-between pt-1 border-t border-[#E0E2EC]/50">
               <div className="flex items-center gap-1.5 text-xs text-[#747775]">
                 <GeminiSparkleLogo className="w-4 h-4" />
-                <span className="font-medium text-[11px]">Gemini 3.6 Flash</span>
+                <span className="font-medium text-[11px]">Gemini AI (Auto-Failover Active)</span>
               </div>
 
               <button

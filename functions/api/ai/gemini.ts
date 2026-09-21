@@ -19,30 +19,35 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
     }
 
     const { contents, systemInstruction, generationConfig } = body
-    const model = body.model || 'gemini-3.6-flash'
+    const models = ['gemini-3.7-flash', 'gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash']
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents,
-        systemInstruction,
-        generationConfig,
-      }),
-    })
+    let lastError = 'Gemini API call failed'
+    for (const model of models) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents,
+            systemInstruction,
+            generationConfig,
+          }),
+        })
 
-    const data = await response.json()
-    if (!response.ok) {
-      return jsonResponse(
-        { error: (data as any)?.error?.message || 'Gemini API call failed' },
-        response.status
-      )
+        const data = await response.json()
+        if (response.ok) {
+          return jsonResponse(data)
+        }
+        lastError = (data as any)?.error?.message || `HTTP ${response.status}`
+      } catch (e: any) {
+        lastError = e.message
+      }
     }
 
-    return jsonResponse(data)
+    return jsonResponse({ error: lastError }, 503)
   } catch (err: any) {
     return jsonResponse({ error: err.message || 'Server error' }, 500)
   }
