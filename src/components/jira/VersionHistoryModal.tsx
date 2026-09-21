@@ -169,7 +169,6 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                 <thead>
                   <tr className="border-b border-[#DFE1E6] bg-[#FAFBFC] text-[#6B778C] font-semibold text-[11px] uppercase tracking-wider">
                     <th className="px-4 py-2.5 w-44">Date & Time</th>
-                    <th className="px-4 py-2.5 w-32">User</th>
                     <th className="px-4 py-2.5 w-28">Field</th>
                     <th className="px-4 py-2.5">Original Value</th>
                     <th className="px-4 py-2.5">New Value</th>
@@ -191,16 +190,6 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
                           </div>
                           <div className="text-[11px] text-[#6B778C]">
                             {formatRelativeTime(entry.timestamp)}
-                          </div>
-                        </td>
-
-                        {/* Author with small avatar */}
-                        <td className="px-4 py-3 whitespace-nowrap text-[#42526E]">
-                          <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full bg-[#0052CC] text-white text-[10px] font-bold flex items-center justify-center">
-                              QA
-                            </span>
-                            <span className="font-medium">QA Tester</span>
                           </div>
                         </td>
 
