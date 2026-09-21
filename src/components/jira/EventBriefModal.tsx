@@ -88,22 +88,8 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
         <div className="w-10 h-1 rounded-full bg-slate-300/80 mx-auto mt-2.5 mb-1 shrink-0" />
 
         {/* iOS Header */}
-        <div className="flex items-start justify-between px-6 pt-2 pb-3">
-          <div className="min-w-0 pr-3 space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                  scenario.engineCategory === 'Governance'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-blue-100 text-blue-800 border border-blue-200'
-                }`}
-              >
-                {scenario.key}
-              </span>
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                {scenario.engineCategory} Engine
-              </span>
-            </div>
+        <div className="flex items-center justify-between px-6 pt-3 pb-3">
+          <div className="min-w-0 pr-3">
             <h2 className="text-base sm:text-lg font-bold text-[#1C1C1E] tracking-tight leading-snug truncate">
               {scenario.governanceEvent}
             </h2>
