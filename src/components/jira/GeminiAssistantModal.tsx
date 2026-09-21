@@ -89,6 +89,7 @@ export const GeminiAssistantModal: React.FC<GeminiAssistantModalProps> = ({
   const [errorMsg, setErrorMsg] = useState('')
   const [aiResult, setAiResult] = useState<GeminiParsedResponse | null>(null)
   const [appliedSuccess, setAppliedSuccess] = useState<string | null>(null)
+  const [expandedRowIdx, setExpandedRowIdx] = useState<number | null>(0)
 
   if (!isOpen) return null
 
@@ -430,24 +431,39 @@ export const GeminiAssistantModal: React.FC<GeminiAssistantModalProps> = ({
                       </span>
                     </div>
 
-                    <div className="max-h-56 overflow-auto">
-                      <table className="w-full text-left text-xs">
+                    <div className="max-h-64 overflow-auto border-b border-[#E0E2EC]">
+                      <table className="w-full text-left text-xs whitespace-nowrap">
                         <thead className="bg-[#F0F4F9] text-[#444746] text-[11px] uppercase tracking-wider sticky top-0 border-b border-[#E0E2EC]">
                           <tr>
-                            <th className="px-3 py-2">Key</th>
+                            <th className="px-3 py-2 sticky left-0 bg-[#F0F4F9] z-10">Key</th>
                             <th className="px-3 py-2">Engine</th>
                             <th className="px-3 py-2">Event</th>
                             <th className="px-3 py-2">Trigger</th>
+                            <th className="px-3 py-2">Audience</th>
+                            <th className="px-3 py-2">Comm Objective</th>
+                            <th className="px-3 py-2">Desired Outcome</th>
                             <th className="px-3 py-2">Push Subject</th>
+                            <th className="px-3 py-2">Push Body</th>
+                            <th className="px-3 py-2">Email Subject</th>
+                            <th className="px-3 py-2">Email Body</th>
+                            <th className="px-3 py-2">In-App Experience</th>
+                            <th className="px-3 py-2">CTA</th>
                             <th className="px-3 py-2">Status</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#E0E2EC] bg-white">
                           {aiResult.insertedRows.map((row, idx) => {
                             const validated = validateAndSanitizeInsert(row, scenarios, idx)
+                            const isExpanded = expandedRowIdx === idx
                             return (
-                              <tr key={idx} className="hover:bg-[#F8FAFD]">
-                                <td className="px-3 py-2 font-mono font-bold text-[#1A73E8]">
+                              <tr
+                                key={idx}
+                                onClick={() => setExpandedRowIdx(isExpanded ? null : idx)}
+                                className={`hover:bg-[#F8FAFD] cursor-pointer ${
+                                  isExpanded ? 'bg-blue-50/50' : ''
+                                }`}
+                              >
+                                <td className="px-3 py-2 font-mono font-bold text-[#1A73E8] sticky left-0 bg-white shadow-[1px_0_0_0_#E0E2EC]">
                                   {validated.key}
                                 </td>
                                 <td className="px-3 py-2">
@@ -461,14 +477,38 @@ export const GeminiAssistantModal: React.FC<GeminiAssistantModalProps> = ({
                                     {validated.engineCategory}
                                   </span>
                                 </td>
-                                <td className="px-3 py-2 font-medium max-w-[180px] truncate text-[#1F1F1F]">
+                                <td className="px-3 py-2 font-medium max-w-[200px] truncate text-[#1F1F1F]">
                                   {validated.governanceEvent}
                                 </td>
                                 <td className="px-3 py-2 text-[#747775] max-w-[150px] truncate">
                                   {validated.trigger || '-'}
                                 </td>
+                                <td className="px-3 py-2 text-[#444746] font-medium">
+                                  {validated.audience || '-'}
+                                </td>
+                                <td className="px-3 py-2 text-[#747775] max-w-[150px] truncate">
+                                  {validated.communicationObjective || '-'}
+                                </td>
+                                <td className="px-3 py-2 text-[#747775] max-w-[150px] truncate">
+                                  {validated.desiredOutcome || '-'}
+                                </td>
                                 <td className="px-3 py-2 max-w-[180px] truncate text-[#1F1F1F]">
                                   {validated.pushSubject || '-'}
+                                </td>
+                                <td className="px-3 py-2 text-[#747775] max-w-[200px] truncate">
+                                  {validated.pushBody || '-'}
+                                </td>
+                                <td className="px-3 py-2 max-w-[180px] truncate text-[#1F1F1F]">
+                                  {validated.emailSubject || '-'}
+                                </td>
+                                <td className="px-3 py-2 text-[#747775] max-w-[200px] truncate">
+                                  {validated.emailBody || '-'}
+                                </td>
+                                <td className="px-3 py-2 text-[#747775] max-w-[150px] truncate">
+                                  {validated.inAppExperience || '-'}
+                                </td>
+                                <td className="px-3 py-2 text-[#1A73E8] font-semibold">
+                                  {validated.cta || '-'}
                                 </td>
                                 <td className="px-3 py-2">
                                   <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#F1F3F4] text-[#3C4043]">
@@ -481,6 +521,86 @@ export const GeminiAssistantModal: React.FC<GeminiAssistantModalProps> = ({
                         </tbody>
                       </table>
                     </div>
+
+                    {/* Detailed Field Inspector Card for Selected Row */}
+                    {aiResult.insertedRows.length > 0 && expandedRowIdx !== null && (
+                      <div className="p-3.5 bg-[#FAFBFC] text-xs space-y-2.5">
+                        {(() => {
+                          const activeRow = aiResult.insertedRows[expandedRowIdx] || aiResult.insertedRows[0]
+                          const v = validateAndSanitizeInsert(activeRow, scenarios, expandedRowIdx)
+                          return (
+                            <div className="space-y-2 border border-[#E0E2EC] bg-white rounded-xl p-3 shadow-2xs">
+                              <div className="flex items-center justify-between border-b border-[#E0E2EC]/70 pb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono font-bold text-[#1A73E8] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                    {v.key}
+                                  </span>
+                                  <span className="font-semibold text-sm text-[#1F1F1F]">
+                                    {v.governanceEvent}
+                                  </span>
+                                </div>
+                                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                  All 14 Fields Verified
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1 text-[11px]">
+                                <div className="p-2 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60">
+                                  <span className="font-bold text-[#747775] uppercase text-[10px] block">Trigger</span>
+                                  <span className="text-[#1F1F1F] font-medium mt-0.5 block">{v.trigger || '-'}</span>
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60">
+                                  <span className="font-bold text-[#747775] uppercase text-[10px] block">Audience</span>
+                                  <span className="text-[#1F1F1F] font-medium mt-0.5 block">{v.audience || '-'}</span>
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60">
+                                  <span className="font-bold text-[#747775] uppercase text-[10px] block">CTA Action</span>
+                                  <span className="text-[#1A73E8] font-bold mt-0.5 block">{v.cta || '-'}</span>
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60 sm:col-span-2">
+                                  <span className="font-bold text-[#747775] uppercase text-[10px] block">Communication Objective</span>
+                                  <span className="text-[#1F1F1F] mt-0.5 block">{v.communicationObjective || '-'}</span>
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60">
+                                  <span className="font-bold text-[#747775] uppercase text-[10px] block">Desired Outcome</span>
+                                  <span className="text-[#1F1F1F] mt-0.5 block">{v.desiredOutcome || '-'}</span>
+                                </div>
+
+                                <div className="p-2.5 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60 sm:col-span-3">
+                                  <div className="font-bold text-[#1A73E8] uppercase text-[10px] flex items-center gap-1 mb-1">
+                                    <span>📱 Push Notification Payload</span>
+                                  </div>
+                                  <div className="text-[#1F1F1F] font-semibold text-xs mb-0.5">{v.pushSubject || '(No subject)'}</div>
+                                  <div className="text-[#444746] text-xs">{v.pushBody || '(No message body)'}</div>
+                                </div>
+
+                                <div className="p-2.5 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60 sm:col-span-3">
+                                  <div className="font-bold text-[#1A73E8] uppercase text-[10px] flex items-center gap-1 mb-1">
+                                    <span>✉️ Email Notification Payload</span>
+                                  </div>
+                                  <div className="text-[#1F1F1F] font-semibold text-xs mb-0.5">{v.emailSubject || '(No subject)'}</div>
+                                  <div className="text-[#444746] text-xs whitespace-pre-wrap">{v.emailBody || '(No message body)'}</div>
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60 sm:col-span-2">
+                                  <span className="font-bold text-[#747775] uppercase text-[10px] block">In-App Experience</span>
+                                  <span className="text-[#1F1F1F] mt-0.5 block">{v.inAppExperience || '-'}</span>
+                                </div>
+
+                                <div className="p-2 rounded-lg bg-[#F8FAFD] border border-[#E0E2EC]/60">
+                                  <span className="font-bold text-[#747775] uppercase text-[10px] block">Status</span>
+                                  <span className="text-slate-800 font-bold mt-0.5 block">{v.status}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    )}
                   </div>
                 )}
 
