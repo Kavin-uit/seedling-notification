@@ -18,9 +18,28 @@ import {
   Trash2,
   Pencil,
   MessageSquare,
+  Loader2,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
+import { polishCommentWithGemini } from '../../services/commentAiService'
+
+// Google Gemini Multi-Color Gradient Sparkle Logo
+export const GeminiSparkleIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 28 28" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M14 0C14 7.732 7.732 14 0 14C7.732 14 14 20.268 14 28C14 20.268 20.268 14 28 14C20.268 14 14 7.732 14 0Z"
+      fill="url(#gemini_sparkle_comment_grad)"
+    />
+    <defs>
+      <linearGradient id="gemini_sparkle_comment_grad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#1A73E8" />
+        <stop offset="50%" stopColor="#8AB4F8" />
+        <stop offset="100%" stopColor="#9333EA" />
+      </linearGradient>
+    </defs>
+  </svg>
+)
 
 interface JiraTableProps {
   scenarios: NotificationScenario[]
@@ -230,10 +249,30 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   // Comment editing state & handlers
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [commentDraft, setCommentDraft] = useState<string>('')
+  const [isPolishingComment, setIsPolishingComment] = useState<boolean>(false)
+  const [aiPolishedSuccess, setAiPolishedSuccess] = useState<boolean>(false)
 
   const startEditingComment = (scenario: NotificationScenario) => {
     setEditingCommentId(scenario.id)
     setCommentDraft(scenario.comments || '')
+    setAiPolishedSuccess(false)
+  }
+
+  const handlePolishComment = async () => {
+    if (!commentDraft.trim() || isPolishingComment) return
+    setIsPolishingComment(true)
+    try {
+      const polished = await polishCommentWithGemini(commentDraft)
+      if (polished) {
+        setCommentDraft(polished)
+        setAiPolishedSuccess(true)
+        setTimeout(() => setAiPolishedSuccess(false), 2500)
+      }
+    } catch (err) {
+      console.error('Failed to polish comment with Gemini AI:', err)
+    } finally {
+      setIsPolishingComment(false)
+    }
   }
 
   const saveComment = (scenario: NotificationScenario) => {
@@ -795,24 +834,57 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           className="flex items-center gap-1 w-full"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <input
-                            type="text"
-                            autoFocus
-                            value={commentDraft}
-                            onChange={(e) => setCommentDraft(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault()
-                                saveComment(row)
-                              } else if (e.key === 'Escape') {
-                                e.preventDefault()
-                                cancelEditingComment()
-                              }
-                            }}
-                            onBlur={() => saveComment(row)}
-                            placeholder="Add comment & press Enter..."
-                            className="w-full text-xs px-2 py-1 rounded bg-white text-[#172B4D] border border-[#0052CC] ring-2 ring-blue-100 outline-none shadow-xs font-medium placeholder:text-slate-400"
-                          />
+                          <div className="relative flex-1 flex items-center min-w-0">
+                            <input
+                              type="text"
+                              autoFocus
+                              value={commentDraft}
+                              onChange={(e) => setCommentDraft(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  saveComment(row)
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault()
+                                  cancelEditingComment()
+                                }
+                              }}
+                              onBlur={() => {
+                                if (!isPolishingComment) {
+                                  saveComment(row)
+                                }
+                              }}
+                              placeholder="Add comment & press Enter..."
+                              className={`w-full text-xs pl-2 ${
+                                commentDraft.trim().length > 0 ? 'pr-7' : 'pr-2'
+                              } py-1 rounded bg-white text-[#172B4D] border ${
+                                aiPolishedSuccess
+                                  ? 'border-emerald-500 ring-2 ring-emerald-200'
+                                  : 'border-[#0052CC] ring-2 ring-blue-100'
+                              } outline-none shadow-xs font-medium placeholder:text-slate-400 transition-all`}
+                            />
+
+                            {/* Gemini AI Auto-Frame & Spelling Correction Logo Button */}
+                            {commentDraft.trim().length > 0 && (
+                              <button
+                                type="button"
+                                disabled={isPolishingComment}
+                                onMouseDown={(e) => {
+                                  e.preventDefault()
+                                  handlePolishComment()
+                                }}
+                                className="absolute right-1 p-1 rounded-full hover:bg-purple-100 text-purple-600 transition cursor-pointer flex items-center justify-center shrink-0 disabled:opacity-60"
+                                title="Gemini AI: Click to auto-correct spelling & frame into proper English"
+                              >
+                                {isPolishingComment ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
+                                ) : (
+                                  <GeminiSparkleIcon className="w-3.5 h-3.5 hover:scale-125 transition-transform" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+
                           <button
                             type="button"
                             onMouseDown={(e) => {
