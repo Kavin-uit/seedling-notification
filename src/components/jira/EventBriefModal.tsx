@@ -31,6 +31,8 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
   const [polishedSuccess, setPolishedSuccess] = useState(false)
   const [saveToast, setSaveToast] = useState<string | null>(null)
 
+  const isChanged = draftNotes.trim() !== (scenario.notes || '').trim()
+
   // Sync draftNotes whenever scenario changes
   useEffect(() => {
     setDraftNotes(scenario.notes || '')
@@ -67,6 +69,7 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
   }
 
   const handleSave = () => {
+    if (!isChanged) return
     const trimmed = draftNotes.trim()
     const updated: NotificationScenario = {
       ...scenario,
@@ -228,7 +231,7 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
                   onKeyDown={(e) => {
                     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                       e.preventDefault()
-                      handleSave()
+                      if (isChanged) handleSave()
                     }
                   }}
                   placeholder="Add info or details..."
@@ -254,14 +257,16 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
                   >
                     Cancel
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    className="px-3 py-1 rounded text-xs font-semibold bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs transition cursor-pointer inline-flex items-center gap-1"
-                  >
-                    <Check className="w-3 h-3 stroke-[2.5]" />
-                    <span>Save</span>
-                  </button>
+                  {isChanged && (
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      className="px-3 py-1 rounded text-xs font-semibold bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs transition cursor-pointer inline-flex items-center gap-1 animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      <Check className="w-3 h-3 stroke-[2.5]" />
+                      <span>Save</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
