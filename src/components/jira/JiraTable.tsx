@@ -1298,16 +1298,16 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           >
             {isNearTop && (
               <div
-                className="w-2.5 h-2.5 bg-[#1C1C1E] rotate-45 border-l border-t border-white/15 -mb-1.5"
+                className="w-2.5 h-2.5 bg-white rotate-45 border-l border-t border-slate-200 -mb-1.5 z-10 shrink-0"
                 style={{ marginLeft: `${arrowOffset}px` }}
               />
             )}
-            <div className="bg-[#1C1C1E] text-white text-xs rounded-xl p-3 shadow-2xl border border-white/15 backdrop-blur-md space-y-1.5">
-              <div className="flex items-center justify-between gap-1 text-[11px] font-semibold text-slate-300 border-b border-white/10 pb-1.5">
+            <div className="bg-white text-slate-800 text-xs rounded-xl p-3 shadow-xl border border-slate-200 space-y-1.5">
+              <div className="flex items-center justify-between gap-1 text-[11px] font-semibold text-slate-800 border-b border-slate-100 pb-1.5">
                 <span className="truncate">{hoveredInfo.scenario.governanceEvent}</span>
-                <span className="text-[10px] text-blue-400 font-normal shrink-0">Click to view/edit</span>
+                <span className="text-[10px] text-[#007AFF] font-medium shrink-0">Click to view/edit</span>
               </div>
-              <div className="text-xs text-slate-100 leading-relaxed break-words whitespace-pre-wrap max-h-48 overflow-y-auto">
+              <div className="text-xs text-slate-600 leading-relaxed break-words whitespace-pre-wrap max-h-48 overflow-y-auto">
                 {hoveredInfo.scenario.notes?.trim() ? (
                   hoveredInfo.scenario.notes.trim()
                 ) : (
@@ -1317,7 +1317,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             </div>
             {!isNearTop && (
               <div
-                className="w-2.5 h-2.5 bg-[#1C1C1E] rotate-45 border-r border-b border-white/15 -mt-1.5"
+                className="w-2.5 h-2.5 bg-white rotate-45 border-r border-b border-slate-200 -mt-1.5 z-10 shrink-0"
                 style={{ marginLeft: `${arrowOffset}px` }}
               />
             )}

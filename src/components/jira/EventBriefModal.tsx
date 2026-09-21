@@ -142,13 +142,13 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
         )}
 
         <div
-          className={`w-full max-w-[320px] bg-white rounded-xl shadow-xl border border-slate-200/90 overflow-hidden text-[#1C1C1E] font-sans ${
+          className={`w-full max-w-[320px] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden text-[#1C1C1E] font-sans ${
             !anchorRect ? 'pointer-events-auto shadow-2xl' : ''
           }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header Bar */}
-          <div className="flex items-center justify-between px-3.5 py-2 bg-slate-50/80 border-b border-slate-100">
+          <div className="flex items-center justify-between px-3.5 py-2.5 bg-white border-b border-slate-100">
             <span className="text-xs font-semibold text-slate-800 truncate pr-2">
               {scenario.governanceEvent}
             </span>
