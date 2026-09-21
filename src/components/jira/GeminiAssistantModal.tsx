@@ -176,9 +176,6 @@ export const GeminiAssistantModal: React.FC<GeminiAssistantModalProps> = ({
                     Gemini
                   </span>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8F0FE] text-[#1A73E8] border border-[#D2E3FC]">
-                  Direct D1 Sync
-                </span>
               </div>
               <p className="text-xs text-[#747775] mt-0.5">
                 Seedling Notification Scenario Copilot powered by Google AI
