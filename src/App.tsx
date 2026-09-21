@@ -4,7 +4,6 @@ import { JiraNavbar } from './components/jira/JiraNavbar'
 import type { EngineCategoryFilter } from './components/jira/JiraNavbar'
 import { JiraTable } from './components/jira/JiraTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
-import { GeminiAssistantModal } from './components/jira/GeminiAssistantModal'
 import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
 import { recordScenarioUpdate } from './utils/versionHistory'
@@ -16,7 +15,6 @@ export default function App() {
   const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [isImportOpen, setIsImportOpen] = useState(false)
-  const [isGeminiOpen, setIsGeminiOpen] = useState(false)
 
   // Load scenarios dynamically from Cloudflare D1 production database
   useEffect(() => {
@@ -186,22 +184,15 @@ export default function App() {
       ? scenarios
       : scenarios.filter((s) => s.engineCategory === selectedEngine)
 
-  // Handle Gemini AI Batch Add (persisted to D1)
-  const handleGeminiAddScenarios = (newScenarios: NotificationScenario[]) => {
-    setScenarios((prev) => [...prev, ...newScenarios])
-    scenariosApi.bulkImportScenarios(newScenarios)
-  }
-
   return (
     <div className="flex flex-col h-screen h-[100dvh] w-full min-w-0 overflow-hidden bg-white text-[#172B4D] font-sans antialiased select-none">
-      {/* 1. Jira Navigation Bar with Engine Category Switcher & AI Search */}
+      {/* 1. Jira Navigation Bar with Engine Category Switcher & Search */}
       <JiraNavbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onAddRow={handleAddRow}
         onImportClick={() => setIsImportOpen(true)}
         onExportClick={() => exportScenariosToExcel(exportTargetScenarios, 'xlsx')}
-        onOpenGemini={() => setIsGeminiOpen(true)}
         selectedEngine={selectedEngine}
         onSelectEngine={setSelectedEngine}
         govCount={govCount}
@@ -241,15 +232,6 @@ export default function App() {
           currentMaxKeyNum={scenarios.length}
         />
       )}
-
-      {/* 4. Google Gemini AI Assistant Modal */}
-      <GeminiAssistantModal
-        isOpen={isGeminiOpen}
-        onClose={() => setIsGeminiOpen(false)}
-        scenarios={scenarios}
-        onAddScenarios={handleGeminiAddScenarios}
-        onUpdateScenario={handleUpdateScenario}
-      />
     </div>
   )
 }

@@ -1,6 +1,5 @@
 import React from 'react'
 import { Search, FileSpreadsheet, X } from 'lucide-react'
-import { GeminiSparkleLogo } from './GeminiAssistantModal'
 
 export type EngineCategoryFilter = 'ALL' | 'Governance' | 'Contribution'
 
@@ -10,7 +9,6 @@ interface JiraNavbarProps {
   onAddRow?: () => void
   onImportClick?: () => void
   onExportClick: () => void
-  onOpenGemini?: () => void
   selectedEngine: EngineCategoryFilter
   onSelectEngine: (engine: EngineCategoryFilter) => void
   govCount: number
@@ -22,7 +20,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   searchQuery,
   onSearchChange,
   onExportClick,
-  onOpenGemini,
   selectedEngine,
   onSelectEngine,
   govCount,
@@ -154,17 +151,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             </button>
           )}
         </div>
-        {/* Google Gemini Assistant Button */}
-        <button
-          type="button"
-          onClick={onOpenGemini}
-          className="cursor-pointer bg-white hover:bg-slate-50 text-slate-800 px-2.5 sm:px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0 border border-slate-200"
-          title="Google Gemini: Add or update database scenarios using AI"
-        >
-          <GeminiSparkleLogo className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline font-medium">Gemini</span>
-          <span className="sm:hidden font-medium">AI</span>
-        </button>
 
         {/* Export Excel Button */}
         <button
