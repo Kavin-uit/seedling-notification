@@ -4,6 +4,7 @@ import { JiraStatusBadge } from './JiraStatusBadge'
 import { EngineBadge } from './EngineBadge'
 import { JiraDefectModal } from './JiraDefectModal'
 import { VersionHistoryModal } from './VersionHistoryModal'
+import { EventBriefModal } from './EventBriefModal'
 import {
   Filter,
   ChevronRight,
@@ -199,6 +200,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set())
   const [defectScenario, setDefectScenario] = useState<NotificationScenario | null>(null)
   const [historyScenario, setHistoryScenario] = useState<NotificationScenario | null>(null)
+  const [selectedEventBriefScenario, setSelectedEventBriefScenario] = useState<NotificationScenario | null>(null)
   const [deletingScenario, setDeletingScenario] = useState<NotificationScenario | null>(null)
   const [copiedToast, setCopiedToast] = useState<string | null>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null)
@@ -765,9 +767,24 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                       />
                     </td>
 
-                    {/* Event Name */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] font-medium">
-                      {renderCell('governanceEvent', row.governanceEvent)}
+                    {/* Event Name with (i) Info Brief Button */}
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] font-medium group/event">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex-1 min-w-0">
+                          {renderCell('governanceEvent', row.governanceEvent)}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedEventBriefScenario(row)
+                          }}
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 transition cursor-pointer shrink-0 opacity-70 hover:opacity-100 group-hover/event:opacity-100"
+                          title="View Event brief details & edit with Gemini AI"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
 
                     {/* Trigger */}
@@ -1221,6 +1238,21 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               `Restored ${fieldKey} to previous value from ${new Date(timestamp).toLocaleTimeString()}`
             )
             setTimeout(() => setCopiedToast(null), 3000)
+          }}
+        />
+      )}
+
+      {/* Event Brief & Details Modal with Inline Gemini AI Framing */}
+      {selectedEventBriefScenario && (
+        <EventBriefModal
+          scenario={
+            scenarios.find((s) => s.id === selectedEventBriefScenario.id) ||
+            selectedEventBriefScenario
+          }
+          onClose={() => setSelectedEventBriefScenario(null)}
+          onUpdateScenario={(updated) => {
+            onUpdateScenario(updated)
+            setSelectedEventBriefScenario(updated)
           }}
         />
       )}

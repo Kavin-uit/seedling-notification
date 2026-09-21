@@ -3,6 +3,13 @@
  */
 
 export async function polishCommentWithGemini(rawDraft: string): Promise<string> {
+  return polishTextWithGemini(rawDraft, 'comment')
+}
+
+export async function polishTextWithGemini(
+  rawDraft: string,
+  fieldLabel: string = 'content'
+): Promise<string> {
   const text = rawDraft.trim()
   if (!text) return ''
 
@@ -12,15 +19,15 @@ export async function polishCommentWithGemini(rawDraft: string): Promise<string>
     return localCleanComment(text)
   }
 
-  const prompt = `You are an elite QA and software engineering assistant. 
-Rewrite and polish this draft QA comment for a Jira test scenario record.
+  const prompt = `You are an elite QA and software engineering technical writing assistant.
+Rewrite and polish this draft for a Jira notification scenario (${fieldLabel}).
 Requirements:
 1. Fix all spelling errors, grammar mistakes, and typos.
-2. Frame it into clear, professional, concise, and natural English.
-3. Keep the original meaning and technical details (e.g. device names, error codes, HTTP statuses, links).
-4. Return ONLY the final polished comment text with NO quotation marks, NO introductory text, and NO markdown code blocks.
+2. Frame it into clear, professional, concise, natural English appropriate for a ${fieldLabel}.
+3. Preserve all technical details, codes, variables, and links.
+4. Return ONLY the final polished text with NO quotation marks, NO introductory text, and NO markdown code blocks.
 
-Draft comment:
+Draft text:
 ${text}`
 
   // High-availability model list in order of speed and stability
