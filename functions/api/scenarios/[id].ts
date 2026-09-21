@@ -71,7 +71,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
       email_body: safeStr(data.emailBody, current.email_body),
       in_app_experience: safeStr(data.inAppExperience, current.in_app_experience),
       cta: safeStr(data.cta, current.cta),
-      comments: data.comments !== undefined && data.comments !== null && String(data.comments).trim().length > 0
+      comments: data.comments !== undefined && data.comments !== null
         ? String(data.comments).trim()
         : (current.comments ?? ''),
       status: validStatus ?? current.status,

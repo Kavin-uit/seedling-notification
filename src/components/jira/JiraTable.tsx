@@ -286,7 +286,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
         comments: trimmed,
         updatedAt: new Date().toISOString(),
       })
-      setCopiedToast(`Saved comment for ${scenario.key}`)
+      setCopiedToast(trimmed ? `Saved comment for ${scenario.key}` : `Cleared comment for ${scenario.key}`)
       setTimeout(() => setCopiedToast(null), 2000)
     }
     setEditingCommentId(null)
@@ -838,14 +838,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Manual Comments */}
-                    <td
-                      className="px-2 py-1.5 border-r border-[#E1E4E8] min-w-[200px] max-w-[320px] cursor-pointer group/comment"
-                      onClick={() => {
-                        if (editingCommentId !== row.id) {
-                          startEditingComment(row)
-                        }
-                      }}
-                    >
+                    <td className="px-2 py-1.5 border-r border-[#E1E4E8] min-w-[200px] max-w-[320px]">
                       {editingCommentId === row.id ? (
                         <div
                           className="flex items-center gap-1 w-full"
@@ -904,9 +897,12 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
                           <button
                             type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              saveComment(row)
+                            }}
                             onMouseDown={(e) => {
                               e.preventDefault()
-                              saveComment(row)
                             }}
                             className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition cursor-pointer shrink-0"
                             title="Save comment (Enter)"
@@ -915,9 +911,12 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           </button>
                           <button
                             type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              cancelEditingComment()
+                            }}
                             onMouseDown={(e) => {
                               e.preventDefault()
-                              cancelEditingComment()
                             }}
                             className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition cursor-pointer shrink-0"
                             title="Cancel (Esc)"
@@ -926,7 +925,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between gap-1 group-hover/comment:bg-blue-50/60 px-1 py-0.5 rounded transition">
+                        <div
+                          onClick={() => startEditingComment(row)}
+                          className="flex items-center justify-between gap-1 group-hover/comment:bg-blue-50/60 px-1 py-0.5 rounded transition cursor-pointer group/comment"
+                        >
                           <div
                             className={`truncate text-xs ${
                               row.comments
