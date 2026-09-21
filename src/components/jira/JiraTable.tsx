@@ -596,9 +596,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       {/* Spreadsheet Table Container */}
       <div className="flex-1 overflow-auto bg-white pb-36" ref={tableContainerRef}>
         <table className="w-full border-collapse text-left text-xs font-sans">
-          {/* Header styled strictly like Atlassian Jira Work Management */}
-          <thead className="bg-[#F4F5F7] text-[#5E6C84] sticky top-0 z-20 shadow-xs select-none border-b border-[#DFE1E6]">
-            <tr className="border-b border-[#DFE1E6]">
+          {/* Header styled like Microsoft Excel / Google Sheets green header */}
+          <thead className="bg-[#107C41] text-white sticky top-0 z-20 shadow-xs select-none border-b border-[#0D6535]">
+            <tr className="border-b border-[#0D6535]">
               <th
                 onClick={() => {
                   if (selectedRowIds.size > 0) {
@@ -607,57 +607,57 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     setSelectedRowIds(new Set(filteredScenarios.map((s) => s.id)))
                   }
                 }}
-                className="w-12 px-2 py-2.5 font-bold text-center border-r border-[#DFE1E6] bg-[#F4F5F7] text-[#5E6C84] cursor-pointer hover:bg-[#EBECF0] transition select-none sticky left-0 z-30 shadow-[1px_0_0_0_#DFE1E6]"
+                className="w-12 px-2 py-2.5 font-bold text-center border-r border-[#0D6535] bg-[#0E6C38] text-white cursor-pointer hover:bg-[#0A542B] transition select-none sticky left-0 z-30 shadow-[1px_0_0_0_#0D6535]"
                 title={selectedRowIds.size > 0 ? 'Click to deselect all rows' : 'Click to select all rows'}
               >
                 #
               </th>
 
               {/* Engine Column with Quick Status Dropdown */}
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[130px] lg:min-w-[140px] bg-[#F4F5F7] text-[#5E6C84]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[130px] lg:min-w-[140px] bg-[#107C41] text-white">
                 Engine
               </th>
 
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[190px] xl:min-w-[220px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[190px] xl:min-w-[220px]">
                 {eventColumnHeader}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[130px] xl:min-w-[150px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[130px] xl:min-w-[150px]">
                 Trigger
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[120px] xl:min-w-[140px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[120px] xl:min-w-[140px]">
                 Audience
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[160px] xl:min-w-[180px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[160px] xl:min-w-[180px]">
                 Communication Objective
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[130px] xl:min-w-[150px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[130px] xl:min-w-[150px]">
                 Desired Outcome
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[180px] xl:min-w-[200px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[180px] xl:min-w-[200px]">
                 Push Notification Subject Line
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[210px] xl:min-w-[240px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[210px] xl:min-w-[240px]">
                 Push Notification
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[180px] xl:min-w-[200px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[180px] xl:min-w-[200px]">
                 Email Subject Line
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[220px] xl:min-w-[250px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[220px] xl:min-w-[250px]">
                 Email Message
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[150px] xl:min-w-[180px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[150px] xl:min-w-[180px]">
                 In-App Experience
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[110px] xl:min-w-[130px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[110px] xl:min-w-[130px]">
                 Call to Action
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[170px] xl:min-w-[200px]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[170px] xl:min-w-[200px]">
                 Comments
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#DFE1E6] whitespace-nowrap min-w-[120px] xl:min-w-[130px] bg-[#F4F5F7] text-[#5E6C84]">
+              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[120px] xl:min-w-[130px] bg-[#107C41] text-white">
                 Status
               </th>
-              <th className="px-2 py-2.5 font-bold uppercase text-[11px] tracking-wider text-center whitespace-nowrap bg-[#F4F5F7] text-[#5E6C84] min-w-[70px] xl:min-w-[76px]">
+              <th className="px-2 py-2.5 font-bold uppercase text-[11px] tracking-wider text-center whitespace-nowrap bg-[#107C41] text-white min-w-[70px] xl:min-w-[76px]">
                 Action
               </th>
             </tr>
