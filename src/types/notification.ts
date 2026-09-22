@@ -11,6 +11,20 @@ export type ScenarioStatus =
   | 'SMS NOTIFICATION NOT WORKING'
   | (string & {})
 
+export function parseStatuses(statusStr?: string): ScenarioStatus[] {
+  if (!statusStr) return ['TO DO']
+  const parts = statusStr
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return parts.length > 0 ? (parts as ScenarioStatus[]) : ['TO DO']
+}
+
+export function serializeStatuses(statuses: ScenarioStatus[]): string {
+  if (!statuses || statuses.length === 0) return 'TO DO'
+  return Array.from(new Set(statuses)).join(', ')
+}
+
 export type PriorityLevel = 'Highest' | 'High' | 'Medium' | 'Low'
 
 export type Environment = 'DEV' | 'STAGING' | 'PROD'

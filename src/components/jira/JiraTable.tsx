@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { NotificationScenario, ScenarioStatus } from '../../types/notification'
+import { parseStatuses } from '../../types/notification'
 import { JiraStatusBadge } from './JiraStatusBadge'
 import { EngineBadge } from './EngineBadge'
 import { JiraDefectModal } from './JiraDefectModal'
@@ -463,27 +464,19 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
     const counts: Record<string, number> = {
       ALL: engineScenarios.length,
-      'TO DO': 0,
-      TESTED: 0,
-      'NOT WORKING': 0,
-      'IN-APP NAVIGATION NOT WORKING': 0,
-      'NAVIGATION NOT WORKING': 0,
-      'PUSH NOTIFICATION NOT WORKING': 0,
-      'PUSH NOTIFICATION NAVIGATION NOT WORKING': 0,
-      'EMAIL NOTIFICATION NOT WORKING': 0,
-      'EMAIL NOTIFICATION NAVIGATION NOT WORKING': 0,
-      'SMS NOTIFICATION NOT WORKING': 0,
       NOT_WORKING_ANY: 0,
     }
 
     engineScenarios.forEach((s) => {
-      const st = s.status || 'TO DO'
-      if (counts[st] !== undefined) {
-        counts[st]++
-      } else {
-        counts[st] = 1
-      }
-      if (st && st.includes('NOT WORKING')) {
+      const activeList = parseStatuses(s.status)
+      let hasNotWorking = false
+      activeList.forEach((st) => {
+        counts[st] = (counts[st] || 0) + 1
+        if (st.includes('NOT WORKING')) {
+          hasNotWorking = true
+        }
+      })
+      if (hasNotWorking) {
         counts.NOT_WORKING_ANY++
       }
     })
@@ -496,13 +489,13 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     return scenarios.filter((s) => {
       const matchesEngine =
         selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
-      const rowStatus = s.status || 'TO DO'
+      const activeList = parseStatuses(s.status)
       const matchesStatus =
         statusFilter === 'ALL'
           ? true
           : statusFilter === 'NOT_WORKING_ANY'
-          ? rowStatus.includes('NOT WORKING')
-          : rowStatus === statusFilter
+          ? activeList.some((st) => st.includes('NOT WORKING'))
+          : activeList.includes(statusFilter as ScenarioStatus)
       return matchesEngine && matchesStatus
     })
   }, [scenarios, selectedEngine, statusFilter])
@@ -595,10 +588,13 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     ]
     const seen = new Set<string>(base)
     scenarios.forEach((s) => {
-      if (s.status && !seen.has(s.status)) {
-        seen.add(s.status)
-        base.push(s.status)
-      }
+      const list = parseStatuses(s.status)
+      list.forEach((st) => {
+        if (st && !seen.has(st)) {
+          seen.add(st)
+          base.push(st)
+        }
+      })
     })
     return base
   }, [scenarios])

@@ -28,16 +28,25 @@ const statusLozenges: Record<
 }
 
 const renderJiraLozenge = (status: string) => {
-  const cfg = statusLozenges[status] || {
-    bg: 'bg-[#DFE1E6]',
-    text: 'text-[#42526E]',
-    label: status || 'TO DO',
-  }
+  if (!status) return null
+  const statuses = status.split(',').map((s) => s.trim()).filter(Boolean)
   return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}
-    >
-      {cfg.label}
+    <span className="inline-flex flex-wrap gap-1 items-center">
+      {statuses.map((st) => {
+        const cfg = statusLozenges[st] || {
+          bg: 'bg-[#FFEBE6]',
+          text: 'text-[#BF2600]',
+          label: st,
+        }
+        return (
+          <span
+            key={st}
+            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}
+          >
+            {cfg.label}
+          </span>
+        )
+      })}
     </span>
   )
 }
