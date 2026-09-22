@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 // Cloudflare Pages Functions Type Definitions and D1 Helpers
 
 export interface Env {
