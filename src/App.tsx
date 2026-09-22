@@ -171,17 +171,12 @@ export default function App() {
 
   // Quick inline edit of scenario field (persisted with version history)
   const handleUpdateScenario = (updated: NotificationScenario) => {
-    let scenarioToSave: NotificationScenario | null = null
-    setScenarios((prev) => {
-      const target = prev.find((s) => s.id === updated.id)
-      if (!target) return prev
-      const recorded = recordScenarioUpdate(target, updated)
-      scenarioToSave = recorded
-      return prev.map((s) => (s.id === updated.id ? recorded : s))
+    const target = scenarios.find((s) => s.id === updated.id) || updated
+    const recorded = recordScenarioUpdate(target, updated)
+    setScenarios((prev) => prev.map((s) => (s.id === updated.id ? recorded : s)))
+    scenariosApi.updateScenario(recorded).catch((err) => {
+      console.error('Failed to persist scenario update:', err)
     })
-    if (scenarioToSave) {
-      scenariosApi.updateScenario(scenarioToSave)
-    }
   }
 
   // Apply Sheet Expected Value to Scenario
@@ -221,26 +216,22 @@ export default function App() {
 
   // Quick status update (persisted with version history)
   const handleUpdateStatus = (id: string, newStatus: ScenarioStatus) => {
-    let scenarioToSave: NotificationScenario | null = null
-    setScenarios((prev) => {
-      const target = prev.find((s) => s.id === id)
-      if (!target) return prev
-      const updated: NotificationScenario = {
-        ...target,
-        status: newStatus,
-        updatedAt: new Date().toISOString(),
-      }
-      const recorded = recordScenarioUpdate(
-        target,
-        updated,
-        `Status changed: ${target.status} → ${newStatus}`
-      )
-      scenarioToSave = recorded
-      return prev.map((s) => (s.id === id ? recorded : s))
-    })
-    if (scenarioToSave) {
-      scenariosApi.updateScenario(scenarioToSave)
+    const target = scenarios.find((s) => s.id === id)
+    if (!target) return
+    const updated: NotificationScenario = {
+      ...target,
+      status: newStatus,
+      updatedAt: new Date().toISOString(),
     }
+    const recorded = recordScenarioUpdate(
+      target,
+      updated,
+      `Status changed: ${target.status} → ${newStatus}`
+    )
+    setScenarios((prev) => prev.map((s) => (s.id === id ? recorded : s)))
+    scenariosApi.updateScenario(recorded).catch((err) => {
+      console.error('Failed to persist status change:', err)
+    })
   }
 
   // Rollback scenario row (persisted to D1)

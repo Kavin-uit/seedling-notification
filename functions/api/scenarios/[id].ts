@@ -39,36 +39,20 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
       return trimmed.length > 0 ? trimmed : (currentVal ?? '')
     }
 
-    // Status normalization helper for server
+    // Status normalization helper for server (flexible for current and future statuses)
     const normalizeServerStatus = (raw?: string): string | null => {
       if (!raw) return null
-      const clean = raw.trim().toUpperCase()
-      const valids = [
-        'TO DO',
-        'TESTED',
-        'NOT WORKING',
-        'IN-APP NAVIGATION NOT WORKING',
-        'NAVIGATION NOT WORKING',
-        'PUSH NOTIFICATION NOT WORKING',
-        'PUSH NOTIFICATION NAVIGATION NOT WORKING',
-        'EMAIL NOTIFICATION NOT WORKING',
-        'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
-        'SMS NOTIFICATION NOT WORKING',
-      ]
-      if (valids.includes(clean)) {
-        if (clean === 'NAVIGATION NOT WORKING') return 'IN-APP NAVIGATION NOT WORKING'
-        return clean
-      }
+      const trimmed = String(raw).trim()
+      if (!trimmed) return null
+      const clean = trimmed.toUpperCase()
+
+      // Normalize common legacy aliases
+      if (clean === 'NAVIGATION NOT WORKING') return 'IN-APP NAVIGATION NOT WORKING'
       if (clean === 'PASSED' || clean === 'PASS' || clean === 'VERIFIED') return 'TESTED'
-      if (clean.includes('PUSH') && clean.includes('NAV')) return 'PUSH NOTIFICATION NAVIGATION NOT WORKING'
-      if (clean.includes('EMAIL') && clean.includes('NAV')) return 'EMAIL NOTIFICATION NAVIGATION NOT WORKING'
-      if (clean.includes('NAV')) return 'IN-APP NAVIGATION NOT WORKING'
-      if (clean.includes('PUSH') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'PUSH NOTIFICATION NOT WORKING'
-      if (clean.includes('EMAIL') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'EMAIL NOTIFICATION NOT WORKING'
-      if (clean.includes('SMS') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'SMS NOTIFICATION NOT WORKING'
-      if (clean.includes('FAIL') || clean.includes('DEFECT') || clean.includes('BUG')) return 'NOT WORKING'
       if (clean === 'TODO' || clean === 'TO-DO' || clean === 'OPEN') return 'TO DO'
-      return null
+
+      // Accept any standard or future status string cleanly
+      return clean
     }
 
     const validStatus = normalizeServerStatus(data.status)

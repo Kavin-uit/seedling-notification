@@ -87,19 +87,86 @@ const statusConfig: Record<
   },
 }
 
-export const JiraStatusBadge: React.FC<JiraStatusBadgeProps> = ({
+export function getStatusBadgeConfig(status?: string): {
+  bg: string
+  text: string
+  border: string
+  label: string
+  icon: React.ReactNode
+} {
+  const s = status || 'TO DO'
+  if (statusConfig[s as keyof typeof statusConfig]) {
+    return statusConfig[s as keyof typeof statusConfig]
+  }
+  const clean = s.toUpperCase()
+  if (clean.includes('TEST') || clean.includes('PASS')) {
+    return {
+      bg: 'bg-[#E3FCEF] hover:bg-[#ABF5D1]',
+      text: 'text-[#006644]',
+      border: 'border-transparent',
+      label: s,
+      icon: <CheckCircle2 className="w-3 h-3 text-[#006644]" />,
+    }
+  }
+  if (clean.includes('TODO') || clean.includes('TO DO')) {
+    return {
+      bg: 'bg-[#DFE1E6] hover:bg-[#D0D4DC]',
+      text: 'text-[#42526E]',
+      border: 'border-transparent',
+      label: s,
+      icon: <Clock className="w-3 h-3 text-[#42526E]" />,
+    }
+  }
+  if (clean.includes('EMAIL')) {
+    return {
+      bg: 'bg-[#EAE6FF] hover:bg-[#D8D0FF]',
+      text: 'text-[#403294]',
+      border: 'border-transparent',
+      label: s,
+      icon: <AlertCircle className="w-3 h-3 text-[#403294]" />,
+    }
+  }
+  if (clean.includes('SMS')) {
+    return {
+      bg: 'bg-[#E6FCFF] hover:bg-[#B6F0FF]',
+      text: 'text-[#0065FF]',
+      border: 'border-transparent',
+      label: s,
+      icon: <AlertCircle className="w-3 h-3 text-[#0065FF]" />,
+    }
+  }
+  if (clean.includes('NAV')) {
+    return {
+      bg: 'bg-[#FFF0B3] hover:bg-[#FFE380]',
+      text: 'text-[#172B4D]',
+      border: 'border-transparent',
+      label: s,
+      icon: <AlertCircle className="w-3 h-3 text-[#FFAB00]" />,
+    }
+  }
+  return {
+    bg: 'bg-[#FFEBE6] hover:bg-[#FFBDAD]',
+    text: 'text-[#BF2600]',
+    border: 'border-transparent',
+    label: s,
+    icon: <AlertCircle className="w-3 h-3 text-[#BF2600]" />,
+  }
+}
+
+export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuses?: ScenarioStatus[] }> = ({
   status,
   onChange,
   onCreateDefect,
   onOpenLog,
   interactive = true,
   size = 'md',
+  availableStatuses,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [openUpward, setOpenUpward] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const current = statusConfig[status] || statusConfig['TO DO']
+  const current = getStatusBadgeConfig(status)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent | PointerEvent) {
@@ -134,7 +201,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps> = ({
     )
   }
 
-  const allStatuses: ScenarioStatus[] = [
+  const defaultStatuses: ScenarioStatus[] = [
     'TO DO',
     'TESTED',
     'NOT WORKING',
@@ -145,6 +212,9 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps> = ({
     'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
     'SMS NOTIFICATION NOT WORKING',
   ]
+
+  const statusList = availableStatuses && availableStatuses.length > 0 ? availableStatuses : defaultStatuses
+  const allStatuses = statusList.includes(status) ? statusList : [...statusList, status]
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -215,7 +285,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps> = ({
             </div>
           <div className="py-1">
             {allStatuses.map((st) => {
-              const cfg = statusConfig[st]
+              const cfg = getStatusBadgeConfig(st)
               const isSelected = st === status
               return (
                 <button

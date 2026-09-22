@@ -126,7 +126,10 @@ class ScenariosApi {
   async updateScenario(scenario: NotificationScenario): Promise<NotificationScenario> {
     // Immediately persist to local cache so updates never get lost
     const current = this.getLocalCache()
-    const updatedList = current.map((s) => (s.id === scenario.id ? scenario : s))
+    const exists = current.some((s) => s.id === scenario.id)
+    const updatedList = exists
+      ? current.map((s) => (s.id === scenario.id ? scenario : s))
+      : [...current, scenario]
     this.setLocalCache(updatedList)
 
     try {

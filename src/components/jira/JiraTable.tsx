@@ -496,12 +496,13 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     return scenarios.filter((s) => {
       const matchesEngine =
         selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
+      const rowStatus = s.status || 'TO DO'
       const matchesStatus =
         statusFilter === 'ALL'
           ? true
           : statusFilter === 'NOT_WORKING_ANY'
-          ? s.status.includes('NOT WORKING')
-          : s.status === statusFilter
+          ? rowStatus.includes('NOT WORKING')
+          : rowStatus === statusFilter
       return matchesEngine && matchesStatus
     })
   }, [scenarios, selectedEngine, statusFilter])
@@ -580,17 +581,53 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       ? 'Contribution Event'
       : 'Event'
 
-  const allStatuses: ScenarioStatus[] = [
-    'TO DO',
-    'TESTED',
-    'NOT WORKING',
-    'IN-APP NAVIGATION NOT WORKING',
-    'PUSH NOTIFICATION NOT WORKING',
-    'PUSH NOTIFICATION NAVIGATION NOT WORKING',
-    'EMAIL NOTIFICATION NOT WORKING',
-    'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
-    'SMS NOTIFICATION NOT WORKING',
-  ]
+  const allStatuses = useMemo<ScenarioStatus[]>(() => {
+    const base: ScenarioStatus[] = [
+      'TO DO',
+      'TESTED',
+      'NOT WORKING',
+      'IN-APP NAVIGATION NOT WORKING',
+      'PUSH NOTIFICATION NOT WORKING',
+      'PUSH NOTIFICATION NAVIGATION NOT WORKING',
+      'EMAIL NOTIFICATION NOT WORKING',
+      'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
+      'SMS NOTIFICATION NOT WORKING',
+    ]
+    const seen = new Set<string>(base)
+    scenarios.forEach((s) => {
+      if (s.status && !seen.has(s.status)) {
+        seen.add(s.status)
+        base.push(s.status)
+      }
+    })
+    return base
+  }, [scenarios])
+
+  const statusFilterItems = useMemo(() => {
+    const items: { label: string; value: string; dotColor: string }[] = [
+      { label: 'All Statuses', value: 'ALL', dotColor: 'bg-[#6B778C]' },
+    ]
+
+    allStatuses.forEach((st) => {
+      let dotColor = 'bg-[#BF2600]'
+      const clean = st.toUpperCase()
+      if (clean === 'TO DO' || clean.includes('TODO')) dotColor = 'bg-[#42526E]'
+      else if (clean === 'TESTED' || clean.includes('PASS')) dotColor = 'bg-[#00875A]'
+      else if (clean.includes('NAV')) dotColor = 'bg-[#FF8B00]'
+      else if (clean.includes('PUSH')) dotColor = 'bg-[#FF5630]'
+      else if (clean.includes('EMAIL')) dotColor = 'bg-[#6554C0]'
+      else if (clean.includes('SMS')) dotColor = 'bg-[#00B8D9]'
+
+      items.push({
+        label: st,
+        value: st,
+        dotColor,
+      })
+    })
+
+    items.push({ label: 'ALL NOT WORKING', value: 'NOT_WORKING_ANY', dotColor: 'bg-[#BF2600]' })
+    return items
+  }, [allStatuses])
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden select-text relative">
@@ -721,19 +758,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   </div>
 
                   <div className="max-h-72 overflow-y-auto py-0.5">
-                    {[
-                      { label: 'All Statuses', value: 'ALL', dotColor: 'bg-[#6B778C]' },
-                      { label: 'TO DO', value: 'TO DO', dotColor: 'bg-[#42526E]' },
-                      { label: 'TESTED', value: 'TESTED', dotColor: 'bg-[#00875A]' },
-                      { label: 'NOT WORKING', value: 'NOT WORKING', dotColor: 'bg-[#DE350B]' },
-                      { label: 'IN-APP NAVIGATION NOT WORKING', value: 'IN-APP NAVIGATION NOT WORKING', dotColor: 'bg-[#FF8B00]' },
-                      { label: 'PUSH NOTIFICATION NOT WORKING', value: 'PUSH NOTIFICATION NOT WORKING', dotColor: 'bg-[#FF5630]' },
-                      { label: 'PUSH NOTIFICATION NAVIGATION NOT WORKING', value: 'PUSH NOTIFICATION NAVIGATION NOT WORKING', dotColor: 'bg-[#FF5630]' },
-                      { label: 'EMAIL NOTIFICATION NOT WORKING', value: 'EMAIL NOTIFICATION NOT WORKING', dotColor: 'bg-[#6554C0]' },
-                      { label: 'EMAIL NOTIFICATION NAVIGATION NOT WORKING', value: 'EMAIL NOTIFICATION NAVIGATION NOT WORKING', dotColor: 'bg-[#6554C0]' },
-                      { label: 'SMS NOTIFICATION NOT WORKING', value: 'SMS NOTIFICATION NOT WORKING', dotColor: 'bg-[#00B8D9]' },
-                      { label: 'ALL NOT WORKING', value: 'NOT_WORKING_ANY', dotColor: 'bg-[#BF2600]' },
-                    ].map(({ label, value, dotColor }) => {
+                    {statusFilterItems.map(({ label, value, dotColor }) => {
                       const count = statusCounts[value] ?? 0
                       const isSelected = statusFilter === value
                       return (
@@ -926,7 +951,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
                 const isSelected = selectedRowIds.has(row.id)
                 const isTested = row.status === 'TESTED'
-                const isNotWorking = row.status.includes('NOT WORKING')
+                const isNotWorking = Boolean(row.status && row.status.includes('NOT WORKING'))
                 const isCurrentMatch =
                   Boolean(searchQuery.trim()) &&
                   matchingScenarios[currentMatchIndex]?.id === row.id
@@ -1244,6 +1269,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                         onChange={(st) => onUpdateStatus(row.id, st)}
                         onCreateDefect={() => setDefectScenario(row)}
                         onOpenLog={() => setHistoryScenario(row)}
+                        availableStatuses={allStatuses}
                         size="sm"
                       />
                     </td>

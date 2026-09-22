@@ -9,6 +9,7 @@ export type ScenarioStatus =
   | 'EMAIL NOTIFICATION NOT WORKING'
   | 'EMAIL NOTIFICATION NAVIGATION NOT WORKING'
   | 'SMS NOTIFICATION NOT WORKING'
+  | (string & {})
 
 export type PriorityLevel = 'Highest' | 'High' | 'Medium' | 'Low'
 
