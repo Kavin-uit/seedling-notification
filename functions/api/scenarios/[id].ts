@@ -47,14 +47,18 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
         'TO DO',
         'TESTED',
         'NOT WORKING',
+        'IN-APP NAVIGATION NOT WORKING',
         'NAVIGATION NOT WORKING',
         'PUSH NOTIFICATION NOT WORKING',
         'EMAIL NOTIFICATION NOT WORKING',
         'SMS NOTIFICATION NOT WORKING',
       ]
-      if (valids.includes(clean)) return clean
+      if (valids.includes(clean)) {
+        if (clean === 'NAVIGATION NOT WORKING') return 'IN-APP NAVIGATION NOT WORKING'
+        return clean
+      }
       if (clean === 'PASSED' || clean === 'PASS' || clean === 'VERIFIED') return 'TESTED'
-      if (clean.includes('NAV')) return 'NAVIGATION NOT WORKING'
+      if (clean.includes('NAV')) return 'IN-APP NAVIGATION NOT WORKING'
       if (clean.includes('PUSH') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'PUSH NOTIFICATION NOT WORKING'
       if (clean.includes('EMAIL') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'EMAIL NOTIFICATION NOT WORKING'
       if (clean.includes('SMS') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'SMS NOTIFICATION NOT WORKING'

@@ -36,11 +36,18 @@ const statusConfig: Record<
     label: 'NOT WORKING',
     icon: <AlertCircle className="w-3 h-3 text-[#BF2600]" />,
   },
+  'IN-APP NAVIGATION NOT WORKING': {
+    bg: 'bg-[#FFF0B3] hover:bg-[#FFE380]',
+    text: 'text-[#172B4D]',
+    border: 'border-transparent',
+    label: 'IN-APP NAVIGATION NOT WORKING',
+    icon: <AlertCircle className="w-3 h-3 text-[#FFAB00]" />,
+  },
   'NAVIGATION NOT WORKING': {
     bg: 'bg-[#FFF0B3] hover:bg-[#FFE380]',
     text: 'text-[#172B4D]',
     border: 'border-transparent',
-    label: 'NAVIGATION NOT WORKING',
+    label: 'IN-APP NAVIGATION NOT WORKING',
     icon: <AlertCircle className="w-3 h-3 text-[#FFAB00]" />,
   },
   'PUSH NOTIFICATION NOT WORKING': {
@@ -117,7 +124,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps> = ({
     'TO DO',
     'TESTED',
     'NOT WORKING',
-    'NAVIGATION NOT WORKING',
+    'IN-APP NAVIGATION NOT WORKING',
     'PUSH NOTIFICATION NOT WORKING',
     'EMAIL NOTIFICATION NOT WORKING',
     'SMS NOTIFICATION NOT WORKING',
