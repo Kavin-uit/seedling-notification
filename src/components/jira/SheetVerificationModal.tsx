@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   X,
   ExternalLink,
@@ -16,6 +16,7 @@ import {
   type EngineSheetConfig,
   type SheetVerificationSummary,
 } from '../../services/sheetVerificationService'
+import { engineSheetsApi } from '../../api/engineSheetsApi'
 
 interface SheetVerificationModalProps {
   onClose: () => void
@@ -37,31 +38,47 @@ export const SheetVerificationModal: React.FC<SheetVerificationModalProps> = ({
   const [newSheetUrl, setNewSheetUrl] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
 
+  useEffect(() => {
+    let isMounted = true
+    engineSheetsApi.fetchEngineSheets().then((data) => {
+      if (isMounted && data) {
+        setConfigs(data)
+      }
+    })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const handleToggleEnable = (engine: string) => {
+    const updatedItem = {
+      ...configs[engine],
+      enabled: !configs[engine].enabled,
+    }
     const updated = {
       ...configs,
-      [engine]: {
-        ...configs[engine],
-        enabled: !configs[engine].enabled,
-      },
+      [engine]: updatedItem,
     }
     setConfigs(updated)
     saveRegisteredEngineSheets(updated)
+    engineSheetsApi.saveEngineSheet(updatedItem)
     onReverify()
   }
 
   const handleUpdateUrl = (engine: string, url: string) => {
     const csvUrl = convertToCsvExportUrl(url)
+    const updatedItem = {
+      ...configs[engine],
+      sheetUrl: url,
+      csvExportUrl: csvUrl,
+    }
     const updated = {
       ...configs,
-      [engine]: {
-        ...configs[engine],
-        sheetUrl: url,
-        csvExportUrl: csvUrl,
-      },
+      [engine]: updatedItem,
     }
     setConfigs(updated)
     saveRegisteredEngineSheets(updated)
+    engineSheetsApi.saveEngineSheet(updatedItem)
   }
 
   const handleAddEngineSheet = (e: React.FormEvent) => {
@@ -71,18 +88,21 @@ export const SheetVerificationModal: React.FC<SheetVerificationModalProps> = ({
     const trimmedEngine = newEngineName.trim()
     const csvUrl = convertToCsvExportUrl(newSheetUrl.trim())
 
+    const newItem: EngineSheetConfig = {
+      engineCategory: trimmedEngine,
+      sheetName: `${trimmedEngine} Content Sheet`,
+      sheetUrl: newSheetUrl.trim(),
+      csvExportUrl: csvUrl,
+      enabled: true,
+    }
+
     const updated = {
       ...configs,
-      [trimmedEngine]: {
-        engineCategory: trimmedEngine,
-        sheetName: `${trimmedEngine} Content Sheet`,
-        sheetUrl: newSheetUrl.trim(),
-        csvExportUrl: csvUrl,
-        enabled: true,
-      },
+      [trimmedEngine]: newItem,
     }
     setConfigs(updated)
     saveRegisteredEngineSheets(updated)
+    engineSheetsApi.saveEngineSheet(newItem)
     setNewEngineName('')
     setNewSheetUrl('')
     setShowAddForm(false)
@@ -98,6 +118,7 @@ export const SheetVerificationModal: React.FC<SheetVerificationModalProps> = ({
     delete copy[engine]
     setConfigs(copy)
     saveRegisteredEngineSheets(copy)
+    engineSheetsApi.deleteEngineSheet(engine)
     onReverify()
   }
 

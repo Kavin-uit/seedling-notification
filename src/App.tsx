@@ -6,6 +6,7 @@ import { JiraTable } from './components/jira/JiraTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
+import { engineSheetsApi } from './api/engineSheetsApi'
 import { recordScenarioUpdate } from './utils/versionHistory'
 import {
   verifyAllEngines,
@@ -44,11 +45,10 @@ export default function App() {
     [selectedEngine]
   )
 
-  // Load scenarios dynamically from Cloudflare D1 production database & verify on page refresh
+  // Load scenarios & registered engine sheet links dynamically from Cloudflare D1 & verify on refresh
   useEffect(() => {
-    scenariosApi
-      .fetchScenarios()
-      .then(({ scenarios: data }) => {
+    Promise.all([scenariosApi.fetchScenarios(), engineSheetsApi.fetchEngineSheets()])
+      .then(([{ scenarios: data }]) => {
         if (data && data.length > 0) {
           setScenarios(data)
           runVerification(data)

@@ -29,6 +29,16 @@ export interface ScenarioDbRow {
   updated_at: string
 }
 
+export interface EngineSheetDbRow {
+  engine_category: string
+  sheet_name: string
+  sheet_url: string
+  csv_export_url: string
+  enabled: number
+  created_at: string
+  updated_at: string
+}
+
 export function jsonResponse(data: unknown, status = 200, headers: HeadersInit = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
