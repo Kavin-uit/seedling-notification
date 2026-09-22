@@ -8,7 +8,7 @@ import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
 import { recordScenarioUpdate } from './utils/versionHistory'
 import {
-  verifyEngineScenarios,
+  verifyAllEngines,
   type SheetVerificationSummary,
 } from './services/sheetVerificationService'
 import { SheetVerificationModal } from './components/jira/SheetVerificationModal'
@@ -30,11 +30,10 @@ export default function App() {
   const runVerification = useCallback(
     async (currentScenarios: NotificationScenario[], engineOverride?: string) => {
       if (!currentScenarios || currentScenarios.length === 0) return
-      const targetEngine =
-        engineOverride || (selectedEngine === 'Contribution' ? 'Contribution' : 'Governance')
+      const targetEngine = engineOverride || selectedEngine
       setIsVerifying(true)
       try {
-        const summary = await verifyEngineScenarios(targetEngine, currentScenarios)
+        const summary = await verifyAllEngines(targetEngine, currentScenarios)
         setVerificationSummary(summary)
       } catch (err) {
         console.error('Failed to verify scenarios against Google Sheet:', err)
