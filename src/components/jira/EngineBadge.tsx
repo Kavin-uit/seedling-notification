@@ -18,7 +18,9 @@ const statusOptions: { status: ScenarioStatus; bg: string; text: string }[] = [
   { status: 'NOT WORKING', bg: 'bg-[#FFEBE6]', text: 'text-[#BF2600]' },
   { status: 'IN-APP NAVIGATION NOT WORKING', bg: 'bg-[#FFF0B3]', text: 'text-[#172B4D]' },
   { status: 'PUSH NOTIFICATION NOT WORKING', bg: 'bg-[#FFEBE6]', text: 'text-[#BF2600]' },
+  { status: 'PUSH NOTIFICATION NAVIGATION NOT WORKING', bg: 'bg-[#FFEBE6]', text: 'text-[#BF2600]' },
   { status: 'EMAIL NOTIFICATION NOT WORKING', bg: 'bg-[#EAE6FF]', text: 'text-[#403294]' },
+  { status: 'EMAIL NOTIFICATION NAVIGATION NOT WORKING', bg: 'bg-[#EAE6FF]', text: 'text-[#403294]' },
   { status: 'SMS NOTIFICATION NOT WORKING', bg: 'bg-[#E6FCFF]', text: 'text-[#0065FF]' },
 ]
 

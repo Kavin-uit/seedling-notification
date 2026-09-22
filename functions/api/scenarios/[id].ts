@@ -50,7 +50,9 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
         'IN-APP NAVIGATION NOT WORKING',
         'NAVIGATION NOT WORKING',
         'PUSH NOTIFICATION NOT WORKING',
+        'PUSH NOTIFICATION NAVIGATION NOT WORKING',
         'EMAIL NOTIFICATION NOT WORKING',
+        'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
         'SMS NOTIFICATION NOT WORKING',
       ]
       if (valids.includes(clean)) {
@@ -58,6 +60,8 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
         return clean
       }
       if (clean === 'PASSED' || clean === 'PASS' || clean === 'VERIFIED') return 'TESTED'
+      if (clean.includes('PUSH') && clean.includes('NAV')) return 'PUSH NOTIFICATION NAVIGATION NOT WORKING'
+      if (clean.includes('EMAIL') && clean.includes('NAV')) return 'EMAIL NOTIFICATION NAVIGATION NOT WORKING'
       if (clean.includes('NAV')) return 'IN-APP NAVIGATION NOT WORKING'
       if (clean.includes('PUSH') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'PUSH NOTIFICATION NOT WORKING'
       if (clean.includes('EMAIL') && (clean.includes('NOT') || clean.includes('FAIL') || clean.includes('BUG'))) return 'EMAIL NOTIFICATION NOT WORKING'

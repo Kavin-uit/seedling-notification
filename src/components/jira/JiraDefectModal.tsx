@@ -20,7 +20,13 @@ interface DefectContent {
 }
 
 function getInitialFailureType(status: string): DefectFailureType {
-  if (status === 'IN-APP NAVIGATION NOT WORKING' || status === 'NAVIGATION NOT WORKING') return 'NAVIGATION'
+  if (
+    status === 'IN-APP NAVIGATION NOT WORKING' ||
+    status === 'NAVIGATION NOT WORKING' ||
+    status === 'PUSH NOTIFICATION NAVIGATION NOT WORKING' ||
+    status === 'EMAIL NOTIFICATION NAVIGATION NOT WORKING'
+  )
+    return 'NAVIGATION'
   if (status === 'EMAIL NOTIFICATION NOT WORKING') return 'EMAIL'
   if (status === 'SMS NOTIFICATION NOT WORKING') return 'SMS'
   if (status === 'PUSH NOTIFICATION NOT WORKING') return 'PUSH'

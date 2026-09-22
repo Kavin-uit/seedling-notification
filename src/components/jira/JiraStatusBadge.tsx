@@ -57,11 +57,25 @@ const statusConfig: Record<
     label: 'PUSH NOTIFICATION NOT WORKING',
     icon: <AlertCircle className="w-3 h-3 text-[#BF2600]" />,
   },
+  'PUSH NOTIFICATION NAVIGATION NOT WORKING': {
+    bg: 'bg-[#FFEBE6] hover:bg-[#FFBDAD]',
+    text: 'text-[#BF2600]',
+    border: 'border-transparent',
+    label: 'PUSH NOTIFICATION NAVIGATION NOT WORKING',
+    icon: <AlertCircle className="w-3 h-3 text-[#BF2600]" />,
+  },
   'EMAIL NOTIFICATION NOT WORKING': {
     bg: 'bg-[#EAE6FF] hover:bg-[#D8D0FF]',
     text: 'text-[#403294]',
     border: 'border-transparent',
     label: 'EMAIL NOTIFICATION NOT WORKING',
+    icon: <AlertCircle className="w-3 h-3 text-[#403294]" />,
+  },
+  'EMAIL NOTIFICATION NAVIGATION NOT WORKING': {
+    bg: 'bg-[#EAE6FF] hover:bg-[#D8D0FF]',
+    text: 'text-[#403294]',
+    border: 'border-transparent',
+    label: 'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
     icon: <AlertCircle className="w-3 h-3 text-[#403294]" />,
   },
   'SMS NOTIFICATION NOT WORKING': {
@@ -126,7 +140,9 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps> = ({
     'NOT WORKING',
     'IN-APP NAVIGATION NOT WORKING',
     'PUSH NOTIFICATION NOT WORKING',
+    'PUSH NOTIFICATION NAVIGATION NOT WORKING',
     'EMAIL NOTIFICATION NOT WORKING',
+    'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
     'SMS NOTIFICATION NOT WORKING',
   ]
 

@@ -469,7 +469,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       'IN-APP NAVIGATION NOT WORKING': 0,
       'NAVIGATION NOT WORKING': 0,
       'PUSH NOTIFICATION NOT WORKING': 0,
+      'PUSH NOTIFICATION NAVIGATION NOT WORKING': 0,
       'EMAIL NOTIFICATION NOT WORKING': 0,
+      'EMAIL NOTIFICATION NAVIGATION NOT WORKING': 0,
       'SMS NOTIFICATION NOT WORKING': 0,
       NOT_WORKING_ANY: 0,
     }
@@ -584,7 +586,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     'NOT WORKING',
     'IN-APP NAVIGATION NOT WORKING',
     'PUSH NOTIFICATION NOT WORKING',
+    'PUSH NOTIFICATION NAVIGATION NOT WORKING',
     'EMAIL NOTIFICATION NOT WORKING',
+    'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
     'SMS NOTIFICATION NOT WORKING',
   ]
 
@@ -724,7 +728,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                       { label: 'NOT WORKING', value: 'NOT WORKING', dotColor: 'bg-[#DE350B]' },
                       { label: 'IN-APP NAVIGATION NOT WORKING', value: 'IN-APP NAVIGATION NOT WORKING', dotColor: 'bg-[#FF8B00]' },
                       { label: 'PUSH NOTIFICATION NOT WORKING', value: 'PUSH NOTIFICATION NOT WORKING', dotColor: 'bg-[#FF5630]' },
+                      { label: 'PUSH NOTIFICATION NAVIGATION NOT WORKING', value: 'PUSH NOTIFICATION NAVIGATION NOT WORKING', dotColor: 'bg-[#FF5630]' },
                       { label: 'EMAIL NOTIFICATION NOT WORKING', value: 'EMAIL NOTIFICATION NOT WORKING', dotColor: 'bg-[#6554C0]' },
+                      { label: 'EMAIL NOTIFICATION NAVIGATION NOT WORKING', value: 'EMAIL NOTIFICATION NAVIGATION NOT WORKING', dotColor: 'bg-[#6554C0]' },
                       { label: 'SMS NOTIFICATION NOT WORKING', value: 'SMS NOTIFICATION NOT WORKING', dotColor: 'bg-[#00B8D9]' },
                       { label: 'ALL NOT WORKING', value: 'NOT_WORKING_ANY', dotColor: 'bg-[#BF2600]' },
                     ].map(({ label, value, dotColor }) => {
