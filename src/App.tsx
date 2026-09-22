@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { NotificationScenario, ScenarioStatus } from './types/notification'
 import { JiraNavbar } from './components/jira/JiraNavbar'
 import type { EngineCategoryFilter } from './components/jira/JiraNavbar'
@@ -7,6 +7,11 @@ import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
 import { recordScenarioUpdate } from './utils/versionHistory'
+import {
+  verifyEngineScenarios,
+  type SheetVerificationSummary,
+} from './services/sheetVerificationService'
+import { SheetVerificationModal } from './components/jira/SheetVerificationModal'
 import { Loader2 } from 'lucide-react'
 
 export default function App() {
@@ -16,19 +21,51 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isImportOpen, setIsImportOpen] = useState(false)
 
-  // Load scenarios dynamically from Cloudflare D1 production database
+  // Sheet Verification State (verifies against Google Sheets on every refresh/load)
+  const [verificationSummary, setVerificationSummary] = useState<SheetVerificationSummary | null>(null)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false)
+
+  // Run dynamic verification against connected engine Google Sheets
+  const runVerification = useCallback(
+    async (currentScenarios: NotificationScenario[], engineOverride?: string) => {
+      if (!currentScenarios || currentScenarios.length === 0) return
+      const targetEngine =
+        engineOverride || (selectedEngine === 'Contribution' ? 'Contribution' : 'Governance')
+      setIsVerifying(true)
+      try {
+        const summary = await verifyEngineScenarios(targetEngine, currentScenarios)
+        setVerificationSummary(summary)
+      } catch (err) {
+        console.error('Failed to verify scenarios against Google Sheet:', err)
+      } finally {
+        setIsVerifying(false)
+      }
+    },
+    [selectedEngine]
+  )
+
+  // Load scenarios dynamically from Cloudflare D1 production database & verify on page refresh
   useEffect(() => {
     scenariosApi
       .fetchScenarios()
       .then(({ scenarios: data }) => {
         if (data && data.length > 0) {
           setScenarios(data)
+          runVerification(data)
         }
       })
       .finally(() => {
         setIsLoading(false)
       })
-  }, [])
+  }, [runVerification])
+
+  // Re-verify when switching engine tabs
+  useEffect(() => {
+    if (scenarios.length > 0) {
+      runVerification(scenarios)
+    }
+  }, [selectedEngine, scenarios, runVerification])
 
   // Sync to local cache so version histories persist across sessions
   useEffect(() => {
@@ -140,6 +177,41 @@ export default function App() {
     }
   }
 
+  // Apply Sheet Expected Value to Scenario
+  const handleApplySheetValue = (
+    scenario: NotificationScenario,
+    field: string,
+    expectedValue: string
+  ) => {
+    const updated = {
+      ...scenario,
+      [field]: expectedValue,
+      updatedAt: new Date().toISOString(),
+    }
+    handleUpdateScenario(updated)
+
+    // Clear mismatch immediately from verification summary state
+    setVerificationSummary((prev) => {
+      if (!prev) return null
+      const copy = { ...prev.mismatchesByScenarioId }
+      if (copy[scenario.id]) {
+        const fieldCopy = { ...copy[scenario.id] }
+        delete (fieldCopy as any)[field]
+        if (Object.keys(fieldCopy).length === 0) {
+          delete copy[scenario.id]
+        } else {
+          copy[scenario.id] = fieldCopy
+        }
+      }
+      const newCount = Object.values(copy).reduce((acc, curr) => acc + Object.keys(curr).length, 0)
+      return {
+        ...prev,
+        totalMismatches: newCount,
+        mismatchesByScenarioId: copy,
+      }
+    })
+  }
+
   // Quick status update (persisted with version history)
   const handleUpdateStatus = (id: string, newStatus: ScenarioStatus) => {
     let scenarioToSave: NotificationScenario | null = null
@@ -186,7 +258,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen h-[100dvh] w-full min-w-0 overflow-hidden bg-white text-[#172B4D] font-sans antialiased select-none">
-      {/* 1. Jira Navigation Bar with Engine Category Switcher & Search */}
+      {/* 1. Jira Navigation Bar with Engine Category Switcher, Live Sheet Status, & Search */}
       <JiraNavbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -198,6 +270,9 @@ export default function App() {
         govCount={govCount}
         contribCount={contribCount}
         totalRows={scenarios.length}
+        verificationSummary={verificationSummary}
+        isVerifying={isVerifying}
+        onOpenVerificationModal={() => setIsVerificationModalOpen(true)}
       />
 
       {/* 2. Main Excel-like Spreadsheet Grid */}
@@ -220,6 +295,8 @@ export default function App() {
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery('')}
             selectedEngine={selectedEngine}
+            verificationSummary={verificationSummary}
+            onApplySheetValue={handleApplySheetValue}
           />
         )}
       </main>
@@ -230,6 +307,16 @@ export default function App() {
           onClose={() => setIsImportOpen(false)}
           onImport={handleImportScenarios}
           currentMaxKeyNum={scenarios.length}
+        />
+      )}
+
+      {/* 4. Google Sheet Verification & Management Modal */}
+      {isVerificationModalOpen && (
+        <SheetVerificationModal
+          onClose={() => setIsVerificationModalOpen(false)}
+          activeSummary={verificationSummary}
+          onReverify={() => runVerification(scenarios)}
+          isReverifying={isVerifying}
         />
       )}
     </div>

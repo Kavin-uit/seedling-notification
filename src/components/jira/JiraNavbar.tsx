@@ -1,5 +1,6 @@
 import React from 'react'
 import { Search, FileSpreadsheet, X } from 'lucide-react'
+import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 
 export type EngineCategoryFilter = 'ALL' | 'Governance' | 'Contribution'
 
@@ -14,6 +15,9 @@ interface JiraNavbarProps {
   govCount: number
   contribCount: number
   totalRows: number
+  verificationSummary?: SheetVerificationSummary | null
+  isVerifying?: boolean
+  onOpenVerificationModal?: () => void
 }
 
 export const JiraNavbar: React.FC<JiraNavbarProps> = ({
@@ -25,6 +29,9 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   govCount,
   contribCount,
   totalRows,
+  verificationSummary,
+  isVerifying,
+  onOpenVerificationModal,
 }) => {
   return (
     <header className="h-13 bg-[#0747A6] text-white flex items-center justify-between px-3 sm:px-4 select-none shrink-0 border-b border-[#0052CC] shadow-xs gap-2 sm:gap-3 flex-nowrap min-w-0">
@@ -39,7 +46,9 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
               className="w-full h-full object-contain filter brightness-0 invert"
             />
           </div>
-          <span className="font-extrabold text-sm tracking-tight text-white hidden xs:inline sm:inline">Seedling</span>
+          <span className="font-extrabold text-sm tracking-tight text-white hidden xs:inline sm:inline">
+            Seedling
+          </span>
         </div>
 
         {/* Engine Switcher Tabs (Like Excel / Jira project categories) */}
@@ -116,6 +125,49 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             </span>
           </button>
         </div>
+
+        {/* Google Sheet Live Verification Status Badge */}
+        {onOpenVerificationModal && (
+          <button
+            type="button"
+            onClick={onOpenVerificationModal}
+            title={
+              verificationSummary?.totalMismatches
+                ? `${verificationSummary.totalMismatches} content mismatch(es) detected with Google Sheet! Click to inspect`
+                : 'Google Sheet Verified • Click to inspect or configure engine sheets'
+            }
+            className={`cursor-pointer px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition shrink-0 border ${
+              verificationSummary && verificationSummary.totalMismatches > 0
+                ? 'bg-[#FF3B30] text-white border-[#FF3B30] shadow-sm animate-pulse hover:bg-[#E02D23]'
+                : isVerifying
+                ? 'bg-white/10 text-white/80 border-white/20'
+                : 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30 hover:bg-emerald-500/30 hover:text-white'
+            }`}
+          >
+            {isVerifying ? (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-ping shrink-0" />
+                <span className="hidden xl:inline">Verifying Sheet...</span>
+              </>
+            ) : verificationSummary && verificationSummary.totalMismatches > 0 ? (
+              <>
+                <span className="w-3.5 h-3.5 rounded-full bg-white text-[#FF3B30] flex items-center justify-center text-[9px] font-black shrink-0">
+                  !
+                </span>
+                <span>
+                  {verificationSummary.totalMismatches} Sheet Mismatch
+                  {verificationSummary.totalMismatches > 1 ? 'es' : ''}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#30D158] shrink-0" />
+                <span className="hidden sm:inline">Sheet Verified</span>
+                <span className="sm:hidden">Verified</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Right side: Search & Excel Actions */}

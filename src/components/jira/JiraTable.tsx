@@ -5,6 +5,8 @@ import { EngineBadge } from './EngineBadge'
 import { JiraDefectModal } from './JiraDefectModal'
 import { VersionHistoryModal } from './VersionHistoryModal'
 import { EventBriefModal } from './EventBriefModal'
+import { IosMismatchTooltip } from './IosMismatchTooltip'
+import type { SheetVerificationSummary, FieldMismatch } from '../../services/sheetVerificationService'
 import {
   Filter,
   ChevronRight,
@@ -44,6 +46,8 @@ export const GeminiSparkleIcon: React.FC<{ className?: string }> = ({ className 
 
 interface JiraTableProps {
   scenarios: NotificationScenario[]
+  verificationSummary?: SheetVerificationSummary | null
+  onApplySheetValue?: (scenario: NotificationScenario, field: string, value: string) => void
   onUpdateScenario: (updated: NotificationScenario) => void
   onRollbackScenario?: (rolledBack: NotificationScenario) => void
   onBatchUpdateScenarios?: (
@@ -195,6 +199,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   onClearSearch: _onClearSearch,
   selectedEngine,
   isAiSearch = false,
+  verificationSummary,
+  onApplySheetValue,
 }) => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set())
@@ -203,6 +209,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const [selectedEventBrief, setSelectedEventBrief] = useState<{
     scenario: NotificationScenario
     rect: DOMRect
+  } | null>(null)
+  const [activeMismatchTooltip, setActiveMismatchTooltip] = useState<{
+    scenario: NotificationScenario
+    mismatch: FieldMismatch
+    anchorRect: DOMRect
   } | null>(null)
   const [hoveredInfo, setHoveredInfo] = useState<{
     scenario: NotificationScenario
@@ -706,17 +717,53 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                 const hasSearchMatch =
                   Boolean(searchQuery.trim()) && matchingRowIds.has(row.id)
 
-                const renderCell = (_field: EditableField, value: string) => {
+                const renderCell = (field: EditableField, value: string) => {
+                  const scenarioMismatches = verificationSummary?.mismatchesByScenarioId?.[row.id]
+                  const mismatch = scenarioMismatches?.[field]
+
+                  if (mismatch) {
+                    return (
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setActiveMismatchTooltip({
+                            scenario: row,
+                            mismatch,
+                            anchorRect: rect,
+                          })
+                        }}
+                        onMouseEnter={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setActiveMismatchTooltip({
+                            scenario: row,
+                            mismatch,
+                            anchorRect: rect,
+                          })
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FFF0ED] text-[#D70015] border border-[#FF3B30]/40 font-medium min-h-[22px] max-w-full truncate select-text cursor-pointer hover:bg-[#FFE5E0] transition-all shadow-2xs group/mismatch"
+                        title="Sheet Data Mismatch • Click or hover to view expected value"
+                      >
+                        <span className="w-3.5 h-3.5 rounded-full bg-[#FF3B30] text-white flex items-center justify-center text-[9px] font-black shrink-0 shadow-xs">
+                          !
+                        </span>
+                        <span className="truncate underline decoration-[#FF3B30]/70 decoration-wavy underline-offset-2">
+                          {highlightMatches(value, searchQuery, matchedTerms, hasSearchMatch)}
+                        </span>
+                      </div>
+                    )
+                  }
+
                   return (
                     <div
                       className={`px-1 py-0.5 rounded min-h-[20px] truncate select-text cursor-default transition-all ${
                         isSelected
-                          ? 'text-[#0747A6] font-semibold'
+                          ? "text-[#0747A6] font-semibold"
                           : isTested
-                          ? 'text-[#00552B] font-medium'
+                          ? "text-[#00552B] font-medium"
                           : isNotWorking
-                          ? 'text-[#A82200] font-medium'
-                          : 'text-[#172B4D]'
+                          ? "text-[#A82200] font-medium"
+                          : "text-[#172B4D]"
                       }`}
                       title={value || ''}
                     >
@@ -1393,6 +1440,27 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* iOS Red Mismatch Warning Tooltip */}
+      {activeMismatchTooltip && (
+        <IosMismatchTooltip
+          mismatch={activeMismatchTooltip.mismatch}
+          anchorRect={activeMismatchTooltip.anchorRect}
+          sheetUrl={verificationSummary?.sheetUrl}
+          onClose={() => setActiveMismatchTooltip(null)}
+          onApplyValue={(field, expectedValue) => {
+            if (onApplySheetValue) {
+              onApplySheetValue(activeMismatchTooltip.scenario, field, expectedValue)
+            } else {
+              onUpdateScenario({
+                ...activeMismatchTooltip.scenario,
+                [field]: expectedValue,
+              })
+            }
+            setActiveMismatchTooltip(null)
+          }}
+        />
       )}
 
       {/* Floating Toast Feedback for Copied / Rolled back Row */}

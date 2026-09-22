@@ -124,6 +124,51 @@ INSERT OR IGNORE INTO scenarios (
   email_subject, email_body, in_app_experience, cta, status,
   priority, environment, created_at, updated_at
 ) VALUES (
+  'gov-7', 'GOV-7', 'Governance', 'Account Warning',
+  'Offending activity', 'Commenter', 'Policy warning',
+  'Warning', 'A notice about your account', 'Important notice about your account.',
+  'A Notice About Your Account', 'Your recent activity may violate our Community Guidelines. Please take a moment to review our policies so your account stays in good standing.  BOX: View Guidelines',
+  'Your recent activity may violate our Community Guidelines. Please review our policies.',
+  'take user to Community Guidelines', 'TO DO', 'High', 'STAGING',
+  '2026-09-20T10:00:00Z', '2026-09-22T12:00:00Z'
+);
+
+INSERT OR IGNORE INTO scenarios (
+  id, key, engine_category, governance_event, trigger, audience,
+  communication_objective, desired_outcome, push_subject, push_body,
+  email_subject, email_body, in_app_experience, cta, status,
+  priority, environment, created_at, updated_at
+) VALUES (
+  'gov-8', 'GOV-8', 'Governance', 'Temporary Account Restriction',
+  'Offending issue', 'Commenter', 'Notify restriction',
+  'Restricted use', 'Your account is temporarily restricted', 'Your account has been temporarily restricted.',
+  'Your Account Is Temporarily Restricted', 'Your account has been temporarily restricted while we review recent activity. Some features will be unavailable in the meantime.  BOX: View Account Status',
+  'Some account features are temporarily unavailable while we review your account.',
+  'take user to account status page', 'TO DO', 'Highest', 'STAGING',
+  '2026-09-20T10:15:00Z', '2026-09-22T12:00:00Z'
+);
+
+INSERT OR IGNORE INTO scenarios (
+  id, key, engine_category, governance_event, trigger, audience,
+  communication_objective, desired_outcome, push_subject, push_body,
+  email_subject, email_body, in_app_experience, cta, status,
+  priority, environment, created_at, updated_at
+) VALUES (
+  'gov-9', 'GOV-9', 'Governance', 'Account Restored',
+  'Account reinstated', 'Commenter', 'Notify restoration',
+  'Full use', 'Welcome back! ✅', 'Your account has been restored.',
+  'Welcome Back! ✅', 'Thank you for your patience -- your account has been restored and is fully active again. We''re glad to have you back.  BOX: View Account',
+  'Thank you for your patience. Your account is fully active again.',
+  'take user to account settings', 'TO DO', 'Medium', 'STAGING',
+  '2026-09-20T10:30:00Z', '2026-09-22T12:00:00Z'
+);
+
+INSERT OR IGNORE INTO scenarios (
+  id, key, engine_category, governance_event, trigger, audience,
+  communication_objective, desired_outcome, push_subject, push_body,
+  email_subject, email_body, in_app_experience, cta, status,
+  priority, environment, created_at, updated_at
+) VALUES (
   'ce-1', 'CONTRIB-1', 'Contribution', 'Donation Made via Credit/Debit Card',
   'Donor makes donation', 'Donor', 'Thank donor',
   'Positive moment', 'Thank you! 💚', 'Your donation moved (Seedling) one step closer to its goal -- thank you!',
