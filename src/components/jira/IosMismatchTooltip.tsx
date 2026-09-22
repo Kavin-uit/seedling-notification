@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import type { FieldMismatch } from '../../services/sheetVerificationService'
-import { Check, Copy, ExternalLink, X } from 'lucide-react'
+import { Check, Copy, ExternalLink, X, AlertTriangle } from 'lucide-react'
 
 interface IosMismatchTooltipProps {
   mismatch: FieldMismatch
@@ -22,17 +22,22 @@ export const IosMismatchTooltip: React.FC<IosMismatchTooltipProps> = ({
   const tooltipRef = useRef<HTMLDivElement>(null)
 
   // Auto-reposition within viewport
-  const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+  const [coords, setCoords] = useState<{ top: number; left: number; isAbove: boolean }>({
+    top: 0,
+    left: 0,
+    isAbove: false,
+  })
 
   useEffect(() => {
     if (!anchorRect) return
 
-    const tooltipWidth = 320
-    const tooltipHeight = 220
+    const tooltipWidth = 330
+    const tooltipHeight = 260
     const padding = 12
 
     let left = anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2
     let top = anchorRect.bottom + 8
+    let isAbove = false
 
     // Screen boundary adjustments
     if (left < padding) {
@@ -44,9 +49,10 @@ export const IosMismatchTooltip: React.FC<IosMismatchTooltipProps> = ({
     if (top + tooltipHeight > window.innerHeight - padding) {
       // Flip to above anchor if no room below
       top = Math.max(padding, anchorRect.top - tooltipHeight - 8)
+      isAbove = true
     }
 
-    setCoords({ top, left })
+    setCoords({ top, left, isAbove })
   }, [anchorRect])
 
   // Close on Escape
@@ -76,121 +82,144 @@ export const IosMismatchTooltip: React.FC<IosMismatchTooltipProps> = ({
     }, 400)
   }
 
+  const arrowOffset = Math.max(
+    16,
+    Math.min(330 - 24, anchorRect.left + anchorRect.width / 2 - coords.left - 5)
+  )
+
   return (
-    <div
-      ref={tooltipRef}
-      style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
-      onClick={(e) => e.stopPropagation()}
-      className="fixed z-50 w-[320px] bg-[#1C1C1E]/95 backdrop-blur-xl text-white rounded-2xl p-3.5 border border-white/15 shadow-[0_16px_36px_rgba(0,0,0,0.4)] font-sans antialiased text-left animate-in fade-in zoom-in-95 duration-150 select-none"
-    >
-      {/* iOS Red Header */}
-      <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          {/* iOS System Red Exclamation Circle */}
-          <span className="w-5 h-5 rounded-full bg-[#FF3B30] text-white flex items-center justify-center text-[11px] font-extrabold shadow-xs shrink-0">
-            !
-          </span>
-          <div className="flex flex-col">
-            <span className="text-[12px] font-semibold text-white tracking-tight leading-none">
-              Sheet Data Mismatch
-            </span>
-            <span className="text-[10px] text-[#FF453A] font-medium tracking-wide mt-0.5">
-              {mismatch.fieldLabel}
-            </span>
-          </div>
-        </div>
+    <>
+      {/* Transparent Click-Outside Overlay */}
+      <div
+        className="fixed inset-0 z-40 bg-transparent select-none"
+        onClick={onClose}
+      />
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0"
-        >
-          <X className="w-3 h-3 stroke-[2.5]" />
-        </button>
-      </div>
+      {/* Clean Human UI Popover */}
+      <div
+        ref={tooltipRef}
+        style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+        onClick={(e) => e.stopPropagation()}
+        className="fixed z-50 w-[330px] flex flex-col font-sans text-left animate-in fade-in zoom-in-95 duration-150"
+      >
+        {/* Caret pointing up if below anchor */}
+        {!coords.isAbove && (
+          <div
+            className="w-2.5 h-2.5 bg-white rotate-45 border-l border-t border-slate-200 -mb-1.5 shrink-0 z-10"
+            style={{ marginLeft: `${arrowOffset}px` }}
+          />
+        )}
 
-      {/* Comparison Body */}
-      <div className="space-y-2.5 text-xs">
-        {/* Expected from Google Sheet */}
-        <div className="bg-white/8 rounded-xl p-2.5 border border-white/10 relative group">
-          <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-[#30D158] mb-1">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#30D158]" />
-              Expected (Sheet)
-            </span>
+        <div className="w-full bg-white text-slate-800 rounded-xl p-3.5 border border-slate-200 shadow-xl overflow-hidden">
+          {/* Clean Header */}
+          <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-5 h-5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-3 h-3" />
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-slate-900 truncate">
+                  Sheet Data Mismatch
+                </span>
+                <span className="text-[11px] text-slate-500 truncate">
+                  {mismatch.fieldLabel}
+                </span>
+              </div>
+            </div>
+
             <button
               type="button"
-              onClick={handleCopyExpected}
-              className="text-white/60 hover:text-white flex items-center gap-1 transition cursor-pointer text-[10px] font-normal lowercase"
-              title="Copy to clipboard"
+              onClick={onClose}
+              className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition cursor-pointer shrink-0"
+              title="Close"
             >
-              {copied ? (
-                <>
-                  <Check className="w-3 h-3 text-[#30D158]" />
-                  <span className="text-[#30D158]">copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3" />
-                  <span>copy</span>
-                </>
-              )}
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="text-[11.5px] text-white font-mono leading-relaxed select-text break-words max-h-24 overflow-y-auto pr-1">
-            {mismatch.expected || <span className="text-white/40 italic">(empty in sheet)</span>}
+
+          {/* Simple Human Comparison Body */}
+          <div className="space-y-2 text-xs">
+            {/* Expected in Google Sheet */}
+            <div className="bg-emerald-50/60 rounded-lg p-2.5 border border-emerald-200/80">
+              <div className="flex items-center justify-between text-[11px] font-medium text-emerald-800 mb-1">
+                <span>Expected in Sheet</span>
+                <button
+                  type="button"
+                  onClick={handleCopyExpected}
+                  className="text-emerald-700 hover:text-emerald-900 flex items-center gap-1 transition cursor-pointer text-[11px] font-normal"
+                  title="Copy to clipboard"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-600" />
+                      <span className="text-emerald-600 font-medium">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="text-xs text-slate-800 leading-relaxed select-text break-words max-h-24 overflow-y-auto font-normal">
+                {mismatch.expected || (
+                  <span className="text-slate-400 italic">(Empty in Sheet)</span>
+                )}
+              </div>
+            </div>
+
+            {/* Current in Table */}
+            <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
+              <div className="text-[11px] font-medium text-slate-600 mb-1">
+                Current in Table
+              </div>
+              <div className="text-xs text-slate-700 leading-relaxed select-text break-words max-h-20 overflow-y-auto font-normal">
+                {mismatch.actual || (
+                  <span className="text-slate-400 italic">(Empty in Table)</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-3 flex items-center gap-2 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={handleApply}
+              disabled={applied}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg font-medium text-xs transition cursor-pointer shadow-xs ${
+                applied
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-[#007AFF] hover:bg-[#0062CC] text-white active:scale-[0.99]'
+              }`}
+            >
+              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{applied ? 'Applied!' : 'Apply Sheet Value'}</span>
+            </button>
+
+            {sheetUrl && (
+              <a
+                href={sheetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-xs transition flex items-center gap-1 shrink-0 border border-slate-200/80"
+                title="Open Google Sheet"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
           </div>
         </div>
 
-        {/* Displayed in UI */}
-        <div className="bg-[#FF3B30]/10 rounded-xl p-2.5 border border-[#FF3B30]/20">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-[#FF453A] mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF3B30]" />
-            Displayed (UI)
-          </div>
-          <div className="text-[11.5px] text-[#FFD2CE] font-mono leading-relaxed select-text break-words max-h-20 overflow-y-auto line-through decoration-[#FF3B30]/60 pr-1">
-            {mismatch.actual || <span className="text-white/40 italic">(empty in UI)</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* iOS Action Buttons */}
-      <div className="mt-3 flex items-center gap-2 pt-2 border-t border-white/10">
-        <button
-          type="button"
-          onClick={handleApply}
-          disabled={applied}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl font-semibold text-xs transition cursor-pointer shadow-sm active:scale-[0.98] ${
-            applied
-              ? 'bg-[#30D158] text-white'
-              : 'bg-[#0071E3] hover:bg-[#0077ED] text-white'
-          }`}
-        >
-          {applied ? (
-            <>
-              <Check className="w-3.5 h-3.5" />
-              <span>Applied!</span>
-            </>
-          ) : (
-            <>
-              <Check className="w-3.5 h-3.5" />
-              <span>Apply Sheet Value</span>
-            </>
-          )}
-        </button>
-
-        {sheetUrl && (
-          <a
-            href={sheetUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs transition flex items-center gap-1 shrink-0"
-            title="Open reference Google Sheet"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+        {/* Caret pointing down if above anchor */}
+        {coords.isAbove && (
+          <div
+            className="w-2.5 h-2.5 bg-white rotate-45 border-r border-b border-slate-200 -mt-1.5 shrink-0 z-10"
+            style={{ marginLeft: `${arrowOffset}px` }}
+          />
         )}
       </div>
-    </div>
+    </>
   )
 }
