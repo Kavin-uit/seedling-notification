@@ -4,10 +4,9 @@ import {
   ExternalLink,
   RefreshCw,
   CheckCircle2,
-  AlertTriangle,
+  AlertCircle,
   Plus,
   Trash2,
-  FileSpreadsheet,
 } from 'lucide-react'
 import {
   getRegisteredEngineSheets,
@@ -122,214 +121,202 @@ export const SheetVerificationModal: React.FC<SheetVerificationModalProps> = ({
     onReverify()
   }
 
+  const hasMismatches = activeSummary && activeSummary.totalMismatches > 0
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Modal Header */}
-        <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
-              <FileSpreadsheet className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Google Sheet Verification Engine</h2>
-              <p className="text-xs text-slate-500">
-                Verifies displayed scenario copy against official Google Sheets on refresh
-              </p>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-2xs animate-in fade-in duration-100">
+      <div className="bg-white rounded-lg shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col text-slate-800 text-xs">
+        {/* Header */}
+        <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">Google Sheet Verification</h2>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Verify live notification copy against official reference Google Sheets
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-lg hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer"
+            aria-label="Close modal"
+            className="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-5 overflow-y-auto space-y-4">
-          {/* Active Status Banner */}
+        {/* Content Body */}
+        <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+          {/* Subtle Status Notice */}
           {activeSummary && (
             <div
-              className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 ${
-                activeSummary.totalMismatches > 0
+              className={`px-3 py-2 rounded border flex items-center justify-between gap-3 text-xs ${
+                hasMismatches
                   ? 'bg-rose-50 border-rose-200 text-rose-900'
                   : 'bg-emerald-50 border-emerald-200 text-emerald-900'
               }`}
             >
-              <div className="flex items-start gap-2.5">
-                {activeSummary.totalMismatches > 0 ? (
-                  <AlertTriangle className="w-5 h-5 text-[#FF3B30] shrink-0 mt-0.5" />
+              <div className="flex items-center gap-2 min-w-0">
+                {hasMismatches ? (
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 ) : (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 )}
-                <div>
-                  <div className="text-xs font-bold">
-                    {activeSummary.totalMismatches > 0
-                      ? `${activeSummary.totalMismatches} Content Mismatch${
-                          activeSummary.totalMismatches > 1 ? 'es' : ''
-                        } Detected`
-                      : 'All Scenario Data Matches Reference Sheet'}
-                  </div>
-                  <div className="text-[11px] opacity-80 mt-0.5">
-                    Engine: <span className="font-semibold">{activeSummary.engineCategory}</span> •
-                    Checked {activeSummary.totalScenariosChecked} scenarios against{' '}
-                    {activeSummary.totalSheetRows} sheet rows.
-                  </div>
-                  {activeSummary.lastCheckedAt && (
-                    <div className="text-[10px] opacity-60 mt-1">
-                      Last verified:{' '}
-                      {new Date(activeSummary.lastCheckedAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </div>
-                  )}
-                </div>
+                <span className="font-medium truncate">
+                  {hasMismatches
+                    ? `${activeSummary.totalMismatches} content mismatch${
+                        activeSummary.totalMismatches > 1 ? 'es' : ''
+                      } detected`
+                    : `All ${activeSummary.totalScenariosChecked} scenarios match reference sheets`}
+                </span>
               </div>
 
               <button
                 type="button"
                 onClick={onReverify}
                 disabled={isReverifying}
-                className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition cursor-pointer shrink-0 disabled:opacity-50"
+                className="px-2 py-1 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium text-[11px] inline-flex items-center gap-1.5 shrink-0 transition cursor-pointer disabled:opacity-50"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isReverifying ? 'animate-spin text-blue-600' : ''}`} />
+                <RefreshCw className={`w-3 h-3 ${isReverifying ? 'animate-spin text-blue-600' : ''}`} />
                 <span>Re-verify</span>
               </button>
             </div>
           )}
 
-          {/* Engine Sheets List */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Connected Engine Sheets
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Engine Sheet</span>
-              </button>
+          {/* Engine Sheet Connections */}
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+              <span className="font-bold text-[11px] uppercase tracking-wider text-slate-500">
+                Connected Reference Sheets
+              </span>
+              {!showAddForm && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(true)}
+                  className="text-blue-600 hover:text-blue-800 text-xs font-semibold inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Engine</span>
+                </button>
+              )}
             </div>
 
-            <div className="space-y-3">
-              {Object.values(configs).map((cfg) => (
-                <div
-                  key={cfg.engineCategory}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs flex flex-col gap-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-800">
-                        {cfg.engineCategory} Engine
-                      </span>
-                      <label className="flex items-center gap-1.5 text-[11px] text-slate-500 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={cfg.enabled}
-                          onChange={() => handleToggleEnable(cfg.engineCategory)}
-                          className="rounded text-blue-600 focus:ring-0 cursor-pointer"
-                        />
-                        <span>Auto-verify on refresh</span>
-                      </label>
-                    </div>
+            {Object.values(configs).map((cfg) => (
+              <div key={cfg.engineCategory} className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-slate-800 text-xs">
+                    {cfg.engineCategory} Engine
+                  </span>
 
-                    <div className="flex items-center gap-2">
-                      {cfg.sheetUrl && (
-                        <a
-                          href={cfg.sheetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          <span>Open Sheet</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                      {cfg.engineCategory !== 'Governance' && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteEngineSheet(cfg.engineCategory)}
-                          className="text-slate-400 hover:text-rose-600 p-1 transition cursor-pointer"
-                          title="Remove sheet"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  <div className="flex items-center gap-3 text-[11px]">
+                    <label className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={cfg.enabled}
+                        onChange={() => handleToggleEnable(cfg.engineCategory)}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-0 cursor-pointer"
+                      />
+                      <span>Auto-verify</span>
+                    </label>
 
-                  {/* URL Input */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="url"
-                      value={cfg.sheetUrl}
-                      onChange={(e) => handleUpdateUrl(cfg.engineCategory, e.target.value)}
-                      placeholder="Paste Google Sheet URL (with view or edit permission)..."
-                      className="flex-1 bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg px-2.5 py-1.5 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none"
-                    />
+                    {cfg.sheetUrl && (
+                      <a
+                        href={cfg.sheetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline inline-flex items-center gap-0.5"
+                      >
+                        <span>Open sheet</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+
+                    {cfg.engineCategory !== 'Governance' && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteEngineSheet(cfg.engineCategory)}
+                        className="text-slate-400 hover:text-rose-600 transition cursor-pointer p-0.5"
+                        title="Remove engine sheet"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <input
+                  type="url"
+                  value={cfg.sheetUrl}
+                  onChange={(e) => handleUpdateUrl(cfg.engineCategory, e.target.value)}
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  className="w-full bg-slate-50/70 hover:bg-white focus:bg-white text-slate-800 border border-slate-200 focus:border-blue-500 rounded px-2.5 py-1.5 text-xs outline-none transition"
+                />
+              </div>
+            ))}
           </div>
 
-          {/* Add New Engine Sheet Form */}
+          {/* Add New Sheet Form */}
           {showAddForm && (
             <form
               onSubmit={handleAddEngineSheet}
-              className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2.5 animate-in fade-in"
+              className="p-3 bg-slate-50 border border-slate-200 rounded space-y-2 text-xs animate-in fade-in"
             >
-              <div className="text-xs font-bold text-blue-900">Register New Engine Sheet</div>
+              <div className="font-semibold text-slate-800">Add Engine Reference Sheet</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
                   type="text"
                   required
-                  placeholder="Engine Category (e.g., Contribution)"
+                  placeholder="Engine Name (e.g. Identity)"
                   value={newEngineName}
                   onChange={(e) => setNewEngineName(e.target.value)}
-                  className="bg-white border border-slate-200 text-xs rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-blue-500"
                 />
                 <input
                   type="url"
                   required
-                  placeholder="Google Sheets URL"
+                  placeholder="Google Sheet URL"
                   value={newSheetUrl}
                   onChange={(e) => setNewSheetUrl(e.target.value)}
-                  className="bg-white border border-slate-200 text-xs rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+                  className="bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs outline-none focus:border-blue-500"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-3 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                  className="px-2.5 py-1 rounded text-slate-600 hover:bg-slate-200 transition cursor-pointer text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-2xs transition cursor-pointer"
+                  className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer text-xs"
                 >
-                  Save & Connect
+                  Add Sheet
                 </button>
               </div>
             </form>
           )}
         </div>
 
-        {/* Modal Footer */}
-        <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
+          <span className="text-[11px] text-slate-400">
+            {activeSummary?.lastCheckedAt && (
+              <>
+                Last verified at{' '}
+                {new Date(activeSummary.lastCheckedAt).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                })}
+              </>
+            )}
+          </span>
+
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+            className="px-4 py-1.5 rounded-[3px] bg-[#0052CC] hover:bg-[#0065FF] text-white font-semibold text-xs transition cursor-pointer shadow-2xs"
           >
             Done
           </button>
