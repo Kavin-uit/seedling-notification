@@ -20,7 +20,15 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [isImportOpen, setIsImportOpen] = useState(false)
+
+  // Reset all filters (engine, status, search) to show all records
+  const handleResetAllFilters = () => {
+    setSelectedEngine('ALL')
+    setSearchQuery('')
+    setStatusFilter('ALL')
+  }
 
   // Sheet Verification State (verifies against Google Sheets on every refresh/load)
   const [verificationSummary, setVerificationSummary] = useState<SheetVerificationSummary | null>(null)
@@ -266,6 +274,7 @@ export default function App() {
         onExportClick={() => exportScenariosToExcel(exportTargetScenarios, 'xlsx')}
         selectedEngine={selectedEngine}
         onSelectEngine={setSelectedEngine}
+        onResetAllFilters={handleResetAllFilters}
         govCount={govCount}
         contribCount={contribCount}
         totalRows={scenarios.length}
@@ -294,6 +303,10 @@ export default function App() {
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery('')}
             selectedEngine={selectedEngine}
+            onSelectEngine={setSelectedEngine}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            onResetAllFilters={handleResetAllFilters}
             verificationSummary={verificationSummary}
             onApplySheetValue={handleApplySheetValue}
           />

@@ -12,6 +12,7 @@ interface JiraNavbarProps {
   onExportClick: () => void
   selectedEngine: EngineCategoryFilter
   onSelectEngine: (engine: EngineCategoryFilter) => void
+  onResetAllFilters?: () => void
   govCount: number
   contribCount: number
   totalRows: number
@@ -26,6 +27,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   onExportClick,
   selectedEngine,
   onSelectEngine,
+  onResetAllFilters,
   govCount,
   contribCount,
   totalRows,
@@ -69,9 +71,14 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
     <header className="h-13 bg-[#0747A6] text-white flex items-center justify-between px-3 sm:px-4 select-none shrink-0 border-b border-[#0052CC] shadow-xs gap-2 sm:gap-3 flex-nowrap min-w-0">
       {/* Left side: Seedling Brand & Engine Category Switcher */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">
-        {/* Brand */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-[#00B060] flex items-center justify-center shadow-xs p-1 text-white shrink-0">
+        {/* Brand - Click to reset all filters and display all records */}
+        <button
+          type="button"
+          onClick={onResetAllFilters}
+          title="Reset all filters & display all records"
+          className="flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer hover:opacity-90 active:scale-95 transition group text-left"
+        >
+          <div className="w-7 h-7 rounded-lg bg-[#00B060] flex items-center justify-center shadow-xs p-1 text-white shrink-0 group-hover:ring-2 ring-white/40 transition">
             <img
               src="/seedling-icon.svg"
               alt="Seedling"
@@ -81,7 +88,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           <span className="font-extrabold text-sm tracking-tight text-white hidden xs:inline sm:inline">
             Seedling
           </span>
-        </div>
+        </button>
 
         {/* Engine Switcher - Clean Jira App Style */}
         <div className="relative shrink-0" ref={engineMenuRef}>
@@ -167,11 +174,15 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                 </div>
               </button>
 
-              {/* All Engines */}
+              {/* All Engines - Reset all filters */}
               <button
                 type="button"
                 onClick={() => {
-                  onSelectEngine('ALL')
+                  if (onResetAllFilters) {
+                    onResetAllFilters()
+                  } else {
+                    onSelectEngine('ALL')
+                  }
                   setIsEngineMenuOpen(false)
                 }}
                 className={`w-full px-3 py-1.5 text-left flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs border-t border-[#EBECF0] mt-0.5 ${

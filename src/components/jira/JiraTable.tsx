@@ -22,6 +22,7 @@ import {
   Pencil,
   MessageSquare,
   Loader2,
+  RotateCcw,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
@@ -60,6 +61,10 @@ interface JiraTableProps {
   searchQuery: string
   onClearSearch?: () => void
   selectedEngine: 'ALL' | 'Governance' | 'Contribution'
+  onSelectEngine?: (engine: 'ALL' | 'Governance' | 'Contribution') => void
+  statusFilter?: string
+  onStatusFilterChange?: (status: string) => void
+  onResetAllFilters?: () => void
   isAiSearch?: boolean
 }
 
@@ -196,13 +201,41 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   onDeleteScenario,
   onAddRow: _onAddRow,
   searchQuery,
-  onClearSearch: _onClearSearch,
+  onClearSearch,
   selectedEngine,
+  onSelectEngine,
+  statusFilter: propsStatusFilter,
+  onStatusFilterChange,
+  onResetAllFilters,
   isAiSearch = false,
   verificationSummary,
   onApplySheetValue,
 }) => {
-  const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [internalStatusFilter, setInternalStatusFilter] = useState<string>('ALL')
+  const statusFilter = propsStatusFilter !== undefined ? propsStatusFilter : internalStatusFilter
+  const setStatusFilter = (val: string) => {
+    if (onStatusFilterChange) {
+      onStatusFilterChange(val)
+    } else {
+      setInternalStatusFilter(val)
+    }
+  }
+
+  const handleResetAllFilters = () => {
+    if (onResetAllFilters) {
+      onResetAllFilters()
+    } else {
+      setStatusFilter('ALL')
+      if (onClearSearch) onClearSearch()
+      if (onSelectEngine) onSelectEngine('ALL')
+    }
+  }
+
+  const hasActiveFilters =
+    selectedEngine !== 'ALL' ||
+    statusFilter !== 'ALL' ||
+    Boolean(searchQuery && searchQuery.trim().length > 0)
+
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const statusDropdownRef = useRef<HTMLDivElement>(null)
 
@@ -524,21 +557,35 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           }}
           className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto whitespace-nowrap py-0.5 min-w-0 flex-1 no-scrollbar select-none"
         >
-          {/* Active Engine Badge */}
+          {/* Active Engine Badge / Click to reset all filters */}
           <div className="flex items-center gap-1.5 font-bold text-[11px] sm:text-xs shrink-0">
-            {selectedEngine === 'Governance' ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap">
-                Governance Engine Sheet
+            <button
+              type="button"
+              onClick={handleResetAllFilters}
+              title="Click to reset all filters and display all records"
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] text-xs transition cursor-pointer select-none border font-semibold ${
+                selectedEngine === 'Governance'
+                  ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300 shadow-2xs'
+                  : selectedEngine === 'Contribution'
+                  ? 'bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 shadow-2xs'
+                  : hasActiveFilters
+                  ? 'bg-[#DEEBFF] hover:bg-[#B3D4FF] text-[#0052CC] border-[#B3D4FF] shadow-2xs'
+                  : 'bg-[#EBECF0] hover:bg-[#DFE1E6] text-[#172B4D] border-[#C1C7D0]'
+              }`}
+            >
+              <span>
+                {selectedEngine === 'Governance'
+                  ? 'Governance Engine Sheet'
+                  : selectedEngine === 'Contribution'
+                  ? 'Contribution Engine Sheet'
+                  : 'All Engine Categories'}
               </span>
-            ) : selectedEngine === 'Contribution' ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-300 whitespace-nowrap">
-                Contribution Engine Sheet
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-200 text-slate-800 whitespace-nowrap">
-                All Engine Categories
-              </span>
-            )}
+              {selectedEngine !== 'ALL' ? (
+                <span className="text-[10px] opacity-70 hover:opacity-100 font-bold ml-0.5" title="Clear engine filter">✕</span>
+              ) : hasActiveFilters ? (
+                <span className="text-[9px] bg-[#0052CC] text-white px-1.5 py-0.2 rounded-full font-bold">Filtered</span>
+              ) : null}
+            </button>
           </div>
 
           <span className="text-slate-300 shrink-0 select-none">|</span>
@@ -659,6 +706,19 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               </div>
             )}
           </div>
+
+          {/* Reset all filters button when any filter is active */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetAllFilters}
+              title="Reset all filters and display all records"
+              className="cursor-pointer text-xs font-semibold text-[#0052CC] hover:text-[#0747A6] hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-[#DEEBFF] transition select-none shrink-0"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Clear all filters</span>
+            </button>
+          )}
         </div>
 
         {/* Right side pinned summary: matches indicator & total count (never wraps) */}
