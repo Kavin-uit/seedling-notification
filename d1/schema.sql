@@ -37,11 +37,10 @@ INSERT OR IGNORE INTO scenarios (
   'gov-1', 'GOV-1', 'Governance', 'Seedling Submitted for Review',
   'Seedling Submitted', 'Sponsor, Co-Sponsors', 'Acknowledge submission',
   'Review Seedling', 'Your Seedling is in review', 'Your Seedling is in Review',
-  'Seedling Submitted: Your submission is being reviewed', 'Hi Team,
-
-Your Seedling has been successfully submitted and is currently being reviewed by our governance committee.', 'Submission banner on home tab and sticky inbox toast',
-  'Review Seedling', 'TO DO', 'High', 'STAGING',
-  '2026-09-18T09:00:00Z', '2026-09-21T11:20:14Z'
+  'Your Seedling Is in Review', 'Thanks for submitting your Seedling! Our team is reviewing it now, and we''ll let you know as soon as it''s ready to go live.  BOX: View Status',
+  'Thanks! Your Seedling has been submitted for review -- once we have completed our review we''ll let you know!',
+  'take user to Seedling review status', 'TO DO', 'High', 'STAGING',
+  '2026-09-18T09:00:00Z', '2026-09-22T12:00:00Z'
 );
 
 INSERT OR IGNORE INTO scenarios (
@@ -52,12 +51,11 @@ INSERT OR IGNORE INTO scenarios (
 ) VALUES (
   'gov-2', 'GOV-2', 'Governance', 'Seedling Approved',
   'Seedling Approved', 'Sponsor, Co-Sponsors', 'Acknowledge Acceptance',
-  'Post Seedling', 'You''re live! 🚀', 'Congratulations -- your Seedling is Live!',
-  'Hooray! Your Seedling is officially approved and live', 'Congratulations!
-
-Your Seedling has passed all review requirements and is now live.', 'Celebratory modal with confetti animation & social share sheet',
-  'Post Seedling', 'TO DO', 'Highest', 'STAGING',
-  '2026-09-18T09:15:00Z', '2026-09-21T10:45:00Z'
+  'Post Seedling', 'You''re live! 🎉', 'Congratulations -- your Seedling is Live!',
+  'You''re Live! 🎉', 'Great news -- your Seedling has been approved and is now live on Seedling. Now''s the time to start sharing it with your community and inviting support.  BOX: Share Your Seedling',
+  'Your Seedling has been approved and is now live on Seedling. Time to start sharing it with your community.  BOX: Share',
+  'take user directly to Seedling', 'TO DO', 'Highest', 'STAGING',
+  '2026-09-18T09:15:00Z', '2026-09-22T12:00:00Z'
 );
 
 INSERT OR IGNORE INTO scenarios (
@@ -69,11 +67,10 @@ INSERT OR IGNORE INTO scenarios (
   'gov-3', 'GOV-3', 'Governance', 'Seedling Rejected',
   'Seedling Rejected', 'Sponsor, Co-Sponsors', 'Explain decision',
   'Modify Seedling', 'Your Seedling needs a change', 'We couldn''t publish your Seedling -- Here''s why',
-  'Seedling Update: Adjustments requested for your submission', 'Hello,
-
-The review committee evaluated your Seedling and identified adjustments that need to be made before publication.', 'Revision required alert card with direct link to inline edit mode',
-  'Modify Seedling', 'TO DO', 'High', 'DEV',
-  '2026-09-18T09:30:00Z', '2026-09-21T09:12:30Z'
+  'Your Seedling Needs a Change', 'We weren''t able to publish your Seedling because it doesn''t currently meet our community guidelines. Review the reason we''ve provided, make the needed changes, and reach out to support if you have questions.  BOX: Edit Seedling',
+  'Your Seedling doesn''t meet our community guidelines. Review the reason provided and contact support if you have questions.',
+  'take user to Seedling edit screen with rejection reason', 'TO DO', 'High', 'DEV',
+  '2026-09-18T09:30:00Z', '2026-09-22T12:00:00Z'
 );
 
 INSERT OR IGNORE INTO scenarios (
@@ -85,9 +82,10 @@ INSERT OR IGNORE INTO scenarios (
   'gov-4', 'GOV-4', 'Governance', 'Comment Reported',
   'Comment Flagged by user', 'Reporter', 'Acknowledge report',
   'Review Comment', 'Thanks for the report', 'Thank you for reporting a Seedling comment',
-  'We''ve received your community report', 'Thank you for keeping our community safe. Our moderation team is actively reviewing the flagged comment.', 'Confirmation snackbar toast (3.5s auto-dismiss)',
-  'Review Comment', 'TO DO', 'Medium', 'STAGING',
-  '2026-09-19T10:00:00Z', '2026-09-21T08:30:00Z'
+  'Thanks for the Report', 'Thanks for helping keep Seedling welcoming. We''ll review the comment you reported, and if it merits removal, we''ll take care of it.',
+  'Thanks for helping keep Seedling welcoming. We''ll review the reported comment and if it merits removal we will do so.',
+  'confirm in place, no navigation required', 'TO DO', 'Medium', 'STAGING',
+  '2026-09-19T10:00:00Z', '2026-09-22T12:00:00Z'
 );
 
 INSERT OR IGNORE INTO scenarios (
@@ -99,9 +97,10 @@ INSERT OR IGNORE INTO scenarios (
   'gov-5', 'GOV-5', 'Governance', 'Comment Removed',
   'Comment Removed', 'Commenter', 'Notify author',
   'Comment removed', 'A comment was removed', 'One of your comments has been removed.',
-  'Notice: Community Guidelines & Removed Comment', 'Your recent comment was determined to violate our Community Code of Conduct and has been removed.', 'Persistent warning modal on next app opening with guideline link',
-  'View Community Guidelines', 'TO DO', 'High', 'PROD',
-  '2026-09-19T10:15:00Z', '2026-09-20T16:05:12Z'
+  'A Comment Was Removed', 'One of your comments has been removed because it violated our Community Guidelines. Take a look at our guidelines if you have questions.  BOX: View Guidelines',
+  'We removed one of your comments because it violated our Community Guidelines.',
+  'take user to Community Guidelines', 'TO DO', 'High', 'PROD',
+  '2026-09-19T10:15:00Z', '2026-09-22T12:00:00Z'
 );
 
 INSERT OR IGNORE INTO scenarios (
@@ -113,9 +112,10 @@ INSERT OR IGNORE INTO scenarios (
   'gov-6', 'GOV-6', 'Governance', 'Comment Removed',
   'Comment Removed', 'Reporter', 'Close the loop on report',
   'Confirm resolution', 'Update on your report', 'Thanks for helping keep Seedling welcoming.',
-  'Resolution update on your recent report', 'We wanted to let you know that following your report, our moderation team reviewed the content and took action.', 'Resolved report card in user Notification History',
-  'View Report Status', 'TO DO', 'Low', 'STAGING',
-  '2026-09-19T11:00:00Z', '2026-09-19T11:00:00Z'
+  'Update on Your Report', 'Thanks for helping keep Seedling welcoming. The comment you reported has been removed for violating our Community Guidelines.',
+  'The comment you reported has been removed for violating our Community Guidelines.',
+  'confirm in place, no navigation required', 'TO DO', 'Low', 'STAGING',
+  '2026-09-19T11:00:00Z', '2026-09-22T12:00:00Z'
 );
 
 INSERT OR IGNORE INTO scenarios (
