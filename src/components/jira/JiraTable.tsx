@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import type { NotificationScenario, ScenarioStatus } from '../../types/notification'
 import { JiraStatusBadge } from './JiraStatusBadge'
 import { EngineBadge } from './EngineBadge'
@@ -237,27 +238,69 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     Boolean(searchQuery && searchQuery.trim().length > 0)
 
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
-  const statusDropdownRef = useRef<HTMLDivElement>(null)
+  const statusButtonRef = useRef<HTMLButtonElement>(null)
+  const statusMenuRef = useRef<HTMLDivElement>(null)
+  const [dropdownCoords, setDropdownCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+
+  const updateDropdownCoords = () => {
+    if (statusButtonRef.current) {
+      const rect = statusButtonRef.current.getBoundingClientRect()
+      const menuWidth = 260
+      let left = rect.left
+      if (left + menuWidth > window.innerWidth - 10) {
+        left = window.innerWidth - menuWidth - 10
+      }
+      setDropdownCoords({
+        top: rect.bottom + 4,
+        left: Math.max(10, left),
+      })
+    }
+  }
+
+  const handleToggleStatusDropdown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isStatusDropdownOpen) {
+      updateDropdownCoords()
+    }
+    setIsStatusDropdownOpen((prev) => !prev)
+  }
 
   // Close status dropdown on click outside or Escape
   useEffect(() => {
+    if (!isStatusDropdownOpen) return
+
+    updateDropdownCoords()
+
     const handleClickOutside = (e: MouseEvent) => {
-      if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const isInsideButton = statusButtonRef.current?.contains(target)
+      const isInsideMenu = statusMenuRef.current?.contains(target)
+      if (!isInsideButton && !isInsideMenu) {
         setIsStatusDropdownOpen(false)
       }
     }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsStatusDropdownOpen(false)
       }
     }
-    if (isStatusDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('keydown', handleKeyDown)
+
+    const handleScrollOrResize = () => {
+      updateDropdownCoords()
     }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('resize', handleScrollOrResize)
+    window.addEventListener('scroll', handleScrollOrResize, true)
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('resize', handleScrollOrResize)
+      window.removeEventListener('scroll', handleScrollOrResize, true)
     }
   }, [isStatusDropdownOpen])
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set())
@@ -591,10 +634,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           <span className="text-slate-300 shrink-0 select-none">|</span>
 
           {/* Status Filter - Jira-style Dropdown Button */}
-          <div className="relative shrink-0" ref={statusDropdownRef}>
+          <div className="relative shrink-0">
             <button
+              ref={statusButtonRef}
               type="button"
-              onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
+              onClick={handleToggleStatusDropdown}
               className={`cursor-pointer px-2.5 py-1 rounded-[3px] text-xs inline-flex items-center gap-1.5 transition border select-none ${
                 statusFilter !== 'ALL'
                   ? 'bg-[#DEEBFF] text-[#0052CC] border-[#B3D4FF] font-semibold shadow-2xs'
@@ -642,69 +686,80 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               )}
             </button>
 
-            {/* Jira Filter Dropdown Popover */}
-            {isStatusDropdownOpen && (
-              <div className="absolute left-0 mt-1 w-64 bg-white rounded-[4px] shadow-[0_4px_12px_-2px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1.5 z-40 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-3 py-1 flex items-center justify-between text-[10px] font-bold text-[#6B778C] uppercase tracking-wider border-b border-[#EBECF0] pb-1.5 mb-1">
-                  <span>Filter by Status</span>
-                  {statusFilter !== 'ALL' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStatusFilter('ALL')
-                        setIsStatusDropdownOpen(false)
-                      }}
-                      className="text-[11px] text-[#0052CC] hover:underline cursor-pointer lowercase first-letter:uppercase font-normal"
-                    >
-                      Clear filter
-                    </button>
-                  )}
-                </div>
-
-                <div className="max-h-72 overflow-y-auto py-0.5">
-                  {[
-                    { label: 'All Statuses', value: 'ALL', dotColor: 'bg-[#6B778C]' },
-                    { label: 'TO DO', value: 'TO DO', dotColor: 'bg-[#42526E]' },
-                    { label: 'TESTED', value: 'TESTED', dotColor: 'bg-[#00875A]' },
-                    { label: 'NOT WORKING', value: 'NOT WORKING', dotColor: 'bg-[#DE350B]' },
-                    { label: 'NAVIGATION NOT WORKING', value: 'NAVIGATION NOT WORKING', dotColor: 'bg-[#FF8B00]' },
-                    { label: 'PUSH NOTIFICATION NOT WORKING', value: 'PUSH NOTIFICATION NOT WORKING', dotColor: 'bg-[#FF5630]' },
-                    { label: 'EMAIL NOTIFICATION NOT WORKING', value: 'EMAIL NOTIFICATION NOT WORKING', dotColor: 'bg-[#6554C0]' },
-                    { label: 'SMS NOTIFICATION NOT WORKING', value: 'SMS NOTIFICATION NOT WORKING', dotColor: 'bg-[#00B8D9]' },
-                    { label: 'ALL NOT WORKING', value: 'NOT_WORKING_ANY', dotColor: 'bg-[#BF2600]' },
-                  ].map(({ label, value, dotColor }) => {
-                    const count = statusCounts[value] ?? 0
-                    const isSelected = statusFilter === value
-                    return (
+            {/* Jira Filter Dropdown Popover - Rendered via Portal to eliminate any parent overflow clipping */}
+            {isStatusDropdownOpen &&
+              createPortal(
+                <div
+                  ref={statusMenuRef}
+                  style={{
+                    position: 'fixed',
+                    top: `${dropdownCoords.top}px`,
+                    left: `${dropdownCoords.left}px`,
+                    zIndex: 9999,
+                  }}
+                  className="w-64 bg-white rounded-[4px] shadow-[0_4px_16px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1.5 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 select-none"
+                >
+                  <div className="px-3 py-1 flex items-center justify-between text-[10px] font-bold text-[#6B778C] uppercase tracking-wider border-b border-[#EBECF0] pb-1.5 mb-1">
+                    <span>Filter by Status</span>
+                    {statusFilter !== 'ALL' && (
                       <button
-                        key={value}
                         type="button"
                         onClick={() => {
-                          setStatusFilter(value)
+                          setStatusFilter('ALL')
                           setIsStatusDropdownOpen(false)
                         }}
-                        className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer ${
-                          isSelected ? 'bg-[#EBECF0] font-semibold text-[#0052CC]' : 'text-[#172B4D]'
-                        }`}
+                        className="text-[11px] text-[#0052CC] hover:underline cursor-pointer lowercase first-letter:uppercase font-normal"
                       >
-                        <div className="flex items-center gap-2 min-w-0 pr-2">
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                          <span className="truncate">{label}</span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
-                            {count}
-                          </span>
-                          {isSelected && (
-                            <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-                          )}
-                        </div>
+                        Clear filter
                       </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+                    )}
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto py-0.5">
+                    {[
+                      { label: 'All Statuses', value: 'ALL', dotColor: 'bg-[#6B778C]' },
+                      { label: 'TO DO', value: 'TO DO', dotColor: 'bg-[#42526E]' },
+                      { label: 'TESTED', value: 'TESTED', dotColor: 'bg-[#00875A]' },
+                      { label: 'NOT WORKING', value: 'NOT WORKING', dotColor: 'bg-[#DE350B]' },
+                      { label: 'NAVIGATION NOT WORKING', value: 'NAVIGATION NOT WORKING', dotColor: 'bg-[#FF8B00]' },
+                      { label: 'PUSH NOTIFICATION NOT WORKING', value: 'PUSH NOTIFICATION NOT WORKING', dotColor: 'bg-[#FF5630]' },
+                      { label: 'EMAIL NOTIFICATION NOT WORKING', value: 'EMAIL NOTIFICATION NOT WORKING', dotColor: 'bg-[#6554C0]' },
+                      { label: 'SMS NOTIFICATION NOT WORKING', value: 'SMS NOTIFICATION NOT WORKING', dotColor: 'bg-[#00B8D9]' },
+                      { label: 'ALL NOT WORKING', value: 'NOT_WORKING_ANY', dotColor: 'bg-[#BF2600]' },
+                    ].map(({ label, value, dotColor }) => {
+                      const count = statusCounts[value] ?? 0
+                      const isSelected = statusFilter === value
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => {
+                            setStatusFilter(value)
+                            setIsStatusDropdownOpen(false)
+                          }}
+                          className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer ${
+                            isSelected ? 'bg-[#EBECF0] font-semibold text-[#0052CC]' : 'text-[#172B4D]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+                            <span className="truncate">{label}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
+                              {count}
+                            </span>
+                            {isSelected && (
+                              <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>,
+                document.body
+              )}
           </div>
 
           {/* Reset all filters button when any filter is active */}
