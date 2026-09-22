@@ -124,6 +124,12 @@ export const IosMismatchTooltip: React.FC<IosMismatchTooltipProps> = ({
                 <span className="text-[11px] text-slate-500 truncate">
                   {mismatch.fieldLabel}
                 </span>
+                {mismatch.expected.trim().toLowerCase() === mismatch.actual.trim().toLowerCase() &&
+                  mismatch.expected.trim() !== mismatch.actual.trim() && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-100/90 border border-amber-300 px-1.5 py-0.2 rounded w-fit mt-0.5">
+                      Capitalization / casing mismatch
+                    </span>
+                  )}
               </div>
             </div>
 
@@ -163,7 +169,29 @@ export const IosMismatchTooltip: React.FC<IosMismatchTooltipProps> = ({
                 </button>
               </div>
               <div className="text-xs text-slate-800 leading-relaxed select-text break-words max-h-24 overflow-y-auto font-normal">
-                {mismatch.expected || (
+                {mismatch.expected ? (
+                  mismatch.expected.trim().toLowerCase() === mismatch.actual.trim().toLowerCase() &&
+                  mismatch.expected.trim() !== mismatch.actual.trim() ? (
+                    <span>
+                      {mismatch.expected.split('').map((char, i) => {
+                        const isDiff = char !== mismatch.actual[i]
+                        return isDiff ? (
+                          <span
+                            key={i}
+                            className="bg-emerald-200 text-emerald-900 font-bold px-0.5 rounded underline decoration-emerald-600"
+                            title={`Expected lowercase '${char}' in sheet`}
+                          >
+                            {char}
+                          </span>
+                        ) : (
+                          char
+                        )
+                      })}
+                    </span>
+                  ) : (
+                    mismatch.expected
+                  )
+                ) : (
                   <span className="text-slate-400 italic">(Empty in Sheet)</span>
                 )}
               </div>
@@ -175,7 +203,29 @@ export const IosMismatchTooltip: React.FC<IosMismatchTooltipProps> = ({
                 Current in Table
               </div>
               <div className="text-xs text-slate-700 leading-relaxed select-text break-words max-h-20 overflow-y-auto font-normal">
-                {mismatch.actual || (
+                {mismatch.actual ? (
+                  mismatch.expected.trim().toLowerCase() === mismatch.actual.trim().toLowerCase() &&
+                  mismatch.expected.trim() !== mismatch.actual.trim() ? (
+                    <span>
+                      {mismatch.actual.split('').map((char, i) => {
+                        const isDiff = char !== mismatch.expected[i]
+                        return isDiff ? (
+                          <span
+                            key={i}
+                            className="bg-rose-100 text-rose-800 font-bold px-0.5 rounded underline decoration-rose-500"
+                            title={`Current uppercase '${char}' in table`}
+                          >
+                            {char}
+                          </span>
+                        ) : (
+                          char
+                        )
+                      })}
+                    </span>
+                  ) : (
+                    mismatch.actual
+                  )
+                ) : (
                   <span className="text-slate-400 italic">(Empty in Table)</span>
                 )}
               </div>
