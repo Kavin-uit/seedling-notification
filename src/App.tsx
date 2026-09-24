@@ -422,6 +422,7 @@ export default function App() {
         govCount={engineCounts['Governance'] || 0}
         contribCount={engineCounts['Contribution'] || 0}
         totalRows={scenarios.length}
+        totalEngines={dynamicEngines.length}
         verificationSummary={verificationSummary}
         isVerifying={isVerifying}
         onOpenVerificationModal={() => setIsVerificationModalOpen(true)}

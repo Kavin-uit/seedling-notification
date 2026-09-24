@@ -32,6 +32,7 @@ interface JiraNavbarProps {
   onResetAllFilters?: () => void
   engines?: EngineMenuItem[]
   engineCounts?: Record<string, number>
+  totalEngines?: number
   govCount?: number
   contribCount?: number
   totalRows: number
@@ -53,6 +54,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   onResetAllFilters,
   engines,
   engineCounts,
+  totalEngines,
   govCount,
   contribCount,
   totalRows,
@@ -149,9 +151,11 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           { name: 'Contribution', count: contribCount ?? 0 },
         ]
 
+  const totalEnginesCount = totalEngines ?? engineList.length
+
   const activeCount =
     selectedEngine === 'ALL'
-      ? totalRows
+      ? totalEnginesCount
       : (engineCounts?.[selectedEngine] ??
          engineList.find((e) => e.name.toLowerCase() === selectedEngine.toLowerCase())?.count ??
          (selectedEngine === 'Governance' ? (govCount ?? 0) : selectedEngine === 'Contribution' ? (contribCount ?? 0) : 0))
@@ -200,7 +204,11 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           <button
             type="button"
             onClick={() => setIsEngineMenuOpen((prev) => !prev)}
-            title={`Select Notification Engine (Currently: ${getEngineDisplayLabel(selectedEngine)})`}
+            title={`Select Notification Engine (Currently: ${
+              selectedEngine === 'ALL'
+                ? `All ${totalEnginesCount} Engines • ${totalRows} Scenarios`
+                : `${getEngineDisplayLabel(selectedEngine)}`
+            })`}
             aria-label="Filter Notification Engine"
             className={`cursor-pointer h-8 px-2.5 rounded text-xs font-medium flex items-center gap-1.5 transition select-none ${
               isEngineMenuOpen
@@ -289,8 +297,8 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
               >
                 <span>All Engines</span>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
-                    {totalRows}
+                  <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]" title={`${totalEnginesCount} Engines`}>
+                    {totalEnginesCount}
                   </span>
                   <button
                     type="button"
