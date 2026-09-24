@@ -1,5 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, FileSpreadsheet, X, Layers, ChevronDown, Check, Share } from 'lucide-react'
+import {
+  Search,
+  FileSpreadsheet,
+  X,
+  Layers,
+  ChevronDown,
+  Check,
+  Share,
+  Plus,
+  PanelLeft,
+  LayoutGrid,
+  Bell,
+  Settings,
+} from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
@@ -28,6 +41,7 @@ interface JiraNavbarProps {
 export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   searchQuery,
   onSearchChange,
+  onAddRow,
   onExportClick,
   selectedEngine,
   onSelectEngine,
@@ -124,8 +138,26 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
 
   return (
     <header className="h-13 bg-[#0747A6] text-white flex items-center justify-between px-3 sm:px-4 select-none shrink-0 border-b border-[#0052CC] shadow-xs gap-2 sm:gap-3 flex-nowrap min-w-0">
-      {/* Left side: Seedling Brand & Engine Category Switcher */}
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">
+      {/* Left side: Navigation icons, Seedling Brand & Engine Switcher */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
+        {/* Sidebar Toggle Icon */}
+        <button
+          type="button"
+          className="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer hidden md:flex items-center justify-center shrink-0"
+          title="Toggle sidebar"
+        >
+          <PanelLeft className="w-4 h-4" />
+        </button>
+
+        {/* App Switcher (9-dot bento grid) */}
+        <button
+          type="button"
+          className="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer hidden sm:flex items-center justify-center shrink-0"
+          title="Atlassian switch to..."
+        >
+          <LayoutGrid className="w-4 h-4" />
+        </button>
+
         {/* Brand - Click to reset all filters and display all records */}
         <button
           type="button"
@@ -329,11 +361,11 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
         )}
       </div>
 
-      {/* Right side: Search, Share & Excel Actions */}
-      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+      {/* Center Section: Jira-Sized Search Bar & "+ Create" Button */}
+      <div className="flex items-center gap-2 flex-1 max-w-xl md:max-w-2xl min-w-0 mx-1 sm:mx-3">
         {/* Search with Clear 'X' button */}
-        <div className="relative flex items-center w-32 sm:w-48 md:w-64 lg:w-72 transition-all">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none shrink-0" />
+        <div className="relative flex items-center flex-1 min-w-0">
+          <Search className="w-4 h-4 text-slate-400 absolute left-2.5 pointer-events-none shrink-0" />
           <input
             type="text"
             autoComplete="off"
@@ -346,8 +378,8 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                 onSearchChange('')
               }
             }}
-            placeholder="Search events, triggers..."
-            className="w-full bg-white text-slate-900 placeholder:text-slate-400 text-xs rounded pl-7 sm:pl-8 pr-7 sm:pr-8 py-1.5 transition outline-none border border-transparent focus:ring-2 focus:ring-white/80 shadow-xs"
+            placeholder="Search events, triggers, communication..."
+            className="w-full h-8.5 bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-[13px] rounded-[4px] pl-8.5 pr-8 transition outline-none border border-transparent focus:border-[#4C9AFF] focus:ring-2 focus:ring-white/80 shadow-xs"
           />
 
           {/* Clear 'X' Button */}
@@ -355,7 +387,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute right-1.5 p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer flex items-center justify-center"
+              className="absolute right-1.5 p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer flex items-center justify-center"
               title="Clear search (Esc)"
             >
               <X className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -363,11 +395,27 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           )}
         </div>
 
+        {/* Jira "+ Create" Button */}
+        {onAddRow && (
+          <button
+            type="button"
+            onClick={onAddRow}
+            className="cursor-pointer h-8.5 px-3 rounded-[3px] bg-[#0052CC] hover:bg-[#0065FF] active:bg-[#0747A6] text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0 select-none border border-white/20 hover:border-white/40"
+            title="Create new scenario (Add row)"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span className="hidden xs:inline sm:inline">Create</span>
+          </button>
+        )}
+      </div>
+
+      {/* Right side: Share, Excel Actions & Jira Utility Icons */}
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
         {/* Share View / Filter Button */}
         <button
           type="button"
           onClick={handleShareNavbarView}
-          className={`cursor-pointer px-2.5 sm:px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0 select-none ${
+          className={`cursor-pointer px-2.5 sm:px-3 h-8.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0 select-none ${
             hasActiveFilters
               ? 'bg-[#0052CC] hover:bg-[#0747A6] text-white ring-1 ring-white/40'
               : 'bg-white/10 hover:bg-white/20 text-white'
@@ -394,13 +442,41 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
         <button
           type="button"
           onClick={onExportClick}
-          className="cursor-pointer bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 sm:px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0"
+          className="cursor-pointer bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 sm:px-3 h-8.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0"
           title="Export current table to Excel .xlsx"
         >
           <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">Export .xlsx</span>
           <span className="sm:hidden">Export</span>
         </button>
+
+        {/* Notification Bell with '9+' Badge */}
+        <div
+          className="relative hidden md:flex items-center justify-center p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer shrink-0"
+          title="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          <span className="absolute -top-0.5 -right-0.5 px-1 py-0.2 bg-[#FF5630] text-white text-[9px] font-bold rounded-full leading-none shadow-xs">
+            9+
+          </span>
+        </div>
+
+        {/* Settings Gear */}
+        <button
+          type="button"
+          className="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer hidden lg:flex items-center justify-center shrink-0"
+          title="Settings"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
+
+        {/* User Avatar 'K' */}
+        <div
+          className="w-7 h-7 rounded-full bg-[#DE350B] text-white flex items-center justify-center text-xs font-bold shadow-xs ring-1 ring-white/30 shrink-0 cursor-pointer select-none"
+          title="Kavin (Account)"
+        >
+          K
+        </div>
       </div>
     </header>
   )
