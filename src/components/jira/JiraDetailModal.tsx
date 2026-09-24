@@ -423,22 +423,88 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
           {/* ROW 3: In-App, CTA & Comments */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* In-App Experience */}
+            {/* In-App Experience (Styled to match Seedling's official in-app notification card) */}
             <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
-              <div className="flex items-center gap-1.5 mb-1.5 text-xs font-semibold text-[#6B778C]">
-                <Smartphone className="w-3.5 h-3.5 text-[#6B778C]" />
-                <span>In-App Experience</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6B778C]">
+                  <Smartphone className="w-3.5 h-3.5 text-[#6B778C]" />
+                  <span>In-App Experience</span>
+                </div>
+                {scenario.inAppExperience && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('inApp', scenario.inAppExperience)}
+                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                    title="Copy in-app message"
+                  >
+                    {copiedField === 'inApp' ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#00875A]" />
+                        <span className="text-[#00875A] font-semibold">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
-              <p className="text-xs text-[#172B4D] leading-relaxed flex-1 whitespace-pre-wrap">
-                {scenario.inAppExperience || <span className="text-[#6B778C] italic">None</span>}
-              </p>
+
+              {scenario.inAppExperience ? (
+                /* Official Seedling In-App Notification Card */
+                <div className="bg-white border border-[#4D9873] rounded-lg p-3 sm:px-4 sm:py-3.5 flex items-center gap-3.5 shadow-2xs flex-1 transition-all">
+                  {/* Round Seedling Avatar */}
+                  <div className="w-11 h-11 rounded-full border border-[#DCDEE0] bg-white flex items-center justify-center p-2.5 shrink-0 shadow-2xs">
+                    <img
+                      src="https://qa.seedlingsocial.org/static/media/seedling-icon.19cfcf4c.svg"
+                      onError={(e) => {
+                        e.currentTarget.src = '/seedling-icon.19cfcf4c.svg'
+                      }}
+                      alt="Seedling"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  {/* Notification Content */}
+                  <div className="text-[13.5px] sm:text-[14px] text-[#11221C] leading-snug font-normal select-text break-words min-w-0">
+                    {scenario.inAppExperience}
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-dashed border-[#DFE1E6] rounded-lg p-4 flex items-center justify-center text-xs text-[#6B778C] italic flex-1">
+                  None
+                </div>
+              )}
             </div>
 
             {/* Call to Action (CTA) */}
             <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
-              <div className="flex items-center gap-1.5 mb-1.5 text-xs font-semibold text-[#6B778C]">
-                <ExternalLink className="w-3.5 h-3.5 text-[#6B778C]" />
-                <span>Call to Action (CTA)</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6B778C]">
+                  <ExternalLink className="w-3.5 h-3.5 text-[#6B778C]" />
+                  <span>Call to Action (CTA)</span>
+                </div>
+                {scenario.cta && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('cta', scenario.cta)}
+                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                    title="Copy CTA"
+                  >
+                    {copiedField === 'cta' ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#00875A]" />
+                        <span className="text-[#00875A] font-semibold">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
               <p className="text-xs text-[#172B4D] leading-relaxed flex-1 whitespace-pre-wrap">
                 {scenario.cta || <span className="text-[#6B778C] italic">None</span>}
@@ -447,9 +513,31 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
             {/* QA Comments */}
             <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
-              <div className="flex items-center gap-1.5 mb-1.5 text-xs font-semibold text-[#6B778C]">
-                <MessageSquare className="w-3.5 h-3.5 text-[#6B778C]" />
-                <span>Comments & Notes</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6B778C]">
+                  <MessageSquare className="w-3.5 h-3.5 text-[#6B778C]" />
+                  <span>Comments & Notes</span>
+                </div>
+                {scenario.comments && scenario.comments.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('comments', scenario.comments || '')}
+                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                    title="Copy comments"
+                  >
+                    {copiedField === 'comments' ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#00875A]" />
+                        <span className="text-[#00875A] font-semibold">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
               {scenario.comments && scenario.comments.trim() ? (
                 <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap flex-1">
