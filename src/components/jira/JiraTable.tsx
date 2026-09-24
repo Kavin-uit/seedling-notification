@@ -342,11 +342,18 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const statusButtonRef = useRef<HTMLButtonElement>(null)
   const statusMenuRef = useRef<HTMLDivElement>(null)
   const [dropdownCoords, setDropdownCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+  const [hoveredStatusItem, setHoveredStatusItem] = useState<{
+    label: string
+    value: string
+    dotColor: string
+    count: number
+    rect: { top: number; bottom: number; left: number; width: number }
+  } | null>(null)
 
   const updateDropdownCoords = () => {
     if (statusButtonRef.current) {
       const rect = statusButtonRef.current.getBoundingClientRect()
-      const menuWidth = 260
+      const menuWidth = 410
       let left = rect.left
       if (left + menuWidth > window.innerWidth - 10) {
         left = window.innerWidth - menuWidth - 10
@@ -379,12 +386,14 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       const isInsideMenu = statusMenuRef.current?.contains(target)
       if (!isInsideButton && !isInsideMenu) {
         setIsStatusDropdownOpen(false)
+        setHoveredStatusItem(null)
       }
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsStatusDropdownOpen(false)
+        setHoveredStatusItem(null)
       }
     }
 
@@ -846,95 +855,160 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             {/* Jira Multi-Select Filter Dropdown Popover - Rendered via Portal */}
             {isStatusDropdownOpen &&
               createPortal(
-                <div
-                  ref={statusMenuRef}
-                  style={{
-                    position: 'fixed',
-                    top: `${dropdownCoords.top}px`,
-                    left: `${dropdownCoords.left}px`,
-                    zIndex: 9999,
-                  }}
-                  className="w-80 bg-white rounded-[4px] shadow-[0_6px_20px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] pt-1.5 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 select-none flex flex-col max-h-[420px]"
-                >
-                  <div className="px-3 py-1.5 flex items-center justify-between text-[11px] font-bold text-[#6B778C] border-b border-[#EBECF0] mb-1 bg-[#FAFBFC]">
-                    <span className="uppercase tracking-wider text-[10px]">Filter by Status</span>
-                    {selectedStatuses.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleClearStatusFilters}
-                        className="text-[11px] text-[#0052CC] hover:underline cursor-pointer font-normal"
-                      >
-                        Clear ({selectedStatuses.length})
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="overflow-y-auto py-0.5 flex-1 min-h-0">
-                    {statusFilterItems.map(({ label, value, dotColor }) => {
-                      const count = statusCounts[value] ?? 0
-                      const isChecked =
-                        value === 'ALL'
-                          ? selectedStatuses.length === 0
-                          : selectedStatuses.includes(value)
-
-                      return (
-                        <div
-                          key={value}
-                          onClick={() => handleToggleStatus(value)}
-                          className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer group ${
-                            isChecked ? 'bg-[#EBECF0]/60' : ''
-                          }`}
+                <>
+                  <div
+                    ref={statusMenuRef}
+                    style={{
+                      position: 'fixed',
+                      top: `${dropdownCoords.top}px`,
+                      left: `${dropdownCoords.left}px`,
+                      zIndex: 9999,
+                    }}
+                    className="w-[360px] sm:w-[420px] max-w-[95vw] bg-white rounded-xl shadow-[0_16px_40px_rgba(9,30,66,0.22),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] pt-1.5 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 select-none flex flex-col max-h-[460px]"
+                  >
+                    <div className="px-3.5 py-2 flex items-center justify-between text-[11px] font-bold text-[#6B778C] border-b border-[#EBECF0] mb-1 bg-[#FAFBFC] rounded-t-xl">
+                      <span className="uppercase tracking-wider text-[10px]">Filter by Status</span>
+                      {selectedStatuses.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleClearStatusFilters}
+                          className="text-[11px] text-[#0052CC] hover:underline cursor-pointer font-normal"
                         >
-                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                            {/* Jira-style Checkbox */}
-                            <div
-                              className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center transition shrink-0 ${
-                                isChecked
-                                  ? 'bg-[#0052CC] border border-[#0052CC] text-white shadow-2xs'
-                                  : 'border border-[#C1C7D0] bg-white group-hover:border-[#42526E]'
-                              }`}
-                            >
-                              {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                          Clear ({selectedStatuses.length})
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="overflow-y-auto py-1 flex-1 min-h-0 divide-y divide-slate-100/60">
+                      {statusFilterItems.map(({ label, value, dotColor }) => {
+                        const count = statusCounts[value] ?? 0
+                        const isChecked =
+                          value === 'ALL'
+                            ? selectedStatuses.length === 0
+                            : selectedStatuses.includes(value)
+
+                        return (
+                          <div
+                            key={value}
+                            onClick={() => handleToggleStatus(value)}
+                            onMouseEnter={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect()
+                              setHoveredStatusItem({
+                                label,
+                                value,
+                                dotColor,
+                                count,
+                                rect: {
+                                  top: rect.top,
+                                  bottom: rect.bottom,
+                                  left: rect.left,
+                                  width: rect.width,
+                                },
+                              })
+                            }}
+                            onMouseLeave={() => setHoveredStatusItem(null)}
+                            title={label}
+                            className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer group ${
+                              isChecked ? 'bg-[#EBECF0]/60' : ''
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-3">
+                              {/* Jira-style Checkbox */}
+                              <div
+                                className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center transition shrink-0 ${
+                                  isChecked
+                                    ? 'bg-[#0052CC] border border-[#0052CC] text-white shadow-2xs'
+                                    : 'border border-[#C1C7D0] bg-white group-hover:border-[#42526E]'
+                                }`}
+                              >
+                                {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                              </div>
+
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+                              <span
+                                className={`text-xs leading-snug break-words ${
+                                  isChecked ? 'font-semibold text-[#0052CC]' : 'text-[#172B4D]'
+                                }`}
+                              >
+                                {label}
+                              </span>
                             </div>
 
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                            <span
-                              className={`truncate text-xs ${
-                                isChecked ? 'font-semibold text-[#0052CC]' : 'text-[#172B4D]'
-                              }`}
-                            >
-                              {label}
+                            <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E] shrink-0">
+                              {count}
                             </span>
                           </div>
+                        )
+                      })}
+                    </div>
 
-                          <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E] shrink-0">
-                            {count}
-                          </span>
-                        </div>
-                      )
-                    })}
+                    {/* Dropdown Footer with Done button & count summary */}
+                    <div className="px-3.5 py-2.5 border-t border-[#EBECF0] mt-1 flex items-center justify-between bg-[#FAFBFC] rounded-b-xl">
+                      <span className="text-[11px] text-[#6B778C]">
+                        {selectedStatuses.length > 0 ? (
+                          <>
+                            <strong>{selectedStatuses.length}</strong> selected ({baseFiltered.length} records)
+                          </>
+                        ) : (
+                          'All statuses active'
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsStatusDropdownOpen(false)
+                          setHoveredStatusItem(null)
+                        }}
+                        className="px-3.5 py-1 rounded bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold cursor-pointer shadow-2xs transition"
+                      >
+                        Done
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Dropdown Footer with Done button & count summary */}
-                  <div className="px-3 py-2 border-t border-[#EBECF0] mt-1 flex items-center justify-between bg-[#FAFBFC] rounded-b-[4px]">
-                    <span className="text-[11px] text-[#6B778C]">
-                      {selectedStatuses.length > 0 ? (
-                        <>
-                          <strong>{selectedStatuses.length}</strong> selected ({baseFiltered.length} records)
-                        </>
-                      ) : (
-                        'All statuses active'
-                      )}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsStatusDropdownOpen(false)}
-                      className="px-3 py-1 rounded bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold cursor-pointer shadow-2xs transition"
+                  {/* iOS Style Stand-Up Callout / Tooltip on Mouse Hover */}
+                  {hoveredStatusItem && (
+                    <div
+                      style={{
+                        position: 'fixed',
+                        top:
+                          hoveredStatusItem.rect.top < 65
+                            ? `${hoveredStatusItem.rect.bottom + 8}px`
+                            : `${hoveredStatusItem.rect.top - 46}px`,
+                        left: `${Math.max(
+                          12,
+                          Math.min(
+                            window.innerWidth - 380,
+                            hoveredStatusItem.rect.left + 8
+                          )
+                        )}px`,
+                        zIndex: 10002,
+                      }}
+                      className="pointer-events-none transition-all duration-150 animate-in fade-in zoom-in-95"
                     >
-                      Done
-                    </button>
-                  </div>
-                </div>,
+                      <div className="relative bg-[#1C1C1E]/95 text-white backdrop-blur-xl px-3.5 py-2 rounded-xl shadow-[0_14px_34px_rgba(0,0,0,0.55),0_0_1px_rgba(255,255,255,0.35)] border border-white/20 text-xs font-semibold flex items-center gap-2.5 max-w-lg select-none">
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full shrink-0 ${hoveredStatusItem.dotColor} ring-2 ring-white/30`}
+                        />
+                        <span className="text-white drop-shadow-xs font-medium tracking-tight">
+                          {hoveredStatusItem.label}
+                        </span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/20 text-white/90 shrink-0 ml-0.5">
+                          {hoveredStatusItem.count}
+                        </span>
+
+                        {/* Little iOS Stand-up pointer arrow */}
+                        <div
+                          className={`absolute left-8 w-2 h-2 bg-[#1C1C1E] border-white/20 rotate-45 ${
+                            hoveredStatusItem.rect.top < 65
+                              ? '-top-1 border-t border-l'
+                              : '-bottom-1 border-b border-r'
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>,
                 document.body
               )}
           </div>
