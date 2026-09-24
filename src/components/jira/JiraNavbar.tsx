@@ -191,10 +191,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5 opacity-85 shrink-0" />
-            <span className="hidden sm:inline">
-              {selectedEngine === 'ALL' ? 'All Engines' : selectedEngine}
-            </span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-white/20 text-white">
+            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-white/20 text-white leading-none">
               {activeCount}
             </span>
             <ChevronDown
