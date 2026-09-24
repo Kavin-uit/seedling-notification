@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type { ScenarioStatus } from '../../types/notification'
 import { parseStatuses, serializeStatuses } from '../../types/notification'
 import { ChevronDown, CheckCircle2, AlertCircle, Clock, Check, X } from 'lucide-react'
@@ -164,29 +165,64 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
   availableStatuses,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [openUpward, setOpenUpward] = useState(false)
-  const [openLeftward, setOpenLeftward] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState<{
+    top?: string
+    bottom?: string
+    left: string
+    maxHeight: string
+  } | null>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   const activeStatuses = parseStatuses(status)
 
+  const updateCoords = () => {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    const openUp = spaceBelow < 380 && spaceAbove > spaceBelow
+    const width = 320
+    const left = Math.max(12, Math.min(window.innerWidth - width - 12, rect.left))
+
+    if (openUp) {
+      setCoords({
+        bottom: `${window.innerHeight - rect.top + 4}px`,
+        top: undefined,
+        left: `${left}px`,
+        maxHeight: `${Math.min(380, spaceAbove - 16)}px`,
+      })
+    } else {
+      setCoords({
+        top: `${rect.bottom + 4}px`,
+        bottom: undefined,
+        left: `${left}px`,
+        maxHeight: `${Math.min(380, spaceBelow - 16)}px`,
+      })
+    }
+  }
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!isOpen) {
+      updateCoords()
+      setIsOpen(true)
+    } else {
+      setIsOpen(false)
+    }
+  }
+
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent | PointerEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
+    if (!isOpen) return
+    const handleClose = () => setIsOpen(false)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false)
     }
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setIsOpen(false)
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('pointerdown', handleClickOutside, true)
-      document.addEventListener('keydown', handleKeyDown)
-    }
+    window.addEventListener('scroll', handleClose, true)
+    window.addEventListener('resize', handleClose)
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener('pointerdown', handleClickOutside, true)
+      window.removeEventListener('scroll', handleClose, true)
+      window.removeEventListener('resize', handleClose)
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isOpen])
@@ -226,17 +262,6 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
   const statusList = availableStatuses && availableStatuses.length > 0 ? availableStatuses : defaultStatuses
   const allStatuses = [...new Set([...statusList, ...activeStatuses])]
 
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!isOpen && dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect()
-      const spaceBelow = window.innerHeight - rect.bottom
-      setOpenUpward(spaceBelow < 380 && rect.top > spaceBelow)
-      setOpenLeftward(rect.left + 330 > window.innerWidth)
-    }
-    setIsOpen(!isOpen)
-  }
-
   const handleSelectStatus = (st: ScenarioStatus, e: React.MouseEvent) => {
     e.stopPropagation()
     let nextStatuses: ScenarioStatus[]
@@ -259,9 +284,10 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
   }
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className="inline-block text-left">
       {/* Trigger Button showing active badge(s) */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={handleToggle}
         className="inline-flex flex-wrap gap-1 items-center p-0.5 rounded hover:bg-slate-100/80 transition cursor-pointer"
@@ -283,23 +309,34 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
         <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-0.5" />
       </button>
 
-      {/* Clean Human Dropdown Popover */}
-      {isOpen && (
+      {/* Clean Human Dropdown Popover via Portal */}
+      {isOpen && coords && createPortal(
         <>
           <div
-            className="fixed inset-0 z-40 bg-transparent"
+            className="fixed inset-0 z-[99990] bg-transparent"
             onClick={(e) => {
               e.stopPropagation()
               setIsOpen(false)
             }}
+            onContextMenu={(e) => {
+              e.preventDefault()
+              setIsOpen(false)
+            }}
           />
           <div
-            className={`absolute w-80 rounded-lg bg-white shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 ${
-              openLeftward ? 'right-0' : 'left-0'
-            } ${openUpward ? 'bottom-full mb-1' : 'top-full mt-1'}`}
+            style={{
+              position: 'fixed',
+              top: coords.top,
+              bottom: coords.bottom,
+              left: coords.left,
+              maxHeight: coords.maxHeight,
+              zIndex: 99999,
+            }}
+            className="w-80 rounded-xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-100 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Simple Human Header */}
-            <div className="px-3.5 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+            <div className="px-3.5 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-semibold text-slate-800">Select Status</span>
                 {activeStatuses.length > 1 && (
@@ -322,7 +359,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
             </div>
 
             {/* Checklist items */}
-            <div className="py-1 max-h-[300px] overflow-y-auto divide-y divide-slate-50">
+            <div className="py-1 flex-1 overflow-y-auto divide-y divide-slate-50 overscroll-contain">
               {allStatuses.map((st) => {
                 const cfg = getStatusBadgeConfig(st)
                 const isChecked = activeStatuses.includes(st)
@@ -358,7 +395,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
             </div>
 
             {/* Simple Understated Footer */}
-            <div className="px-3 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <div className="px-3 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 {onOpenLog && (
                   <button
@@ -399,7 +436,8 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   )

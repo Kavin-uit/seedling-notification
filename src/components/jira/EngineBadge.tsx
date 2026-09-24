@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type { ScenarioStatus } from '../../types/notification'
 import { ChevronDown, Check, Bug, Info, X } from 'lucide-react'
 
@@ -33,26 +34,62 @@ export const EngineBadge: React.FC<EngineBadgeProps> = ({
   interactive = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [openUpward, setOpenUpward] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState<{
+    top?: string
+    bottom?: string
+    left: string
+    maxHeight: string
+  } | null>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  const updatePosition = () => {
+    if (!buttonRef.current) return
+    const rect = buttonRef.current.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    const openUp = spaceBelow < 340 && spaceAbove > spaceBelow
+    const width = 288 // 72 = 18rem = 288px
+    const left = Math.max(12, Math.min(window.innerWidth - width - 12, rect.left))
+
+    if (openUp) {
+      setCoords({
+        bottom: `${window.innerHeight - rect.top + 4}px`,
+        top: undefined,
+        left: `${left}px`,
+        maxHeight: `${Math.min(380, spaceAbove - 16)}px`,
+      })
+    } else {
+      setCoords({
+        top: `${rect.bottom + 4}px`,
+        bottom: undefined,
+        left: `${left}px`,
+        maxHeight: `${Math.min(380, spaceBelow - 16)}px`,
+      })
+    }
+  }
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!isOpen) {
+      updatePosition()
+      setIsOpen(true)
+    } else {
+      setIsOpen(false)
+    }
+  }
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent | PointerEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
+    if (!isOpen) return
+    const handleClose = () => setIsOpen(false)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false)
     }
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setIsOpen(false)
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('pointerdown', handleClickOutside, true)
-      document.addEventListener('keydown', handleKeyDown)
-    }
+    window.addEventListener('scroll', handleClose, true)
+    window.addEventListener('resize', handleClose)
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener('pointerdown', handleClickOutside, true)
+      window.removeEventListener('scroll', handleClose, true)
+      window.removeEventListener('resize', handleClose)
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isOpen])
@@ -65,19 +102,10 @@ export const EngineBadge: React.FC<EngineBadgeProps> = ({
     )
   }
 
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!isOpen && dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect()
-      const spaceBelow = window.innerHeight - rect.bottom
-      setOpenUpward(spaceBelow < 330 && rect.top > spaceBelow)
-    }
-    setIsOpen(!isOpen)
-  }
-
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className="inline-block text-left">
       <button
+        ref={buttonRef}
         type="button"
         onClick={handleToggle}
         className="inline-flex items-center gap-1.5 text-xs text-[#172B4D] hover:text-[#0052CC] font-normal px-1.5 py-0.5 rounded hover:bg-slate-100 transition cursor-pointer border border-transparent hover:border-slate-300"
@@ -87,19 +115,32 @@ export const EngineBadge: React.FC<EngineBadgeProps> = ({
         <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
       </button>
 
-      {isOpen && (
+      {isOpen && coords && createPortal(
         <>
           <div
-            className="fixed inset-0 z-40 bg-transparent"
+            className="fixed inset-0 z-[99990] bg-transparent"
             onClick={(e) => {
               e.stopPropagation()
               setIsOpen(false)
             }}
+            onContextMenu={(e) => {
+              e.preventDefault()
+              setIsOpen(false)
+            }}
           />
-          <div className={`absolute left-0 w-72 rounded-md bg-white shadow-xl ring-1 ring-black/10 z-50 py-1 divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100 max-h-[min(380px,80vh)] overflow-y-auto ${
-            openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
-          }`}>
-            <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+          <div
+            style={{
+              position: 'fixed',
+              top: coords.top,
+              bottom: coords.bottom,
+              left: coords.left,
+              maxHeight: coords.maxHeight,
+              zIndex: 99999,
+            }}
+            className="w-72 rounded-xl bg-white shadow-2xl ring-1 ring-black/10 py-1 divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between bg-slate-50/70 border-b border-slate-100 rounded-t-xl">
               <span>Transition Status</span>
               <div className="flex items-center gap-1">
                 {onOpenLog && (
@@ -132,67 +173,68 @@ export const EngineBadge: React.FC<EngineBadgeProps> = ({
               </div>
             </div>
 
-          <div className="py-1">
-            {statusOptions.map((opt) => {
-              const isSelected = opt.status === currentStatus
-              return (
+            <div className="py-1">
+              {statusOptions.map((opt) => {
+                const isSelected = opt.status === currentStatus
+                return (
+                  <button
+                    key={opt.status}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onUpdateStatus(opt.status)
+                      setIsOpen(false)
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition hover:bg-slate-50 cursor-pointer ${
+                      isSelected ? 'font-bold bg-slate-50' : 'text-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${opt.bg} ${opt.text}`}
+                    >
+                      {opt.status}
+                    </span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Quick Actions Footer with Info Log and Defect button */}
+            <div className="pt-1 border-t border-slate-100 space-y-0.5">
+              {onOpenLog && (
                 <button
-                  key={opt.status}
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation()
-                    onUpdateStatus(opt.status)
                     setIsOpen(false)
+                    onOpenLog()
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition hover:bg-slate-50 cursor-pointer ${
-                    isSelected ? 'font-bold bg-slate-50' : 'text-slate-700'
-                  }`}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left text-[#0052CC] hover:bg-blue-50 font-bold transition cursor-pointer"
                 >
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${opt.bg} ${opt.text}`}
-                  >
-                    {opt.status}
-                  </span>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                  <Info className="w-3.5 h-3.5 text-[#0052CC]" />
+                  <span>View Change Log & Diffs (Jira + GitHub)</span>
                 </button>
-              )
-            })}
-          </div>
+              )}
 
-          {/* Quick Actions Footer with Info Log and Defect button */}
-          <div className="pt-1 border-t border-slate-100 space-y-0.5">
-            {onOpenLog && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setIsOpen(false)
-                  onOpenLog()
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left text-[#0052CC] hover:bg-blue-50 font-bold transition cursor-pointer"
-              >
-                <Info className="w-3.5 h-3.5 text-[#0052CC]" />
-                <span>View Change Log & Diffs (Jira + GitHub)</span>
-              </button>
-            )}
-
-            {onCreateDefect && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setIsOpen(false)
-                  onCreateDefect()
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left text-[#BF2600] hover:bg-rose-50 font-bold transition cursor-pointer"
-              >
-                <Bug className="w-3.5 h-3.5 text-[#BF2600]" />
-                <span>Create Defect</span>
-              </button>
-            )}
+              {onCreateDefect && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsOpen(false)
+                    onCreateDefect()
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left text-[#BF2600] hover:bg-rose-50 font-bold transition cursor-pointer"
+                >
+                  <Bug className="w-3.5 h-3.5 text-[#BF2600]" />
+                  <span>Create Defect</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </>
+        </>,
+        document.body
       )}
     </div>
   )
