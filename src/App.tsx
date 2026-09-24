@@ -140,22 +140,11 @@ export default function App() {
   // Count per engine category
   const govCount = scenarios.filter((s) => s.engineCategory === 'Governance').length
   const contribCount = scenarios.filter((s) => s.engineCategory === 'Contribution').length
-  const partCount = scenarios.filter((s) => s.engineCategory === 'Participation').length
 
   // Add new row directly into active engine category (persisted to D1)
   const handleAddRow = (): NotificationScenario => {
-    const targetEngine =
-      selectedEngine === 'Contribution'
-        ? 'Contribution'
-        : selectedEngine === 'Participation'
-        ? 'Participation'
-        : 'Governance'
-    const prefix =
-      targetEngine === 'Contribution'
-        ? 'CONTRIB'
-        : targetEngine === 'Participation'
-        ? 'PART'
-        : 'GOV'
+    const targetEngine = selectedEngine === 'Contribution' ? 'Contribution' : 'Governance'
+    const prefix = targetEngine === 'Contribution' ? 'CONTRIB' : 'GOV'
 
     const existingNums = scenarios
       .filter((s) => s.engineCategory === targetEngine)
@@ -170,19 +159,9 @@ export default function App() {
       id: `${prefix.toLowerCase()}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       key: `${prefix}-${newNum}`,
       engineCategory: targetEngine,
-      governanceEvent:
-        targetEngine === 'Contribution'
-          ? 'New Contribution Event'
-          : targetEngine === 'Participation'
-          ? 'New Participation Event'
-          : 'New Governance Event',
+      governanceEvent: targetEngine === 'Contribution' ? 'New Contribution Event' : 'New Governance Event',
       trigger: '',
-      audience:
-        targetEngine === 'Contribution'
-          ? 'Donor'
-          : targetEngine === 'Participation'
-          ? 'User'
-          : 'Community Member',
+      audience: targetEngine === 'Contribution' ? 'Donor' : 'Community Member',
       communicationObjective: '',
       desiredOutcome: '',
       pushSubject: '',
@@ -369,7 +348,6 @@ export default function App() {
         onResetAllFilters={handleResetAllFilters}
         govCount={govCount}
         contribCount={contribCount}
-        partCount={partCount}
         totalRows={scenarios.length}
         verificationSummary={verificationSummary}
         isVerifying={isVerifying}

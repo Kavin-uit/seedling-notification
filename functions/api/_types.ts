@@ -56,7 +56,7 @@ export function mapDbRowToScenario(row: ScenarioDbRow) {
   return {
     id: row.id,
     key: row.key,
-    engineCategory: (row.engine_category || 'Governance') as 'Governance' | 'Contribution' | 'Participation' | 'Opportunity',
+    engineCategory: (row.engine_category || 'Governance') as 'Governance' | 'Contribution',
     governanceEvent: row.governance_event,
     trigger: row.trigger || '',
     audience: row.audience || '',

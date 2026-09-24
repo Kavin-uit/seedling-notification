@@ -14,7 +14,7 @@ import {
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
-export type EngineCategoryFilter = 'ALL' | 'Governance' | 'Contribution' | 'Participation' | 'Opportunity'
+export type EngineCategoryFilter = 'ALL' | 'Governance' | 'Contribution'
 
 interface JiraNavbarProps {
   searchQuery: string
@@ -27,7 +27,6 @@ interface JiraNavbarProps {
   onResetAllFilters?: () => void
   govCount: number
   contribCount: number
-  partCount?: number
   totalRows: number
   verificationSummary?: SheetVerificationSummary | null
   isVerifying?: boolean
@@ -47,7 +46,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   onResetAllFilters,
   govCount,
   contribCount,
-  partCount = 0,
   totalRows,
   verificationSummary,
   isVerifying,
@@ -134,8 +132,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
       ? govCount
       : selectedEngine === 'Contribution'
       ? contribCount
-      : selectedEngine === 'Participation'
-      ? partCount
       : totalRows
 
   return (
@@ -276,41 +272,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                     )}
                   </button>
                   {selectedEngine === 'Contribution' && (
-                    <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-                  )}
-                </div>
-              </div>
-
-              {/* Participation Engine */}
-              <div
-                onClick={() => {
-                  onSelectEngine('Participation')
-                  setIsEngineMenuOpen(false)
-                }}
-                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs group ${
-                  selectedEngine === 'Participation'
-                    ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
-                    : 'text-[#172B4D]'
-                }`}
-              >
-                <span>Participation Engine</span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
-                    {partCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => handleShareEngine('Participation', e)}
-                    title="Copy direct share link for Participation Engine"
-                    className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-70 group-hover:opacity-100 cursor-pointer"
-                  >
-                    {copiedEngineKey === 'Participation' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                    ) : (
-                      <Share className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                  {selectedEngine === 'Participation' && (
                     <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
                   )}
                 </div>

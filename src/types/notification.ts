@@ -45,8 +45,6 @@ export interface FieldChange {
   newValue: string
 }
 
-export type EngineCategory = 'Governance' | 'Contribution' | 'Participation' | 'Opportunity'
-
 export interface ScenarioVersion {
   versionId: string
   timestamp: string // ISO timestamp of the update
@@ -67,7 +65,7 @@ export interface ScenarioVersion {
     comments?: string
     notes?: string
     status: ScenarioStatus
-    engineCategory: EngineCategory
+    engineCategory: 'Governance' | 'Contribution'
     priority: PriorityLevel
     environment: Environment
   }
@@ -81,8 +79,8 @@ export interface FieldVersionRecord {
 
 export interface NotificationScenario {
   id: string
-  key: string // e.g., 'GOV-1', 'CONTRIB-1', 'PART-1'
-  engineCategory: EngineCategory
+  key: string // e.g., 'GOV-1' or 'CONTRIB-1'
+  engineCategory: 'Governance' | 'Contribution'
   governanceEvent: string
   trigger: string
   audience: string

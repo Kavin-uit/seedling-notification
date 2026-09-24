@@ -31,7 +31,6 @@ import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
 import { polishCommentWithGemini } from '../../services/commentAiService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
-import type { EngineCategoryFilter } from './JiraNavbar'
 
 // Google Gemini Multi-Color Gradient Sparkle Logo
 export const GeminiSparkleIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
@@ -65,8 +64,8 @@ interface JiraTableProps {
   onAddRow: () => NotificationScenario | void
   searchQuery: string
   onClearSearch?: () => void
-  selectedEngine: EngineCategoryFilter
-  onSelectEngine?: (engine: EngineCategoryFilter) => void
+  selectedEngine: 'ALL' | 'Governance' | 'Contribution'
+  onSelectEngine?: (engine: 'ALL' | 'Governance' | 'Contribution') => void
   statusFilter?: string
   onStatusFilterChange?: (status: string) => void
   onResetAllFilters?: () => void
@@ -688,8 +687,6 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       ? 'Governance Event'
       : selectedEngine === 'Contribution'
       ? 'Contribution Event'
-      : selectedEngine === 'Participation'
-      ? 'Participation Event'
       : 'Event'
 
   const allStatuses = useMemo<ScenarioStatus[]>(() => {
@@ -767,8 +764,6 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300 shadow-2xs'
                   : selectedEngine === 'Contribution'
                   ? 'bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 shadow-2xs'
-                  : selectedEngine === 'Participation'
-                  ? 'bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300 shadow-2xs'
                   : hasActiveFilters
                   ? 'bg-[#DEEBFF] hover:bg-[#B3D4FF] text-[#0052CC] border-[#B3D4FF] shadow-2xs'
                   : 'bg-[#EBECF0] hover:bg-[#DFE1E6] text-[#172B4D] border-[#C1C7D0]'
@@ -779,8 +774,6 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   ? 'Governance Engine Sheet'
                   : selectedEngine === 'Contribution'
                   ? 'Contribution Engine Sheet'
-                  : selectedEngine === 'Participation'
-                  ? 'Participation Engine Sheet'
                   : 'All Engine Categories'}
               </span>
               {selectedEngine !== 'ALL' ? (
