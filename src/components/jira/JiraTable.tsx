@@ -292,25 +292,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     selectedStatuses.length > 0 ||
     Boolean(searchQuery && searchQuery.trim().length > 0)
 
-  const [copiedStatusValue, setCopiedStatusValue] = useState<string | null>(null)
   const [copiedActiveFilter, setCopiedActiveFilter] = useState<boolean>(false)
   const [copiedEngineFilter, setCopiedEngineFilter] = useState<boolean>(false)
-
-  const handleShareStatusOption = async (statusValue: string, statusLabel: string) => {
-    const url = buildFilterShareUrl({
-      engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
-      status: statusValue !== 'ALL' ? statusValue : undefined,
-    })
-    const ok = await copyShareUrlToClipboard(url)
-    if (ok) {
-      setCopiedStatusValue(statusValue)
-      setTimeout(() => setCopiedStatusValue(null), 2000)
-      const toastText = `Copied link for "${statusLabel}" filter! Anyone opening it will view these records.`
-      setCopiedToast(toastText)
-      setTimeout(() => setCopiedToast(null), 2500)
-      if (onShowToast) onShowToast(toastText)
-    }
-  }
 
   const handleShareActiveFilter = async () => {
     const url = buildFilterShareUrl({
@@ -873,31 +856,17 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   }}
                   className="w-80 bg-white rounded-[4px] shadow-[0_6px_20px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] pt-1.5 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 select-none flex flex-col max-h-[420px]"
                 >
-                  <div className="px-3 py-1 flex items-center justify-between text-[11px] font-bold text-[#6B778C] border-b border-[#EBECF0] pb-1.5 mb-1 bg-[#FAFBFC]">
+                  <div className="px-3 py-1.5 flex items-center justify-between text-[11px] font-bold text-[#6B778C] border-b border-[#EBECF0] mb-1 bg-[#FAFBFC]">
                     <span className="uppercase tracking-wider text-[10px]">Filter by Status</span>
-                    <div className="flex items-center gap-1.5">
-                      {selectedStatuses.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={handleClearStatusFilters}
-                          className="text-[11px] text-[#0052CC] hover:underline cursor-pointer font-normal mr-1"
-                        >
-                          Clear ({selectedStatuses.length})
-                        </button>
-                      )}
+                    {selectedStatuses.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => {
-                          setIsStatusDropdownOpen(false)
-                          handleShareActiveFilter()
-                        }}
-                        className="text-[11px] text-[#006644] bg-[#E3FCEF] hover:bg-[#D3F5E4] border border-[#ABF5D1] px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1 cursor-pointer transition shadow-2xs"
-                        title="Share this filter view"
+                        onClick={handleClearStatusFilters}
+                        className="text-[11px] text-[#0052CC] hover:underline cursor-pointer font-normal"
                       >
-                        <Share2 className="w-3 h-3" />
-                        <span>Share</span>
+                        Clear ({selectedStatuses.length})
                       </button>
-                    </div>
+                    )}
                   </div>
 
                   <div className="overflow-y-auto py-0.5 flex-1 min-h-0">
@@ -938,28 +907,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
-                              {count}
-                            </span>
-                            {value !== 'ALL' && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleShareStatusOption(value, label)
-                                }}
-                                title={`Copy direct share link for "${label}" filter`}
-                                className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-50 group-hover:opacity-100 cursor-pointer"
-                              >
-                                {copiedStatusValue === value ? (
-                                  <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                                ) : (
-                                  <Share2 className="w-3.5 h-3.5" />
-                                )}
-                              </button>
-                            )}
-                          </div>
+                          <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E] shrink-0">
+                            {count}
+                          </span>
                         </div>
                       )
                     })}
@@ -976,27 +926,13 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                         'All statuses active'
                       )}
                     </span>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsStatusDropdownOpen(false)
-                          handleShareActiveFilter()
-                        }}
-                        className="px-2.5 py-1 rounded bg-[#E3FCEF] hover:bg-[#D3F5E4] text-[#006644] border border-[#ABF5D1] text-xs font-semibold cursor-pointer shadow-2xs transition inline-flex items-center gap-1"
-                        title="Share this filter view"
-                      >
-                        <Share2 className="w-3 h-3" />
-                        <span>Share</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsStatusDropdownOpen(false)}
-                        className="px-3 py-1 rounded bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold cursor-pointer shadow-2xs transition"
-                      >
-                        Done
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsStatusDropdownOpen(false)}
+                      className="px-3 py-1 rounded bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold cursor-pointer shadow-2xs transition"
+                    >
+                      Done
+                    </button>
                   </div>
                 </div>,
                 document.body
