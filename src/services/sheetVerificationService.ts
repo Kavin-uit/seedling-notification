@@ -323,24 +323,38 @@ export async function fetchSheetData(config: EngineSheetConfig): Promise<SheetSc
 
   let csvText = ''
   try {
-    const response = await fetch(config.csvExportUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'text/csv,text/plain,*/*',
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} when fetching sheet CSV`)
-    }
-    csvText = await response.text()
-  } catch (err) {
-    console.warn(`[SheetVerification] Direct fetch failed for ${config.engineCategory}:`, err)
-    if (config.engineCategory === 'Governance') {
-      csvText = GOVERNANCE_FALLBACK_SNAPSHOT
-    } else if (config.engineCategory === 'Contribution') {
-      csvText = CONTRIBUTION_FALLBACK_SNAPSHOT
+    // 1. Try Cloudflare Pages edge proxy to bypass browser CORS restrictions
+    const proxyUrl = `/api/engine-sheets/proxy?url=${encodeURIComponent(config.csvExportUrl)}`
+    const proxyRes = await fetch(proxyUrl)
+    if (proxyRes.ok) {
+      csvText = await proxyRes.text()
     } else {
-      throw err
+      throw new Error(`Proxy returned status ${proxyRes.status}`)
+    }
+  } catch (proxyErr) {
+    console.warn(`[SheetVerification] Proxy fetch failed for ${config.engineCategory}, trying direct:`, proxyErr)
+    try {
+      // 2. Direct fetch fallback
+      const response = await fetch(config.csvExportUrl, {
+        method: 'GET',
+        headers: {
+          Accept: 'text/csv,text/plain,*/*',
+        },
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} when fetching sheet CSV`)
+      }
+      csvText = await response.text()
+    } catch (err) {
+      console.warn(`[SheetVerification] Direct fetch failed for ${config.engineCategory}:`, err)
+      // 3. High-fidelity snapshot fallback
+      if (config.engineCategory === 'Governance') {
+        csvText = GOVERNANCE_FALLBACK_SNAPSHOT
+      } else if (config.engineCategory === 'Contribution') {
+        csvText = CONTRIBUTION_FALLBACK_SNAPSHOT
+      } else {
+        throw err
+      }
     }
   }
 
