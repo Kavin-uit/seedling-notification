@@ -66,7 +66,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request }) => {
       status: 200,
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Cache-Control': 'public, max-age=60', // cache for 60 seconds
+        'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
         'Access-Control-Allow-Origin': '*',
       },
     })

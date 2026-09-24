@@ -33,23 +33,35 @@ class EnginesApi {
     }
   }
 
+  private inFlightFetch: Promise<string[]> | null = null
+
   async fetchEngines(): Promise<string[]> {
-    try {
-      const res = await fetch('/api/engines', {
-        headers: { Accept: 'application/json' },
-      })
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data.engines) && data.engines.length > 0) {
-          const list = data.engines.map((e: string) => (e || '').trim()).filter(Boolean)
-          this.setLocalCache(list)
-          return list
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to fetch engines from D1, using local fallback:', e)
+    if (this.inFlightFetch) {
+      return this.inFlightFetch
     }
-    return this.getLocalCache()
+
+    this.inFlightFetch = (async () => {
+      try {
+        const res = await fetch('/api/engines', {
+          headers: { Accept: 'application/json' },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data.engines) && data.engines.length > 0) {
+            const list = data.engines.map((e: string) => (e || '').trim()).filter(Boolean)
+            this.setLocalCache(list)
+            return list
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to fetch engines from D1, using local fallback:', e)
+      }
+      return this.getLocalCache()
+    })().finally(() => {
+      this.inFlightFetch = null
+    })
+
+    return this.inFlightFetch
   }
 }
 

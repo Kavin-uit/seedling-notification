@@ -163,14 +163,19 @@ export default function App() {
   const [isVerifying, setIsVerifying] = useState(false)
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false)
 
+  const selectedEngineRef = useRef(selectedEngine)
+  useEffect(() => {
+    selectedEngineRef.current = selectedEngine
+  }, [selectedEngine])
+
   // Run dynamic verification against connected engine Google Sheets
   const runVerification = useCallback(
-    async (currentScenarios: NotificationScenario[], engineOverride?: string) => {
+    async (currentScenarios: NotificationScenario[], engineOverride?: string, forceRefresh = false) => {
       if (!currentScenarios || currentScenarios.length === 0) return
-      const targetEngine = engineOverride || selectedEngine
+      const targetEngine = engineOverride || selectedEngineRef.current
       setIsVerifying(true)
       try {
-        const summary = await verifyAllEngines(targetEngine, currentScenarios)
+        const summary = await verifyAllEngines(targetEngine, currentScenarios, forceRefresh)
         setVerificationSummary(summary)
       } catch (err) {
         console.error('Failed to verify scenarios against Google Sheet:', err)
@@ -178,11 +183,17 @@ export default function App() {
         setIsVerifying(false)
       }
     },
-    [selectedEngine]
+    []
   )
+
+  const initialLoadRanRef = useRef(false)
+  const prevEngineRef = useRef(selectedEngine)
 
   // Load scenarios, registered engine sheets, & distinct engines dynamically from Cloudflare D1
   useEffect(() => {
+    if (initialLoadRanRef.current) return
+    initialLoadRanRef.current = true
+
     Promise.all([
       scenariosApi.fetchScenarios(),
       engineSheetsApi.fetchEngineSheets(),
@@ -191,7 +202,7 @@ export default function App() {
       .then(([{ scenarios: data }, _sheets, enginesList]) => {
         if (data && data.length > 0) {
           setScenarios(data)
-          runVerification(data)
+          runVerification(data, selectedEngineRef.current)
         }
         if (enginesList && enginesList.length > 0) {
           setDbEngines(enginesList)
@@ -202,10 +213,13 @@ export default function App() {
       })
   }, [runVerification])
 
-  // Re-verify when switching engine tabs
+  // Re-verify strictly when switching engine tabs (not on mount or scenarios state change)
   useEffect(() => {
-    if (scenarios.length > 0) {
-      runVerification(scenarios)
+    if (prevEngineRef.current !== selectedEngine) {
+      prevEngineRef.current = selectedEngine
+      if (scenarios.length > 0) {
+        runVerification(scenarios, selectedEngine)
+      }
     }
   }, [selectedEngine, scenarios, runVerification])
 
@@ -552,7 +566,7 @@ export default function App() {
         <SheetVerificationModal
           onClose={() => setIsVerificationModalOpen(false)}
           activeSummary={verificationSummary}
-          onReverify={() => runVerification(scenarios)}
+          onReverify={() => runVerification(scenarios, undefined, true)}
           isReverifying={isVerifying}
         />
       )}

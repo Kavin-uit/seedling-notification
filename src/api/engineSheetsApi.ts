@@ -36,32 +36,44 @@ class EngineSheetsApi {
     }
   }
 
+  private inFlightFetch: Promise<Record<string, EngineSheetConfig>> | null = null
+
   async fetchEngineSheets(): Promise<Record<string, EngineSheetConfig>> {
-    try {
-      const res = await fetch('/api/engine-sheets', {
-        headers: { Accept: 'application/json' },
-      })
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data.sheets) && data.sheets.length > 0) {
-          const mapped: Record<string, EngineSheetConfig> = { ...DEFAULT_ENGINE_SHEETS }
-          for (const s of data.sheets) {
-            mapped[s.engineCategory] = {
-              engineCategory: s.engineCategory,
-              sheetName: s.sheetName || `${s.engineCategory} Content Sheet`,
-              sheetUrl: s.sheetUrl,
-              csvExportUrl: s.csvExportUrl,
-              enabled: s.enabled ?? true,
-            }
-          }
-          this.setLocalCache(mapped)
-          return mapped
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to fetch engine sheets from D1, using local cache:', e)
+    if (this.inFlightFetch) {
+      return this.inFlightFetch
     }
-    return this.getLocalCache()
+
+    this.inFlightFetch = (async () => {
+      try {
+        const res = await fetch('/api/engine-sheets', {
+          headers: { Accept: 'application/json' },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data.sheets) && data.sheets.length > 0) {
+            const mapped: Record<string, EngineSheetConfig> = { ...DEFAULT_ENGINE_SHEETS }
+            for (const s of data.sheets) {
+              mapped[s.engineCategory] = {
+                engineCategory: s.engineCategory,
+                sheetName: s.sheetName || `${s.engineCategory} Content Sheet`,
+                sheetUrl: s.sheetUrl,
+                csvExportUrl: s.csvExportUrl,
+                enabled: s.enabled ?? true,
+              }
+            }
+            this.setLocalCache(mapped)
+            return mapped
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to fetch engine sheets from D1, using local cache:', e)
+      }
+      return this.getLocalCache()
+    })().finally(() => {
+      this.inFlightFetch = null
+    })
+
+    return this.inFlightFetch
   }
 
   async saveEngineSheet(config: EngineSheetConfig): Promise<boolean> {

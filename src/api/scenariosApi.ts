@@ -7,6 +7,7 @@ export type DbConnectionStatus = 'connecting' | 'connected' | 'offline'
 class ScenariosApi {
   private connectionStatus: DbConnectionStatus = 'connecting'
   private listeners: ((status: DbConnectionStatus) => void)[] = []
+  private inFlightFetch: Promise<{ scenarios: NotificationScenario[]; source: 'cloudflare-d1' | 'local-cache' }> | null = null
 
   public onStatusChange(listener: (status: DbConnectionStatus) => void) {
     this.listeners.push(listener)
@@ -52,43 +53,53 @@ class ScenariosApi {
     }
   }
 
-  // GET: Fetch all scenarios
+  // GET: Fetch all scenarios (MNC-grade in-flight request deduplication)
   async fetchScenarios(): Promise<{ scenarios: NotificationScenario[]; source: 'cloudflare-d1' | 'local-cache' }> {
-    try {
-      const res = await fetch('/api/scenarios', {
-        headers: { Accept: 'application/json' },
-      })
-      const contentType = res.headers.get('content-type') || ''
-
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json()
-        if (data && Array.isArray(data.scenarios) && data.scenarios.length > 0) {
-          this.setStatus('connected')
-          // Preserve local version history and field history across D1 refreshes
-          const local = this.getLocalCache()
-          const localMap = new Map(local.map((s) => [s.id, s]))
-          const merged: NotificationScenario[] = data.scenarios.map((s: NotificationScenario) => {
-            const cached = localMap.get(s.id)
-            if (cached) {
-              return {
-                ...s,
-                versionHistory: cached.versionHistory || s.versionHistory || [],
-                fieldHistory: cached.fieldHistory || s.fieldHistory || {},
-              }
-            }
-            return s
-          })
-          this.setLocalCache(merged)
-          return { scenarios: merged, source: 'cloudflare-d1' }
-        }
-      }
-    } catch {
-      // Network error or standalone vite dev without backend
+    if (this.inFlightFetch) {
+      return this.inFlightFetch
     }
 
-    this.setStatus('offline')
-    const fallback = this.getLocalCache()
-    return { scenarios: fallback, source: 'local-cache' }
+    this.inFlightFetch = (async () => {
+      try {
+        const res = await fetch('/api/scenarios', {
+          headers: { Accept: 'application/json' },
+        })
+        const contentType = res.headers.get('content-type') || ''
+
+        if (res.ok && contentType.includes('application/json')) {
+          const data = await res.json()
+          if (data && Array.isArray(data.scenarios) && data.scenarios.length > 0) {
+            this.setStatus('connected')
+            // Preserve local version history and field history across D1 refreshes
+            const local = this.getLocalCache()
+            const localMap = new Map(local.map((s) => [s.id, s]))
+            const merged: NotificationScenario[] = data.scenarios.map((s: NotificationScenario) => {
+              const cached = localMap.get(s.id)
+              if (cached) {
+                return {
+                  ...s,
+                  versionHistory: cached.versionHistory || s.versionHistory || [],
+                  fieldHistory: cached.fieldHistory || s.fieldHistory || {},
+                }
+              }
+              return s
+            })
+            this.setLocalCache(merged)
+            return { scenarios: merged, source: 'cloudflare-d1' as const }
+          }
+        }
+      } catch {
+        // Network error or standalone vite dev without backend
+      }
+
+      this.setStatus('offline')
+      const fallback = this.getLocalCache()
+      return { scenarios: fallback, source: 'local-cache' as const }
+    })().finally(() => {
+      this.inFlightFetch = null
+    })
+
+    return this.inFlightFetch
   }
 
   // POST: Create scenario

@@ -313,74 +313,118 @@ Refund Issued,Donation refunded,Donor,Explain transaction,Maintain trust,Your re
 Tax Acknowledgement Ready,IRS acknowledgment prepared,Donor,Provide compliance,Retain records,Your tax document is ready 🧾,Your tax acknowledgement is ready.,Your Tax Document Is Ready 🧾,Your tax acknowledgement is ready whenever you need it for your records.  BOX: View Document,Your tax documentation is available whenever you need it.,take user to tax documents
 Tax Season Reminder,Annual statement available,Donor,Support tax filing,Download documents,Tax season is here,Tax season is here—don't forget your giving records.,Tax Season Is Here,Tax season is here -- don't forget your giving records. Access your donation receipts and annual summary all in one place.  BOX: View Documents,Access your donation receipts and annual summary in one place.,take user to tax documents`
 
+// In-flight request deduplication map (Single-flight pattern)
+const inFlightSheetRequests = new Map<string, Promise<SheetScenarioRow[]>>()
+
+// In-memory cache with TTL (5 minutes)
+interface SheetCacheEntry {
+  data: SheetScenarioRow[]
+  timestamp: number
+}
+const sheetMemoryCache = new Map<string, SheetCacheEntry>()
+const SHEET_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+// Verification coalescing and cache
+let activeVerificationPromise: Promise<SheetVerificationSummary> | null = null
+let activeVerificationKey: string | null = null
+const lastVerificationCache = new Map<string, { summary: SheetVerificationSummary; timestamp: number }>()
+const VERIFICATION_CACHE_TTL_MS = 30 * 1000 // 30 seconds
+
 /**
- * Fetch and parse a Google Sheet given an engine configuration
+ * Fetch and parse a Google Sheet given an engine configuration with single-flight request coalescing
  */
-export async function fetchSheetData(config: EngineSheetConfig): Promise<SheetScenarioRow[]> {
+export async function fetchSheetData(config: EngineSheetConfig, forceRefresh = false): Promise<SheetScenarioRow[]> {
   if (!config.csvExportUrl) {
     return []
   }
 
-  let csvText = ''
-  try {
-    // 1. Try Cloudflare Pages edge proxy to bypass browser CORS restrictions
-    const proxyUrl = `/api/engine-sheets/proxy?url=${encodeURIComponent(config.csvExportUrl)}`
-    const proxyRes = await fetch(proxyUrl)
-    if (proxyRes.ok) {
-      csvText = await proxyRes.text()
-    } else {
-      throw new Error(`Proxy returned status ${proxyRes.status}`)
+  const cacheKey = config.csvExportUrl
+
+  // 1. Return from in-memory cache if fresh (< 5 minutes) and not force refresh
+  if (!forceRefresh) {
+    const cached = sheetMemoryCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < SHEET_CACHE_TTL_MS) {
+      return cached.data
     }
-  } catch (proxyErr) {
-    console.warn(`[SheetVerification] Proxy fetch failed for ${config.engineCategory}, trying direct:`, proxyErr)
+  }
+
+  // 2. Return existing in-flight promise if identical request is currently underway (single-flight pattern)
+  const existingInFlight = inFlightSheetRequests.get(cacheKey)
+  if (existingInFlight) {
+    return existingInFlight
+  }
+
+  // 3. Initiate fetch with single-flight registration
+  const fetchPromise = (async () => {
+    let csvText = ''
     try {
-      // 2. Direct fetch fallback
-      const response = await fetch(config.csvExportUrl, {
-        method: 'GET',
-        headers: {
-          Accept: 'text/csv,text/plain,*/*',
-        },
-      })
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} when fetching sheet CSV`)
-      }
-      csvText = await response.text()
-    } catch (err) {
-      console.warn(`[SheetVerification] Direct fetch failed for ${config.engineCategory}:`, err)
-      // 3. High-fidelity snapshot fallback
-      if (config.engineCategory === 'Governance') {
-        csvText = GOVERNANCE_FALLBACK_SNAPSHOT
-      } else if (config.engineCategory === 'Contribution') {
-        csvText = CONTRIBUTION_FALLBACK_SNAPSHOT
+      // Primary: Cloudflare Pages edge proxy (bypasses browser CORS cleanly)
+      const proxyUrl = `/api/engine-sheets/proxy?url=${encodeURIComponent(config.csvExportUrl)}`
+      const proxyRes = await fetch(proxyUrl)
+      if (proxyRes.ok) {
+        csvText = await proxyRes.text()
       } else {
-        throw err
+        throw new Error(`Proxy returned status ${proxyRes.status}`)
+      }
+    } catch (proxyErr) {
+      console.warn(`[SheetVerification] Proxy fetch failed for ${config.engineCategory}, trying direct:`, proxyErr)
+      try {
+        // Fallback: Direct fetch
+        const response = await fetch(config.csvExportUrl, {
+          method: 'GET',
+          headers: {
+            Accept: 'text/csv,text/plain,*/*',
+          },
+        })
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} when fetching sheet CSV`)
+        }
+        csvText = await response.text()
+      } catch (err) {
+        console.warn(`[SheetVerification] Direct fetch failed for ${config.engineCategory}:`, err)
+        // High-fidelity snapshot fallback
+        if (config.engineCategory === 'Governance') {
+          csvText = GOVERNANCE_FALLBACK_SNAPSHOT
+        } else if (config.engineCategory === 'Contribution') {
+          csvText = CONTRIBUTION_FALLBACK_SNAPSHOT
+        } else {
+          throw err
+        }
       }
     }
-  }
 
-  const parsedRows = parseCsv(csvText)
-  if (parsedRows.length <= 1) {
-    return []
-  }
+    const parsedRows = parseCsv(csvText)
+    if (parsedRows.length <= 1) {
+      return []
+    }
 
-  // Skip header row
-  const dataRows = parsedRows.slice(1)
-  return dataRows
-    .filter((r) => r.some((c) => c.trim().length > 0))
-    .map((cols, idx) => ({
-      governanceEvent: cols[0]?.trim() || '',
-      trigger: cols[1]?.trim() || '',
-      audience: cols[2]?.trim() || '',
-      communicationObjective: cols[3]?.trim() || '',
-      desiredOutcome: cols[4]?.trim() || '',
-      pushSubject: cols[5]?.trim() || '',
-      pushBody: cols[6]?.trim() || '',
-      emailSubject: cols[7]?.trim() || '',
-      emailBody: cols[8]?.trim() || '',
-      inAppExperience: cols[9]?.trim() || '',
-      cta: cols[10]?.trim() || '',
-      rowIndex: idx + 1,
-    }))
+    // Skip header row
+    const dataRows = parsedRows.slice(1)
+    const rows = dataRows
+      .filter((r) => r.some((c) => c.trim().length > 0))
+      .map((cols, idx) => ({
+        governanceEvent: cols[0]?.trim() || '',
+        trigger: cols[1]?.trim() || '',
+        audience: cols[2]?.trim() || '',
+        communicationObjective: cols[3]?.trim() || '',
+        desiredOutcome: cols[4]?.trim() || '',
+        pushSubject: cols[5]?.trim() || '',
+        pushBody: cols[6]?.trim() || '',
+        emailSubject: cols[7]?.trim() || '',
+        emailBody: cols[8]?.trim() || '',
+        inAppExperience: cols[9]?.trim() || '',
+        cta: cols[10]?.trim() || '',
+        rowIndex: idx + 1,
+      }))
+
+    sheetMemoryCache.set(cacheKey, { data: rows, timestamp: Date.now() })
+    return rows
+  })().finally(() => {
+    inFlightSheetRequests.delete(cacheKey)
+  })
+
+  inFlightSheetRequests.set(cacheKey, fetchPromise)
+  return fetchPromise
 }
 
 const COMPARABLE_FIELDS: EditableField[] = [
@@ -403,7 +447,8 @@ const COMPARABLE_FIELDS: EditableField[] = [
 export async function verifyEngineScenarios(
   engineCategory: string,
   scenarios: NotificationScenario[],
-  configOverride?: EngineSheetConfig
+  configOverride?: EngineSheetConfig,
+  forceRefresh = false
 ): Promise<SheetVerificationSummary> {
   const configs = getRegisteredEngineSheets()
   const config = configOverride || configs[engineCategory]
@@ -427,7 +472,7 @@ export async function verifyEngineScenarios(
 
   let sheetRows: SheetScenarioRow[] = []
   try {
-    sheetRows = await fetchSheetData(config)
+    sheetRows = await fetchSheetData(config, forceRefresh)
     summary.totalSheetRows = sheetRows.length
   } catch (err: any) {
     summary.error = err.message || 'Failed to load Google Sheet'
@@ -518,34 +563,64 @@ export async function verifyEngineScenarios(
 /**
  * Verifies all enabled engines or a specific target engine, merging mismatches so table and navbar
  * have complete coverage across both Governance and Contribution.
+ * Uses single-flight deduplication and TTL memory caching.
  */
 export async function verifyAllEngines(
   targetEngine: string,
-  scenarios: NotificationScenario[]
+  scenarios: NotificationScenario[],
+  forceRefresh = false
 ): Promise<SheetVerificationSummary> {
   if (targetEngine !== 'ALL') {
-    return verifyEngineScenarios(targetEngine, scenarios)
+    return verifyEngineScenarios(targetEngine, scenarios, undefined, forceRefresh)
   }
 
-  const configs = getRegisteredEngineSheets()
-  const enabledEngines = Object.keys(configs).filter((eng) => configs[eng].enabled)
+  const cacheKey = `${targetEngine}_${scenarios.length}_${scenarios.slice(0, 3).map((s) => s.id).join('-')}`
 
-  const summary: SheetVerificationSummary = {
-    engineCategory: 'ALL',
-    lastCheckedAt: new Date().toISOString(),
-    isLoading: false,
-    error: null,
-    sheetName: enabledEngines.length > 0 ? `${enabledEngines.join(', ')} Sheets` : 'All Registered Engine Sheets',
-    sheetUrl: Object.values(configs).find((c) => c.enabled && c.sheetUrl)?.sheetUrl || configs['Governance']?.sheetUrl || '',
-    totalSheetRows: 0,
-    totalScenariosChecked: 0,
-    totalMismatches: 0,
-    mismatchesByScenarioId: {},
+  // 1. Check in-memory cache if not force refresh
+  if (!forceRefresh) {
+    const cached = lastVerificationCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < VERIFICATION_CACHE_TTL_MS) {
+      return cached.summary
+    }
   }
 
-  for (const engine of enabledEngines) {
-    try {
-      const engSummary = await verifyEngineScenarios(engine, scenarios, configs[engine])
+  // 2. Return active in-flight verification if same key is already running
+  if (activeVerificationPromise && activeVerificationKey === cacheKey) {
+    return activeVerificationPromise
+  }
+
+  activeVerificationKey = cacheKey
+  activeVerificationPromise = (async () => {
+    const configs = getRegisteredEngineSheets()
+    const enabledEngines = Object.keys(configs).filter((eng) => configs[eng].enabled)
+
+    const summary: SheetVerificationSummary = {
+      engineCategory: 'ALL',
+      lastCheckedAt: new Date().toISOString(),
+      isLoading: false,
+      error: null,
+      sheetName: enabledEngines.length > 0 ? `${enabledEngines.join(', ')} Sheets` : 'All Registered Engine Sheets',
+      sheetUrl: Object.values(configs).find((c) => c.enabled && c.sheetUrl)?.sheetUrl || configs['Governance']?.sheetUrl || '',
+      totalSheetRows: 0,
+      totalScenariosChecked: 0,
+      totalMismatches: 0,
+      mismatchesByScenarioId: {},
+    }
+
+    // Parallel fetch across all enabled engines concurrently
+    const engineResults = await Promise.all(
+      enabledEngines.map(async (engine) => {
+        try {
+          return await verifyEngineScenarios(engine, scenarios, configs[engine], forceRefresh)
+        } catch (err: any) {
+          console.warn(`[SheetVerification] Verification failed for engine ${engine}:`, err)
+          return null
+        }
+      })
+    )
+
+    for (const engSummary of engineResults) {
+      if (!engSummary) continue
       summary.totalSheetRows += engSummary.totalSheetRows
       summary.totalScenariosChecked += engSummary.totalScenariosChecked
       summary.totalMismatches += engSummary.totalMismatches
@@ -553,10 +628,14 @@ export async function verifyAllEngines(
       if (engSummary.error && !summary.error) {
         summary.error = engSummary.error
       }
-    } catch (err: any) {
-      console.warn(`[SheetVerification] Verification failed for engine ${engine}:`, err)
     }
-  }
 
-  return summary
+    lastVerificationCache.set(cacheKey, { summary, timestamp: Date.now() })
+    return summary
+  })().finally(() => {
+    activeVerificationPromise = null
+    activeVerificationKey = null
+  })
+
+  return activeVerificationPromise
 }
