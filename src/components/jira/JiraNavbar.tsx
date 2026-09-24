@@ -161,15 +161,13 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           type="button"
           onClick={onResetAllFilters}
           title="Reset all filters & display all records"
-          className="flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer hover:opacity-90 active:scale-95 transition group text-left"
+          className="flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer hover:opacity-85 active:scale-95 transition group text-left"
         >
-          <div className="w-7 h-7 rounded-lg bg-[#00B060] flex items-center justify-center shadow-xs p-1 text-white shrink-0 group-hover:ring-2 ring-white/40 transition">
-            <img
-              src="/seedling-icon.svg"
-              alt="Seedling"
-              className="w-full h-full object-contain filter brightness-0 invert"
-            />
-          </div>
+          <img
+            src="/seedling-icon.svg"
+            alt="Seedling"
+            className="w-6 h-6 object-contain filter brightness-0 invert shrink-0"
+          />
           <span className="font-extrabold text-sm tracking-tight text-white hidden xs:inline sm:inline">
             Seedling
           </span>
