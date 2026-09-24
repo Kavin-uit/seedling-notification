@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, FileSpreadsheet, X, Layers, ChevronDown, Check } from 'lucide-react'
+import { Search, FileSpreadsheet, X, Layers, ChevronDown, Check, Share2 } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
+import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
 export type EngineCategoryFilter = 'ALL' | 'Governance' | 'Contribution'
 
@@ -19,6 +20,9 @@ interface JiraNavbarProps {
   verificationSummary?: SheetVerificationSummary | null
   isVerifying?: boolean
   onOpenVerificationModal?: () => void
+  statusFilter?: string
+  onShowToast?: (message: string) => void
+  onOpenShareModal?: () => void
 }
 
 export const JiraNavbar: React.FC<JiraNavbarProps> = ({
@@ -34,9 +38,14 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   verificationSummary,
   isVerifying,
   onOpenVerificationModal,
+  statusFilter = 'ALL',
+  onShowToast,
+  onOpenShareModal,
 }) => {
   const [isEngineMenuOpen, setIsEngineMenuOpen] = useState(false)
   const engineMenuRef = useRef<HTMLDivElement>(null)
+  const [copiedEngineKey, setCopiedEngineKey] = useState<string | null>(null)
+  const [justCopiedNavbar, setJustCopiedNavbar] = useState(false)
 
   // Close dropdown on click outside or Escape
   useEffect(() => {
@@ -59,6 +68,52 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isEngineMenuOpen])
+
+  const hasActiveFilters =
+    selectedEngine !== 'ALL' ||
+    statusFilter !== 'ALL' ||
+    Boolean(searchQuery && searchQuery.trim().length > 0)
+
+  const handleShareEngine = async (engine: EngineCategoryFilter, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = buildFilterShareUrl({ engine: engine !== 'ALL' ? engine : undefined })
+    const ok = await copyShareUrlToClipboard(url)
+    if (ok) {
+      setCopiedEngineKey(engine)
+      setTimeout(() => setCopiedEngineKey(null), 2000)
+      const label = engine === 'ALL' ? 'All Engines' : `${engine} Engine`
+      if (onShowToast) {
+        onShowToast(`Copied link for ${label}! Anyone opening it will see these records.`)
+      }
+    }
+  }
+
+  const handleShareNavbarView = async () => {
+    const url = buildFilterShareUrl({
+      engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+      status: statusFilter !== 'ALL' ? statusFilter : undefined,
+      q: searchQuery.trim() || undefined,
+    })
+    const ok = await copyShareUrlToClipboard(url)
+    if (ok) {
+      setJustCopiedNavbar(true)
+      setTimeout(() => setJustCopiedNavbar(false), 2200)
+      const desc: string[] = []
+      if (selectedEngine !== 'ALL') desc.push(`Engine: ${selectedEngine}`)
+      if (statusFilter !== 'ALL') desc.push(`Status: ${statusFilter}`)
+      if (searchQuery.trim()) desc.push(`Search: "${searchQuery}"`)
+      if (onShowToast) {
+        onShowToast(
+          desc.length > 0
+            ? `Copied link for active filters (${desc.join(', ')})!`
+            : 'Copied link to dashboard view!'
+        )
+      }
+    }
+    if (onOpenShareModal) {
+      onOpenShareModal()
+    }
+  }
 
   const activeCount =
     selectedEngine === 'Governance'
@@ -121,62 +176,84 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
 
           {/* Atlassian Jira Dropdown Menu */}
           {isEngineMenuOpen && (
-            <div className="absolute left-0 mt-1 w-56 bg-white rounded-[3px] shadow-[0_4px_12px_-2px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1 z-50 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-1.5 text-[11px] font-semibold text-[#6B778C] border-b border-[#EBECF0] mb-0.5">
-                Engines
+            <div className="absolute left-0 mt-1 w-64 bg-white rounded-[3px] shadow-[0_4px_12px_-2px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1 z-50 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-1.5 text-[11px] font-semibold text-[#6B778C] border-b border-[#EBECF0] mb-0.5 flex items-center justify-between">
+                <span>Engines</span>
+                <span className="text-[10px] font-normal text-[#6B778C]">Click 🔗 to share</span>
               </div>
 
               {/* Governance Engine */}
-              <button
-                type="button"
+              <div
                 onClick={() => {
                   onSelectEngine('Governance')
                   setIsEngineMenuOpen(false)
                 }}
-                className={`w-full px-3 py-1.5 text-left flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs ${
+                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs group ${
                   selectedEngine === 'Governance'
                     ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
                     : 'text-[#172B4D]'
                 }`}
               >
                 <span>Governance Engine</span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
                     {govCount}
                   </span>
+                  <button
+                    type="button"
+                    onClick={(e) => handleShareEngine('Governance', e)}
+                    title="Copy direct share link for Governance Engine"
+                    className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-70 group-hover:opacity-100 cursor-pointer"
+                  >
+                    {copiedEngineKey === 'Governance' ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                    ) : (
+                      <Share2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                   {selectedEngine === 'Governance' && (
                     <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
                   )}
                 </div>
-              </button>
+              </div>
 
               {/* Contribution Engine */}
-              <button
-                type="button"
+              <div
                 onClick={() => {
                   onSelectEngine('Contribution')
                   setIsEngineMenuOpen(false)
                 }}
-                className={`w-full px-3 py-1.5 text-left flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs ${
+                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs group ${
                   selectedEngine === 'Contribution'
                     ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
                     : 'text-[#172B4D]'
                 }`}
               >
                 <span>Contribution Engine</span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
                     {contribCount}
                   </span>
+                  <button
+                    type="button"
+                    onClick={(e) => handleShareEngine('Contribution', e)}
+                    title="Copy direct share link for Contribution Engine"
+                    className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-70 group-hover:opacity-100 cursor-pointer"
+                  >
+                    {copiedEngineKey === 'Contribution' ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                    ) : (
+                      <Share2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                   {selectedEngine === 'Contribution' && (
                     <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
                   )}
                 </div>
-              </button>
+              </div>
 
               {/* All Engines - Reset all filters */}
-              <button
-                type="button"
+              <div
                 onClick={() => {
                   if (onResetAllFilters) {
                     onResetAllFilters()
@@ -185,22 +262,34 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                   }
                   setIsEngineMenuOpen(false)
                 }}
-                className={`w-full px-3 py-1.5 text-left flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs border-t border-[#EBECF0] mt-0.5 ${
+                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs border-t border-[#EBECF0] mt-0.5 group ${
                   selectedEngine === 'ALL'
                     ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
                     : 'text-[#172B4D]'
                 }`}
               >
                 <span>All Engines</span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
                     {totalRows}
                   </span>
+                  <button
+                    type="button"
+                    onClick={(e) => handleShareEngine('ALL', e)}
+                    title="Copy direct share link for All Engines"
+                    className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-70 group-hover:opacity-100 cursor-pointer"
+                  >
+                    {copiedEngineKey === 'ALL' ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                    ) : (
+                      <Share2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                   {selectedEngine === 'ALL' && (
                     <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
                   )}
                 </div>
-              </button>
+              </div>
             </div>
           )}
         </div>
@@ -240,10 +329,10 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
         )}
       </div>
 
-      {/* Right side: Search & Excel Actions */}
+      {/* Right side: Search, Share & Excel Actions */}
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
-        {/* Search with Clear 'X' button & AI toggle */}
-        <div className="relative flex items-center w-36 sm:w-56 md:w-72 lg:w-80 transition-all">
+        {/* Search with Clear 'X' button */}
+        <div className="relative flex items-center w-32 sm:w-48 md:w-64 lg:w-72 transition-all">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none shrink-0" />
           <input
             type="text"
@@ -257,7 +346,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                 onSearchChange('')
               }
             }}
-            placeholder="Search events, triggers, copy..."
+            placeholder="Search events, triggers..."
             className="w-full bg-white text-slate-900 placeholder:text-slate-400 text-xs rounded pl-7 sm:pl-8 pr-7 sm:pr-8 py-1.5 transition outline-none border border-transparent focus:ring-2 focus:ring-white/80 shadow-xs"
           />
 
@@ -274,8 +363,36 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           )}
         </div>
 
+        {/* Share View / Filter Button */}
+        <button
+          type="button"
+          onClick={handleShareNavbarView}
+          className={`cursor-pointer px-2.5 sm:px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0 select-none ${
+            hasActiveFilters
+              ? 'bg-[#0052CC] hover:bg-[#0747A6] text-white ring-1 ring-white/40'
+              : 'bg-white/10 hover:bg-white/20 text-white'
+          }`}
+          title={hasActiveFilters ? 'Copy link with active filtered view' : 'Copy link to dashboard'}
+        >
+          {justCopiedNavbar ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-emerald-300 stroke-[2.5]" />
+              <span className="hidden sm:inline">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Share2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">
+                {hasActiveFilters ? 'Share Filter' : 'Share'}
+              </span>
+              <span className="sm:hidden">Share</span>
+            </>
+          )}
+        </button>
+
         {/* Export Excel Button */}
         <button
+          type="button"
           onClick={onExportClick}
           className="cursor-pointer bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 sm:px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0"
           title="Export current table to Excel .xlsx"

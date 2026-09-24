@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { NotificationScenario, ScenarioStatus } from './types/notification'
 import { JiraNavbar } from './components/jira/JiraNavbar'
 import type { EngineCategoryFilter } from './components/jira/JiraNavbar'
@@ -13,15 +13,67 @@ import {
   type SheetVerificationSummary,
 } from './services/sheetVerificationService'
 import { SheetVerificationModal } from './components/jira/SheetVerificationModal'
-import { Loader2 } from 'lucide-react'
+import { ShareFilterModal } from './components/jira/ShareFilterModal'
+import { Loader2, Check } from 'lucide-react'
+import { parseFilterUrlParams, syncFiltersToUrl, buildFilterShareUrl } from './utils/filterShare'
+import { parseStatuses } from './types/notification'
 
 export default function App() {
   const [scenarios, setScenarios] = useState<NotificationScenario[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>('ALL')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('ALL')
+
+  // Initialize filters from URL query parameters (for deep linking & sharing)
+  const [initialUrlParams] = useState(() => parseFilterUrlParams())
+  const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>(initialUrlParams.engine)
+  const [searchQuery, setSearchQuery] = useState(initialUrlParams.q)
+  const [statusFilter, setStatusFilter] = useState<string>(initialUrlParams.status)
   const [isImportOpen, setIsImportOpen] = useState(false)
+
+  // Toast feedback state for sharing links & actions
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = useCallback((msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    setToastMessage(msg)
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null)
+    }, 2800)
+  }, [])
+
+  // Keep URL search query parameters synced with currently active filters
+  useEffect(() => {
+    syncFiltersToUrl({
+      engine: selectedEngine,
+      status: statusFilter,
+      q: searchQuery,
+    })
+  }, [selectedEngine, statusFilter, searchQuery])
+
+  // Handle browser back / forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const parsed = parseFilterUrlParams()
+      setSelectedEngine(parsed.engine)
+      setStatusFilter(parsed.status)
+      setSearchQuery(parsed.q)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  // Show a welcome toast if the page was opened with shared filter URL parameters
+  useEffect(() => {
+    if (initialUrlParams.hasFilterInUrl) {
+      const parts: string[] = []
+      if (initialUrlParams.status !== 'ALL') parts.push(`Status: ${initialUrlParams.status}`)
+      if (initialUrlParams.engine !== 'ALL') parts.push(`Engine: ${initialUrlParams.engine}`)
+      if (initialUrlParams.q) parts.push(`Search: "${initialUrlParams.q}"`)
+      if (parts.length > 0) {
+        showToast(`Viewing shared filter view (${parts.join(' • ')})`)
+      }
+    }
+  }, [initialUrlParams, showToast])
 
   // Reset all filters (engine, status, search) to show all records
   const handleResetAllFilters = () => {
@@ -254,6 +306,34 @@ export default function App() {
       ? scenarios
       : scenarios.filter((s) => s.engineCategory === selectedEngine)
 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+
+  const activeStatuses =
+    statusFilter && statusFilter !== 'ALL'
+      ? statusFilter.split(',').map((s) => s.trim()).filter((s) => s && s !== 'ALL')
+      : []
+
+  const matchingCount = scenarios.filter((s) => {
+    const matchesEngine =
+      selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
+    if (!matchesEngine) return false
+    if (activeStatuses.length === 0) return true
+    const upperActive = parseStatuses(s.status).map((st) => st.trim().toUpperCase())
+    return activeStatuses.some((sel) => {
+      const clean = sel.trim().toUpperCase()
+      if (clean === 'NOT_WORKING_ANY' || clean === 'ALL NOT WORKING') {
+        return upperActive.some((st) => st.includes('NOT WORKING'))
+      }
+      return upperActive.includes(clean)
+    })
+  }).length
+
+  const currentShareUrl = buildFilterShareUrl({
+    engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+    status: statusFilter !== 'ALL' ? statusFilter : undefined,
+    q: searchQuery.trim() || undefined,
+  })
+
   return (
     <div className="flex flex-col h-screen h-[100dvh] w-full min-w-0 overflow-hidden bg-white text-[#172B4D] font-sans antialiased select-none">
       {/* 1. Jira Navigation Bar with Engine Category Switcher, Live Sheet Status, & Search */}
@@ -272,6 +352,9 @@ export default function App() {
         verificationSummary={verificationSummary}
         isVerifying={isVerifying}
         onOpenVerificationModal={() => setIsVerificationModalOpen(true)}
+        statusFilter={statusFilter}
+        onShowToast={showToast}
+        onOpenShareModal={() => setIsShareModalOpen(true)}
       />
 
       {/* 2. Main Excel-like Spreadsheet Grid */}
@@ -300,6 +383,8 @@ export default function App() {
             onResetAllFilters={handleResetAllFilters}
             verificationSummary={verificationSummary}
             onApplySheetValue={handleApplySheetValue}
+            onShowToast={showToast}
+            onOpenShareModal={() => setIsShareModalOpen(true)}
           />
         )}
       </main>
@@ -321,6 +406,25 @@ export default function App() {
           onReverify={() => runVerification(scenarios)}
           isReverifying={isVerifying}
         />
+      )}
+
+      {/* 5. Share Filter Modal */}
+      <ShareFilterModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareUrl={currentShareUrl}
+        selectedEngine={selectedEngine}
+        selectedStatuses={activeStatuses}
+        searchQuery={searchQuery}
+        matchingCount={matchingCount}
+      />
+
+      {/* 6. Global Floating Toast for Share & Action Feedback */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-9999 bg-slate-900 text-white text-xs px-4 py-2.5 rounded shadow-2xl flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-3 duration-150 border border-slate-700 select-none">
+          <Check className="w-4 h-4 text-emerald-400 stroke-[2.5] shrink-0" />
+          <span className="font-medium">{toastMessage}</span>
+        </div>
       )}
     </div>
   )

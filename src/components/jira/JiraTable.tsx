@@ -25,10 +25,12 @@ import {
   MessageSquare,
   Loader2,
   RotateCcw,
+  Share2,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
 import { polishCommentWithGemini } from '../../services/commentAiService'
+import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
 // Google Gemini Multi-Color Gradient Sparkle Logo
 export const GeminiSparkleIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
@@ -68,6 +70,8 @@ interface JiraTableProps {
   onStatusFilterChange?: (status: string) => void
   onResetAllFilters?: () => void
   isAiSearch?: boolean
+  onShowToast?: (message: string) => void
+  onOpenShareModal?: () => void
 }
 
 type EditableField =
@@ -212,6 +216,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   isAiSearch = false,
   verificationSummary,
   onApplySheetValue,
+  onShowToast,
+  onOpenShareModal,
 }) => {
   const [internalStatusFilter, setInternalStatusFilter] = useState<string>('ALL')
   const statusFilter = propsStatusFilter !== undefined ? propsStatusFilter : internalStatusFilter
@@ -222,6 +228,54 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       setInternalStatusFilter(val)
     }
   }
+
+  // Parse comma-separated active statuses into a clean array for multi-select
+  const selectedStatuses = useMemo<string[]>(() => {
+    if (!statusFilter || statusFilter === 'ALL') {
+      return []
+    }
+    return statusFilter
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s && s !== 'ALL')
+  }, [statusFilter])
+
+  // Toggle a status in or out of multi-select list
+  const handleToggleStatus = (val: string) => {
+    if (val === 'ALL') {
+      setStatusFilter('ALL')
+      return
+    }
+
+    const isAlreadySelected = selectedStatuses.includes(val)
+    const nextList = isAlreadySelected
+      ? selectedStatuses.filter((s) => s !== val)
+      : [...selectedStatuses, val]
+
+    setStatusFilter(nextList.length > 0 ? nextList.join(',') : 'ALL')
+  }
+
+  // Clear all status filters
+  const handleClearStatusFilters = () => {
+    setStatusFilter('ALL')
+  }
+
+  // Human-readable status button label
+  const statusButtonLabel = useMemo(() => {
+    if (selectedStatuses.length === 0) {
+      return 'Status'
+    }
+    if (selectedStatuses.length === 1) {
+      const val = selectedStatuses[0]
+      return val === 'NOT_WORKING_ANY' ? 'Status: All Not Working' : `Status: ${val}`
+    }
+    if (selectedStatuses.length === 2) {
+      const s1 = selectedStatuses[0] === 'NOT_WORKING_ANY' ? 'Not Working' : selectedStatuses[0]
+      const s2 = selectedStatuses[1] === 'NOT_WORKING_ANY' ? 'Not Working' : selectedStatuses[1]
+      return `Status: ${s1}, ${s2}`
+    }
+    return `Status: ${selectedStatuses.length} selected`
+  }, [selectedStatuses])
 
   const handleResetAllFilters = () => {
     if (onResetAllFilters) {
@@ -235,8 +289,71 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
   const hasActiveFilters =
     selectedEngine !== 'ALL' ||
-    statusFilter !== 'ALL' ||
+    selectedStatuses.length > 0 ||
     Boolean(searchQuery && searchQuery.trim().length > 0)
+
+  const [copiedStatusValue, setCopiedStatusValue] = useState<string | null>(null)
+  const [copiedActiveFilter, setCopiedActiveFilter] = useState<boolean>(false)
+  const [copiedEngineFilter, setCopiedEngineFilter] = useState<boolean>(false)
+
+  const handleShareStatusOption = async (statusValue: string, statusLabel: string) => {
+    const url = buildFilterShareUrl({
+      engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+      status: statusValue !== 'ALL' ? statusValue : undefined,
+    })
+    const ok = await copyShareUrlToClipboard(url)
+    if (ok) {
+      setCopiedStatusValue(statusValue)
+      setTimeout(() => setCopiedStatusValue(null), 2000)
+      const toastText = `Copied link for "${statusLabel}" filter! Anyone opening it will view these records.`
+      setCopiedToast(toastText)
+      setTimeout(() => setCopiedToast(null), 2500)
+      if (onShowToast) onShowToast(toastText)
+    }
+  }
+
+  const handleShareActiveFilter = async () => {
+    const url = buildFilterShareUrl({
+      engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+      status: selectedStatuses.length > 0 ? selectedStatuses.join(',') : undefined,
+      q: searchQuery.trim() || undefined,
+    })
+    const ok = await copyShareUrlToClipboard(url)
+    if (ok) {
+      setCopiedActiveFilter(true)
+      setTimeout(() => setCopiedActiveFilter(false), 2200)
+      const details: string[] = []
+      if (selectedEngine !== 'ALL') details.push(`Engine: ${selectedEngine}`)
+      if (selectedStatuses.length > 0) details.push(`Status: ${selectedStatuses.join(', ')}`)
+      if (searchQuery.trim()) details.push(`Search: "${searchQuery}"`)
+      const toastText =
+        details.length > 0
+          ? `Copied link for active filter (${details.join(' • ')})!`
+          : 'Copied link to all records!'
+      setCopiedToast(toastText)
+      setTimeout(() => setCopiedToast(null), 2500)
+      if (onShowToast) onShowToast(toastText)
+    }
+    if (onOpenShareModal) {
+      onOpenShareModal()
+    }
+  }
+
+  const handleShareEngineFilter = async () => {
+    if (selectedEngine === 'ALL') return
+    const url = buildFilterShareUrl({
+      engine: selectedEngine,
+    })
+    const ok = await copyShareUrlToClipboard(url)
+    if (ok) {
+      setCopiedEngineFilter(true)
+      setTimeout(() => setCopiedEngineFilter(false), 2000)
+      const toastText = `Copied link for ${selectedEngine} Engine records!`
+      setCopiedToast(toastText)
+      setTimeout(() => setCopiedToast(null), 2500)
+      if (onShowToast) onShowToast(toastText)
+    }
+  }
 
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const statusButtonRef = useRef<HTMLButtonElement>(null)
@@ -484,21 +601,27 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     return counts
   }, [scenarios, selectedEngine])
 
-  // 1. Filter scenarios by engine category & status first
+  // 1. Filter scenarios by engine category & multiple statuses (OR condition)
   const baseFiltered = useMemo(() => {
     return scenarios.filter((s) => {
       const matchesEngine =
         selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
+      if (!matchesEngine) return false
+
+      if (selectedStatuses.length === 0) return true
+
       const activeList = parseStatuses(s.status)
-      const matchesStatus =
-        statusFilter === 'ALL'
-          ? true
-          : statusFilter === 'NOT_WORKING_ANY'
-          ? activeList.some((st) => st.includes('NOT WORKING'))
-          : activeList.includes(statusFilter as ScenarioStatus)
-      return matchesEngine && matchesStatus
+      const upperActiveList = activeList.map((st) => st.trim().toUpperCase())
+
+      return selectedStatuses.some((sel) => {
+        const cleanSel = sel.trim().toUpperCase()
+        if (cleanSel === 'NOT_WORKING_ANY' || cleanSel === 'ALL NOT WORKING') {
+          return upperActiveList.some((st) => st.includes('NOT WORKING'))
+        }
+        return upperActiveList.includes(cleanSel)
+      })
     })
-  }, [scenarios, selectedEngine, statusFilter])
+  }, [scenarios, selectedEngine, selectedStatuses])
 
   // 2. Spreadsheet behavior: Search does NOT filter out rows - all rows stay visible!
   // It only highlights the matched values where they appear in the cells.
@@ -639,7 +762,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto whitespace-nowrap py-0.5 min-w-0 flex-1 no-scrollbar select-none"
         >
           {/* Active Engine Badge / Click to reset all filters */}
-          <div className="flex items-center gap-1.5 font-bold text-[11px] sm:text-xs shrink-0">
+          <div className="flex items-center gap-1 font-bold text-[11px] sm:text-xs shrink-0">
             <button
               type="button"
               onClick={handleResetAllFilters}
@@ -667,50 +790,63 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                 <span className="text-[9px] bg-[#0052CC] text-white px-1.5 py-0.2 rounded-full font-bold">Filtered</span>
               ) : null}
             </button>
+            {selectedEngine !== 'ALL' && (
+              <button
+                type="button"
+                onClick={handleShareEngineFilter}
+                title={`Copy share link for ${selectedEngine} Engine records`}
+                className="p-1 rounded hover:bg-[#DEEBFF] text-[#0052CC] transition cursor-pointer shrink-0"
+              >
+                {copiedEngineFilter ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                ) : (
+                  <Share2 className="w-3.5 h-3.5" />
+                )}
+              </button>
+            )}
           </div>
 
           <span className="text-slate-300 shrink-0 select-none">|</span>
 
-          {/* Status Filter - Jira-style Dropdown Button */}
+          {/* Status Filter - Jira-style Multi-Select Dropdown Button */}
           <div className="relative shrink-0">
             <button
               ref={statusButtonRef}
               type="button"
               onClick={handleToggleStatusDropdown}
               className={`cursor-pointer px-2.5 py-1 rounded-[3px] text-xs inline-flex items-center gap-1.5 transition border select-none ${
-                statusFilter !== 'ALL'
+                selectedStatuses.length > 0
                   ? 'bg-[#DEEBFF] text-[#0052CC] border-[#B3D4FF] font-semibold shadow-2xs'
                   : isStatusDropdownOpen
                   ? 'bg-[#EBECF0] text-[#172B4D] border-[#C1C7D0]'
                   : 'bg-[#FAFBFC] hover:bg-[#EBECF0] text-[#42526E] hover:text-[#172B4D] border-[#DFE1E6]'
               }`}
+              title={
+                selectedStatuses.length > 0
+                  ? `Filtered by: ${selectedStatuses.join(', ')}`
+                  : 'Filter by Status'
+              }
             >
-              <Filter className={`w-3.5 h-3.5 ${statusFilter !== 'ALL' ? 'text-[#0052CC]' : 'text-[#6B778C]'}`} />
-              <span>
-                {statusFilter === 'ALL'
-                  ? 'Status'
-                  : statusFilter === 'NOT_WORKING_ANY'
-                  ? 'Status: All Not Working'
-                  : `Status: ${statusFilter}`}
-              </span>
+              <Filter className={`w-3.5 h-3.5 ${selectedStatuses.length > 0 ? 'text-[#0052CC]' : 'text-[#6B778C]'}`} />
+              <span>{statusButtonLabel}</span>
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                  statusFilter !== 'ALL'
+                  selectedStatuses.length > 0
                     ? 'bg-[#0052CC] text-white'
                     : 'bg-[#DFE1E6] text-[#42526E]'
                 }`}
               >
-                {statusCounts[statusFilter] ?? 0}
+                {selectedStatuses.length > 0 ? baseFiltered.length : statusCounts.ALL ?? scenarios.length}
               </span>
-              {statusFilter !== 'ALL' ? (
+              {selectedStatuses.length > 0 ? (
                 <span
                   role="button"
                   tabIndex={0}
                   onClick={(e) => {
                     e.stopPropagation()
-                    setStatusFilter('ALL')
+                    handleClearStatusFilters()
                   }}
-                  title="Clear status filter"
+                  title="Clear all status filters"
                   className="hover:bg-[#B3D4FF] rounded p-0.5 text-[#0052CC] cursor-pointer"
                 >
                   <X className="w-3 h-3 stroke-[2.5]" />
@@ -724,7 +860,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               )}
             </button>
 
-            {/* Jira Filter Dropdown Popover - Rendered via Portal to eliminate any parent overflow clipping */}
+            {/* Jira Multi-Select Filter Dropdown Popover - Rendered via Portal */}
             {isStatusDropdownOpen &&
               createPortal(
                 <div
@@ -735,60 +871,169 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     left: `${dropdownCoords.left}px`,
                     zIndex: 9999,
                   }}
-                  className="w-64 bg-white rounded-[4px] shadow-[0_4px_16px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1.5 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 select-none"
+                  className="w-80 bg-white rounded-[4px] shadow-[0_6px_20px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] pt-1.5 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 select-none flex flex-col max-h-[420px]"
                 >
-                  <div className="px-3 py-1 flex items-center justify-between text-[10px] font-bold text-[#6B778C] uppercase tracking-wider border-b border-[#EBECF0] pb-1.5 mb-1">
-                    <span>Filter by Status</span>
-                    {statusFilter !== 'ALL' && (
+                  <div className="px-3 py-1 flex items-center justify-between text-[11px] font-bold text-[#6B778C] border-b border-[#EBECF0] pb-1.5 mb-1 bg-[#FAFBFC]">
+                    <span className="uppercase tracking-wider text-[10px]">Filter by Status</span>
+                    <div className="flex items-center gap-1.5">
+                      {selectedStatuses.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleClearStatusFilters}
+                          className="text-[11px] text-[#0052CC] hover:underline cursor-pointer font-normal mr-1"
+                        >
+                          Clear ({selectedStatuses.length})
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
-                          setStatusFilter('ALL')
                           setIsStatusDropdownOpen(false)
+                          handleShareActiveFilter()
                         }}
-                        className="text-[11px] text-[#0052CC] hover:underline cursor-pointer lowercase first-letter:uppercase font-normal"
+                        className="text-[11px] text-[#006644] bg-[#E3FCEF] hover:bg-[#D3F5E4] border border-[#ABF5D1] px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                        title="Share this filter view"
                       >
-                        Clear filter
+                        <Share2 className="w-3 h-3" />
+                        <span>Share</span>
                       </button>
-                    )}
+                    </div>
                   </div>
 
-                  <div className="max-h-72 overflow-y-auto py-0.5">
+                  <div className="overflow-y-auto py-0.5 flex-1 min-h-0">
                     {statusFilterItems.map(({ label, value, dotColor }) => {
                       const count = statusCounts[value] ?? 0
-                      const isSelected = statusFilter === value
+                      const isChecked =
+                        value === 'ALL'
+                          ? selectedStatuses.length === 0
+                          : selectedStatuses.includes(value)
+
                       return (
-                        <button
+                        <div
                           key={value}
-                          type="button"
-                          onClick={() => {
-                            setStatusFilter(value)
-                            setIsStatusDropdownOpen(false)
-                          }}
-                          className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer ${
-                            isSelected ? 'bg-[#EBECF0] font-semibold text-[#0052CC]' : 'text-[#172B4D]'
+                          onClick={() => handleToggleStatus(value)}
+                          className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer group ${
+                            isChecked ? 'bg-[#EBECF0]/60' : ''
                           }`}
                         >
-                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            {/* Jira-style Checkbox */}
+                            <div
+                              className={`w-3.5 h-3.5 rounded-[3px] flex items-center justify-center transition shrink-0 ${
+                                isChecked
+                                  ? 'bg-[#0052CC] border border-[#0052CC] text-white shadow-2xs'
+                                  : 'border border-[#C1C7D0] bg-white group-hover:border-[#42526E]'
+                              }`}
+                            >
+                              {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                            </div>
+
                             <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                            <span className="truncate">{label}</span>
+                            <span
+                              className={`truncate text-xs ${
+                                isChecked ? 'font-semibold text-[#0052CC]' : 'text-[#172B4D]'
+                              }`}
+                            >
+                              {label}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
+
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
                               {count}
                             </span>
-                            {isSelected && (
-                              <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                            {value !== 'ALL' && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleShareStatusOption(value, label)
+                                }}
+                                title={`Copy direct share link for "${label}" filter`}
+                                className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-50 group-hover:opacity-100 cursor-pointer"
+                              >
+                                {copiedStatusValue === value ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                                ) : (
+                                  <Share2 className="w-3.5 h-3.5" />
+                                )}
+                              </button>
                             )}
                           </div>
-                        </button>
+                        </div>
                       )
                     })}
+                  </div>
+
+                  {/* Dropdown Footer with Done button & count summary */}
+                  <div className="px-3 py-2 border-t border-[#EBECF0] mt-1 flex items-center justify-between bg-[#FAFBFC] rounded-b-[4px]">
+                    <span className="text-[11px] text-[#6B778C]">
+                      {selectedStatuses.length > 0 ? (
+                        <>
+                          <strong>{selectedStatuses.length}</strong> selected ({baseFiltered.length} records)
+                        </>
+                      ) : (
+                        'All statuses active'
+                      )}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsStatusDropdownOpen(false)
+                          handleShareActiveFilter()
+                        }}
+                        className="px-2.5 py-1 rounded bg-[#E3FCEF] hover:bg-[#D3F5E4] text-[#006644] border border-[#ABF5D1] text-xs font-semibold cursor-pointer shadow-2xs transition inline-flex items-center gap-1"
+                        title="Share this filter view"
+                      >
+                        <Share2 className="w-3 h-3" />
+                        <span>Share</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsStatusDropdownOpen(false)}
+                        className="px-3 py-1 rounded bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold cursor-pointer shadow-2xs transition"
+                      >
+                        Done
+                      </button>
+                    </div>
                   </div>
                 </div>,
                 document.body
               )}
           </div>
+
+          {/* Share Filter Button - Quick one-click share for current filter view */}
+          <button
+            type="button"
+            onClick={handleShareActiveFilter}
+            title={
+              selectedStatuses.length > 0
+                ? `Share direct link for "${selectedStatuses.join(', ')}" filtered records`
+                : hasActiveFilters
+                ? 'Share direct link for active filtered records'
+                : 'Share direct link for these records'
+            }
+            className={`cursor-pointer px-2.5 py-1 rounded-[3px] text-xs inline-flex items-center gap-1.5 transition border font-semibold select-none shadow-2xs shrink-0 ${
+              selectedStatuses.length > 0
+                ? 'bg-[#E3FCEF] hover:bg-[#D3F5E4] text-[#006644] border-[#ABF5D1]'
+                : hasActiveFilters
+                ? 'bg-[#DEEBFF] hover:bg-[#B3D4FF] text-[#0052CC] border-[#B3D4FF]'
+                : 'bg-[#FAFBFC] hover:bg-[#EBECF0] text-[#42526E] hover:text-[#172B4D] border-[#DFE1E6]'
+            }`}
+          >
+            {copiedActiveFilter ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                <span className="text-emerald-700">Link Copied!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share Filter</span>
+              </>
+            )}
+          </button>
 
           {/* Reset all filters button when any filter is active */}
           {hasActiveFilters && (
