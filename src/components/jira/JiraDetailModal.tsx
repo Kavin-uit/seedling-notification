@@ -283,38 +283,10 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
             <div className="space-y-4">
               {/* 1. iOS iPhone Push Notification Banner Preview */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between px-0.5">
+                <div className="px-0.5">
                   <span className="text-xs font-semibold text-[#6B778C]">
                     Push Notification Preview
                   </span>
-                  {(scenario.pushBody || scenario.pushSubject) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const fullPush = [
-                          scenario.pushSubject ? `Title: ${scenario.pushSubject}` : '',
-                          scenario.pushBody || '',
-                        ]
-                          .filter(Boolean)
-                          .join('\n\n')
-                        handleCopy('pushBody', fullPush)
-                      }}
-                      className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
-                      title="Copy push notification"
-                    >
-                      {copiedField === 'pushBody' ? (
-                        <>
-                          <Check className="w-3 h-3 text-[#00875A]" />
-                          <span className="text-[#00875A] font-semibold">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  )}
                 </div>
 
                 {/* Exact Apple iOS iPhone Notification Banner Card */}
@@ -356,30 +328,10 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
               {/* 2. Official Seedling In-App Notification Feed Preview */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between px-0.5">
+                <div className="px-0.5">
                   <span className="text-xs font-semibold text-[#6B778C]">
                     In-App Notification Preview
                   </span>
-                  {scenario.inAppExperience && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('inApp', scenario.inAppExperience)}
-                      className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
-                      title="Copy in-app message"
-                    >
-                      {copiedField === 'inApp' ? (
-                        <>
-                          <Check className="w-3 h-3 text-[#00875A]" />
-                          <span className="text-[#00875A] font-semibold">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  )}
                 </div>
 
                 {scenario.inAppExperience ? (
@@ -410,39 +362,11 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
               {/* 3. QA Notes & Verification Logic (Balances left column with Email) */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between px-0.5">
+                <div className="px-0.5">
                   <span className="text-xs font-semibold text-[#6B778C] flex items-center gap-1.5">
                     <MessageSquare className="w-3.5 h-3.5 text-[#6B778C]" />
                     <span>QA Notes & Verification Logic</span>
                   </span>
-                  {(scenario.comments || scenario.notes) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const fullNotes = [
-                          scenario.notes ? `Logic Note: ${scenario.notes}` : '',
-                          scenario.comments ? `QA Comments: ${scenario.comments}` : '',
-                        ]
-                          .filter(Boolean)
-                          .join('\n\n')
-                        handleCopy('qaNotes', fullNotes)
-                      }}
-                      className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
-                      title="Copy notes and comments"
-                    >
-                      {copiedField === 'qaNotes' ? (
-                        <>
-                          <Check className="w-3 h-3 text-[#00875A]" />
-                          <span className="text-[#00875A] font-semibold">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  )}
                 </div>
 
                 <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs space-y-2.5">
@@ -483,88 +407,45 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
             {/* RIGHT COLUMN: Email Notification Preview (Official Seedling Social Giving Email Template) */}
             <div className="space-y-1.5 flex flex-col h-full">
-              <div className="flex items-center justify-between px-0.5">
+              <div className="px-0.5">
                 <span className="text-xs font-semibold text-[#6B778C]">
                   Email Notification Preview
                 </span>
-                {(scenario.emailBody || scenario.emailSubject) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const fullEmail = [
-                        scenario.emailSubject ? `Subject: ${scenario.emailSubject}` : '',
-                        scenario.emailBody || '',
-                      ]
-                        .filter(Boolean)
-                        .join('\n\n')
-                      handleCopy('emailFull', fullEmail)
-                    }}
-                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
-                    title="Copy full email (Subject + Body)"
-                  >
-                    {copiedField === 'emailFull' ? (
-                      <>
-                        <Check className="w-3 h-3 text-[#00875A]" />
-                        <span className="text-[#00875A] font-semibold">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3 h-3" />
-                        <span>Copy All</span>
-                      </>
-                    )}
-                  </button>
-                )}
               </div>
 
               {/* Exact Seedling Social Giving Email Template Card */}
               <div className="bg-white border border-[#DFE1E6] rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col flex-1 transition-all">
-                {/* Email Client Envelope Header */}
-                <div className="px-4 py-3 bg-[#FAFBFC] border-b border-[#EBECF0] space-y-1.5 shrink-0">
-                  <div className="flex items-center justify-between text-[11px] text-[#6B778C]">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <span className="font-semibold text-[#42526E]">From:</span>
-                      <span className="text-[#172B4D] font-medium">Seedling Social Giving</span>
-                      <span className="text-[#8E8E93] hidden sm:inline">&lt;notifications@seedlingsocial.org&gt;</span>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <span className="font-semibold text-[#42526E]">To:</span>
-                      <span className="text-[#172B4D] font-medium">{scenario.audience || 'User'}</span>
-                    </div>
+                {/* Email Subject Line Header Bar */}
+                <div className="px-4 py-2.5 bg-[#FAFBFC] border-b border-[#EBECF0] flex items-center justify-between gap-3 shrink-0">
+                  <div className="flex items-baseline gap-2 min-w-0 flex-1">
+                    <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider shrink-0 select-none">
+                      Subject:
+                    </span>
+                    <span
+                      className="text-xs sm:text-[13.5px] font-semibold text-[#172B4D] truncate select-text"
+                      title={scenario.emailSubject}
+                    >
+                      {scenario.emailSubject || (
+                        <span className="text-[#8E8E93] italic font-normal">
+                          No subject line configured
+                        </span>
+                      )}
+                    </span>
                   </div>
-
-                  {/* Subject Line */}
-                  <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-[#EBECF0]">
-                    <div className="flex items-baseline gap-2 min-w-0 flex-1">
-                      <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider shrink-0 select-none">
-                        Subject:
-                      </span>
-                      <span
-                        className="text-xs sm:text-[13.5px] font-semibold text-[#172B4D] truncate select-text"
-                        title={scenario.emailSubject}
-                      >
-                        {scenario.emailSubject || (
-                          <span className="text-[#8E8E93] italic font-normal">
-                            No subject line configured
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    {scenario.emailSubject && (
-                      <button
-                        type="button"
-                        onClick={() => handleCopy('emailSubject', scenario.emailSubject)}
-                        className="text-[#6B778C] hover:text-[#0052CC] p-1 rounded hover:bg-[#EBECF0] transition cursor-pointer shrink-0"
-                        title="Copy email subject"
-                      >
-                        {copiedField === 'emailSubject' ? (
-                          <Check className="w-3.5 h-3.5 text-[#00875A]" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-                    )}
-                  </div>
+                  {scenario.emailSubject && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('emailSubject', scenario.emailSubject)}
+                      className="text-[#6B778C] hover:text-[#0052CC] p-1 rounded hover:bg-[#EBECF0] transition cursor-pointer shrink-0"
+                      title="Copy email subject"
+                    >
+                      {copiedField === 'emailSubject' ? (
+                        <Check className="w-3.5 h-3.5 text-[#00875A]" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 {/* Solid Green Header Banner with Given Logo Without Modifications */}
