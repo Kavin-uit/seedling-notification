@@ -28,7 +28,6 @@ import {
   RotateCcw,
   Share,
   Eye,
-  Globe,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
@@ -1376,22 +1375,6 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               </>
             )}
           </button>
-
-          {/* Active Global Search Indicator Pill */}
-          {isSearchActive && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#DEEBFF] text-[#0052CC] border border-[#B3D4FF] text-xs font-semibold select-none shrink-0 shadow-2xs">
-              <Globe className="w-3.5 h-3.5 text-[#0052CC]" />
-              <span>Global Search: &quot;{searchQuery}&quot;</span>
-              <button
-                type="button"
-                onClick={onClearSearch}
-                className="ml-1 hover:bg-[#B3D4FF] text-[#0052CC] rounded p-0.5 transition cursor-pointer"
-                title="Clear global search"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
 
           {/* Reset all filters button when any filter is active */}
           {hasActiveFilters && (
