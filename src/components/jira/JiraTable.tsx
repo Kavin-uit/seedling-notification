@@ -495,9 +495,32 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     scenario: NotificationScenario
     rect: DOMRect
   } | null>(null)
+  const [hoveredComment, setHoveredComment] = useState<{
+    scenario: NotificationScenario
+    rowNumber: number
+    rect: DOMRect
+  } | null>(null)
   const [deletingScenario, setDeletingScenario] = useState<NotificationScenario | null>(null)
   const [copiedToast, setCopiedToast] = useState<string | null>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null)
+
+  // Clear comment tooltip on Escape key or window resize
+  useEffect(() => {
+    if (!hoveredComment) return
+    const handleClose = (e: KeyboardEvent | Event) => {
+      if ('key' in e && (e as KeyboardEvent).key === 'Escape') {
+        setHoveredComment(null)
+      } else if (!('key' in e)) {
+        setHoveredComment(null)
+      }
+    }
+    window.addEventListener('keydown', handleClose)
+    window.addEventListener('resize', handleClose)
+    return () => {
+      window.removeEventListener('keydown', handleClose)
+      window.removeEventListener('resize', handleClose)
+    }
+  }, [hoveredComment])
 
   // Adjustable column widths (Excel spreadsheet style)
   const [columnWidths, setColumnWidths] = useState<Record<TableColumnKey, number>>(() => {
@@ -1373,7 +1396,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       <div
         className="flex-1 overflow-auto bg-white pb-36"
         ref={tableContainerRef}
-        onScroll={() => setHoveredInfo(null)}
+        onScroll={() => {
+          setHoveredInfo(null)
+          setHoveredComment(null)
+        }}
       >
         <table
           className="border-collapse text-left text-xs font-sans w-max min-w-full"
@@ -1867,7 +1893,20 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Manual Comments */}
-                    <td className="px-2 py-2 border-r border-[#E1E4E8] align-top">
+                    <td
+                      className="px-2 py-2 border-r border-[#E1E4E8] align-top relative"
+                      onMouseEnter={(e) => {
+                        if (editingCommentId !== row.id && row.comments && row.comments.trim().length > 0) {
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setHoveredComment({
+                            scenario: row,
+                            rowNumber,
+                            rect,
+                          })
+                        }
+                      }}
+                      onMouseLeave={() => setHoveredComment(null)}
+                    >
                       {editingCommentId === row.id ? (
                         <div
                           className="flex items-center gap-1 w-full"
@@ -1955,7 +1994,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                         </div>
                       ) : (
                         <div
-                          onClick={() => startEditingComment(row)}
+                          onClick={() => {
+                            setHoveredComment(null)
+                            startEditingComment(row)
+                          }}
                           className="flex items-start justify-between gap-1 group-hover/comment:bg-blue-50/60 px-1 py-0.5 rounded transition cursor-pointer group/comment"
                         >
                           <div
@@ -1964,7 +2006,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                                 ? 'text-[#172B4D] font-medium'
                                 : 'text-slate-400 italic group-hover/comment:text-[#0052CC]'
                             }`}
-                            title={row.comments ? row.comments : 'Click to add/edit comment'}
+                            title={row.comments ? undefined : 'Click to add comment'}
                           >
                             {row.comments ? (
                               highlightMatches(row.comments, searchQuery, matchedTerms, hasSearchMatch)
@@ -2364,6 +2406,99 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           </div>
         )
       })()}
+
+      {/* Floating Comment Tooltip Modal on Hover */}
+      {hoveredComment && hoveredComment.scenario.comments?.trim() && createPortal(
+        (() => {
+          const commentText = hoveredComment.scenario.comments.trim()
+          const isNearBottom = hoveredComment.rect.bottom + 220 > window.innerHeight
+          const isNearTop = hoveredComment.rect.top < 160
+          const placeAbove = isNearBottom && !isNearTop
+
+          const tooltipWidth = Math.min(
+            420,
+            Math.max(280, commentText.length > 100 ? 360 : 300)
+          )
+
+          const left = Math.max(
+            16,
+            Math.min(
+              window.innerWidth - tooltipWidth - 16,
+              hoveredComment.rect.left + hoveredComment.rect.width / 2 - tooltipWidth / 2
+            )
+          )
+
+          const arrowOffset = Math.max(
+            16,
+            Math.min(
+              tooltipWidth - 24,
+              hoveredComment.rect.left + hoveredComment.rect.width / 2 - left - 5
+            )
+          )
+
+          return (
+            <div
+              className="fixed z-[99999] pointer-events-none transition-all duration-150 animate-in fade-in zoom-in-95 ease-out select-none"
+              style={{
+                top: !placeAbove ? `${hoveredComment.rect.bottom + 8}px` : undefined,
+                bottom: placeAbove ? `${window.innerHeight - hoveredComment.rect.top + 8}px` : undefined,
+                left: `${left}px`,
+                width: `${tooltipWidth}px`,
+              }}
+            >
+              {/* Arrow if placed below */}
+              {!placeAbove && (
+                <div
+                  className="w-2.5 h-2.5 bg-white rotate-45 border-l border-t border-[#DFE1E6] -mb-1.5 z-10 shrink-0 shadow-xs"
+                  style={{ marginLeft: `${arrowOffset}px` }}
+                />
+              )}
+
+              {/* Tooltip Card */}
+              <div className="bg-white/98 backdrop-blur-md rounded-xl shadow-[0_12px_36px_rgba(9,30,66,0.22),0_0_1px_rgba(9,30,66,0.3)] border border-[#DFE1E6] p-3 text-[#172B4D] space-y-2">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-2 border-b border-[#EBECF0] pb-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-5 h-5 rounded-md bg-[#DEEBFF] text-[#0052CC] flex items-center justify-center shrink-0">
+                      <MessageSquare className="w-3 h-3" />
+                    </span>
+                    <span className="text-[11px] font-bold text-[#172B4D] tracking-tight">Comment</span>
+                    <span className="font-mono text-[10px] bg-[#F4F5F7] text-[#42526E] px-1.5 py-0.5 rounded font-semibold border border-[#EBECF0]">
+                      {hoveredComment.scenario.key}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-[#6B778C] font-medium shrink-0">
+                    Row #{hoveredComment.rowNumber}
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div className="text-xs leading-relaxed text-[#172B4D] break-words whitespace-pre-wrap max-h-56 overflow-y-auto font-normal pr-1">
+                  {highlightMatches(commentText, searchQuery, matchedTerms, Boolean(searchQuery && searchQuery.trim()))}
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between border-t border-[#EBECF0] pt-1.5 text-[10px] text-[#6B778C]">
+                  <span className="flex items-center gap-1 text-[#0052CC] font-medium">
+                    <Pencil className="w-2.5 h-2.5" />
+                    <span>Click cell to edit</span>
+                  </span>
+                  <span>{commentText.length} chars</span>
+                </div>
+              </div>
+
+              {/* Arrow if placed above */}
+              {placeAbove && (
+                <div
+                  className="w-2.5 h-2.5 bg-white rotate-45 border-r border-b border-[#DFE1E6] -mt-1.5 z-10 shrink-0 shadow-xs"
+                  style={{ marginLeft: `${arrowOffset}px` }}
+                />
+              )}
+            </div>
+          )
+        })(),
+        document.body
+      )}
 
       {/* Event Brief & Details Popover anchored to Info button */}
       {selectedEventBrief && (
