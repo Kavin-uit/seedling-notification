@@ -36,28 +36,11 @@ function parseEmailTemplate(scenario: NotificationScenario) {
     rawBody = rawBody.replace(/(?:^|\s+)BOX\s*:\s*[^\n\r]+?(?:\s*$|\.\s*$)/i, '').trim()
   }
 
-  const subject = scenario.emailSubject?.trim() || ''
+  // Parse bold introductory lead (first sentence) and remaining body
   let boldLead = ''
   let remainingBody = rawBody
 
-  if (subject && rawBody) {
-    const cleanSubj = subject.replace(/[.!?]+$/, '').toLowerCase()
-    const bodyLower = rawBody.toLowerCase()
-    if (bodyLower.startsWith(cleanSubj)) {
-      let matchEnd = cleanSubj.length
-      if (rawBody[matchEnd] === '.' || rawBody[matchEnd] === '!' || rawBody[matchEnd] === '?') {
-        matchEnd += 1
-      }
-      boldLead = rawBody.slice(0, matchEnd).trim()
-      remainingBody = rawBody.slice(matchEnd).trim()
-    } else {
-      boldLead = subject.endsWith('.') || subject.endsWith('!') || subject.endsWith('?') ? subject : `${subject}.`
-      remainingBody = rawBody
-    }
-  } else if (subject && !rawBody) {
-    boldLead = subject
-    remainingBody = ''
-  } else if (rawBody) {
+  if (rawBody) {
     const firstSentenceMatch = rawBody.match(/^([^.!?]+[.!?])\s*(.*)$/s)
     if (firstSentenceMatch) {
       boldLead = firstSentenceMatch[1].trim()
@@ -73,6 +56,7 @@ function parseEmailTemplate(scenario: NotificationScenario) {
 
 export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
   scenario,
+  rowNumber,
   allStatuses,
   isOpen,
   onClose,
@@ -120,9 +104,21 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
         className="bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] w-full max-w-[1000px] max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Simple Human Header: Clean Event Title + Interactive Status */}
+        {/* Simple Clean Header: Engine, Key, Row, Title + Interactive Status & Metadata */}
         <div className="px-5 py-3.5 border-b border-[#DFE1E6] bg-white flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 flex-wrap">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#EBECF0] text-[#42526E] uppercase tracking-wide shrink-0">
+              {scenario.engineCategory}
+            </span>
+            <span className="font-bold text-[#0052CC] text-xs font-mono shrink-0">
+              {scenario.key}
+            </span>
+            {rowNumber !== undefined && (
+              <span className="text-[#6B778C] text-xs font-mono font-medium shrink-0">
+                #{rowNumber}
+              </span>
+            )}
+            <span className="text-[#DFE1E6] hidden sm:inline">|</span>
             <h2 className="text-base sm:text-lg font-bold text-[#172B4D] truncate" title={scenario.governanceEvent}>
               {scenario.governanceEvent}
             </h2>
@@ -135,6 +131,24 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                   size="sm"
                 />
               </div>
+            )}
+            {scenario.priority && (
+              <span
+                className={`px-2 py-0.5 rounded text-[11px] font-medium shrink-0 ${
+                  scenario.priority === 'Highest' || scenario.priority === 'High'
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    : scenario.priority === 'Medium'
+                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                }`}
+              >
+                {scenario.priority}
+              </span>
+            )}
+            {scenario.environment && (
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono text-[#5E6C84] bg-[#F4F5F7] border border-[#DFE1E6] shrink-0">
+                {scenario.environment}
+              </span>
             )}
           </div>
 
@@ -287,11 +301,20 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                   <span className="text-xs font-semibold text-[#6B778C]">
                     Push Notification Preview
                   </span>
-                  {scenario.pushBody && (
+                  {(scenario.pushBody || scenario.pushSubject) && (
                     <button
                       type="button"
-                      onClick={() => handleCopy('pushBody', scenario.pushBody)}
+                      onClick={() => {
+                        const fullPush = [
+                          scenario.pushSubject ? `Title: ${scenario.pushSubject}` : '',
+                          scenario.pushBody || '',
+                        ]
+                          .filter(Boolean)
+                          .join('\n\n')
+                        handleCopy('pushBody', fullPush)
+                      }}
                       className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                      title="Copy push notification"
                     >
                       {copiedField === 'pushBody' ? (
                         <>
@@ -409,10 +432,19 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 {(scenario.emailBody || scenario.emailSubject) && (
                   <button
                     type="button"
-                    onClick={() => handleCopy('emailBody', scenario.emailBody || scenario.emailSubject || '')}
+                    onClick={() => {
+                      const fullEmail = [
+                        scenario.emailSubject ? `Subject: ${scenario.emailSubject}` : '',
+                        scenario.emailBody || '',
+                      ]
+                        .filter(Boolean)
+                        .join('\n\n')
+                      handleCopy('emailFull', fullEmail)
+                    }}
                     className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                    title="Copy full email (Subject + Body)"
                   >
-                    {copiedField === 'emailBody' ? (
+                    {copiedField === 'emailFull' ? (
                       <>
                         <Check className="w-3 h-3 text-[#00875A]" />
                         <span className="text-[#00875A] font-semibold">Copied</span>
@@ -420,7 +452,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                     ) : (
                       <>
                         <Copy className="w-3 h-3" />
-                        <span>Copy</span>
+                        <span>Copy All</span>
                       </>
                     )}
                   </button>
@@ -429,6 +461,39 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
               {/* Exact Seedling Social Giving Email Template Card */}
               <div className="bg-white border border-[#DFE1E6] rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col flex-1 transition-all">
+                {/* Email Subject Line Header Bar */}
+                <div className="px-4 py-2.5 bg-[#FAFBFC] border-b border-[#EBECF0] flex items-center justify-between gap-3 shrink-0">
+                  <div className="flex items-baseline gap-2 min-w-0 flex-1">
+                    <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider shrink-0 select-none">
+                      Subject:
+                    </span>
+                    <span
+                      className="text-xs sm:text-[13px] font-semibold text-[#172B4D] truncate select-text"
+                      title={scenario.emailSubject}
+                    >
+                      {scenario.emailSubject || (
+                        <span className="text-[#8E8E93] italic font-normal">
+                          No subject line configured
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  {scenario.emailSubject && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('emailSubject', scenario.emailSubject)}
+                      className="text-[#6B778C] hover:text-[#0052CC] p-1 rounded hover:bg-[#EBECF0] transition cursor-pointer shrink-0"
+                      title="Copy email subject"
+                    >
+                      {copiedField === 'emailSubject' ? (
+                        <Check className="w-3.5 h-3.5 text-[#00875A]" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
                 {/* Solid Green Header Banner with Given Logo Without Modifications */}
                 <div className="bg-[#1E874B] px-5 py-3.5 sm:py-4 flex items-center justify-center gap-2.5 select-none shadow-xs shrink-0">
                   <img
