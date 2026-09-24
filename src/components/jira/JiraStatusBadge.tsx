@@ -229,17 +229,18 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
 
   if (!interactive || !onChange) {
     return (
-      <div className="inline-flex flex-wrap gap-1 items-center">
+      <div className="inline-flex flex-wrap gap-1 items-center max-w-full">
         {activeStatuses.map((st) => {
           const cfg = getStatusBadgeConfig(st)
           return (
             <span
               key={st}
-              className={`inline-flex items-center gap-1 font-bold uppercase tracking-wider rounded ${
+              title={st}
+              className={`inline-flex items-center gap-1 font-semibold uppercase rounded max-w-full truncate ${
                 size === 'sm' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'
               } ${cfg.bg} ${cfg.text}`}
             >
-              {cfg.label}
+              <span className="truncate">{cfg.label}</span>
             </span>
           )
         })}
@@ -284,29 +285,32 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
   }
 
   return (
-    <div className="inline-block text-left">
+    <div className="inline-block text-left max-w-full">
       {/* Trigger Button showing active badge(s) */}
       <button
         ref={triggerRef}
         type="button"
         onClick={handleToggle}
-        className="inline-flex flex-wrap gap-1 items-center p-0.5 rounded hover:bg-slate-100/80 transition cursor-pointer"
-        title="Click to change or select multiple statuses"
+        className="inline-flex items-center gap-1 p-0.5 rounded hover:bg-slate-100/80 transition cursor-pointer max-w-full overflow-hidden"
+        title={activeStatuses.join(', ')}
       >
-        {activeStatuses.map((st) => {
-          const cfg = getStatusBadgeConfig(st)
-          return (
-            <span
-              key={st}
-              className={`inline-flex items-center gap-1 font-bold uppercase tracking-wider rounded border ${
-                size === 'sm' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'
-              } ${cfg.bg} ${cfg.text} ${cfg.border}`}
-            >
-              {cfg.label}
-            </span>
-          )
-        })}
-        <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-0.5" />
+        <div className="inline-flex items-center gap-1 min-w-0 max-w-[calc(100%-14px)] overflow-hidden">
+          {activeStatuses.map((st) => {
+            const cfg = getStatusBadgeConfig(st)
+            return (
+              <span
+                key={st}
+                title={st}
+                className={`inline-flex items-center gap-1 font-semibold uppercase rounded border min-w-0 truncate ${
+                  size === 'sm' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'
+                } ${cfg.bg} ${cfg.text} ${cfg.border}`}
+              >
+                <span className="truncate">{cfg.label}</span>
+              </span>
+            )
+          })}
+        </div>
+        <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
       </button>
 
       {/* Clean Human Dropdown Popover via Portal */}
@@ -385,7 +389,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
 
                     {/* Status Badge Tag */}
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${cfg.bg} ${cfg.text}`}
                     >
                       {cfg.label}
                     </span>

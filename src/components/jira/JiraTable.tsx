@@ -109,7 +109,7 @@ export type TableColumnKey =
   | 'status'
   | 'action'
 
-const COLUMN_STORAGE_KEY = 'seedling_sheet_column_widths_v6'
+const COLUMN_STORAGE_KEY = 'seedling_sheet_column_widths_v7'
 
 const DEFAULT_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
   index: 48,
@@ -126,8 +126,8 @@ const DEFAULT_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
   inAppExperience: 180,
   cta: 130,
   comments: 220,
-  status: 130,
-  action: 76,
+  status: 180,
+  action: 88,
 }
 
 const MIN_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
@@ -145,8 +145,8 @@ const MIN_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
   inAppExperience: 100,
   cta: 80,
   comments: 120,
-  status: 90,
-  action: 65,
+  status: 100,
+  action: 76,
 }
 
 const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -526,7 +526,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const [columnWidths, setColumnWidths] = useState<Record<TableColumnKey, number>>(() => {
     try {
       // Clear older versions so all users get the fresh default layout
-      ['seedling_sheet_column_widths_v1', 'seedling_sheet_column_widths_v2', 'seedling_sheet_column_widths_v3', 'seedling_sheet_column_widths_v4', 'seedling_sheet_column_widths_v5'].forEach((k) => {
+      ['seedling_sheet_column_widths_v1', 'seedling_sheet_column_widths_v2', 'seedling_sheet_column_widths_v3', 'seedling_sheet_column_widths_v4', 'seedling_sheet_column_widths_v5', 'seedling_sheet_column_widths_v6'].forEach((k) => {
         try { localStorage.removeItem(k) } catch {}
       })
       const raw = localStorage.getItem(COLUMN_STORAGE_KEY)
@@ -1193,7 +1193,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     className="w-[360px] sm:w-[420px] max-w-[95vw] bg-white rounded-xl shadow-[0_16px_40px_rgba(9,30,66,0.22),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] pt-1.5 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 select-none flex flex-col max-h-[460px]"
                   >
                     <div className="px-3.5 py-2 flex items-center justify-between text-[11px] font-bold text-[#6B778C] border-b border-[#EBECF0] mb-1 bg-[#FAFBFC] rounded-t-xl">
-                      <span className="uppercase tracking-wider text-[10px]">Filter by Status</span>
+                      <span className="text-xs font-semibold text-[#172B4D]">Filter by Status</span>
                       {selectedStatuses.length > 0 && (
                         <button
                           type="button"
@@ -1508,7 +1508,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.engine}px`,
                   maxWidth: `${columnWidths.engine}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap bg-[#107C41] text-white"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap bg-[#107C41] text-white"
               >
                 <span className="truncate block" title="Engine">Engine</span>
                 {renderResizeHandle('engine', 'Engine')}
@@ -1520,7 +1520,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.event}px`,
                   maxWidth: `${columnWidths.event}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title={eventColumnHeader}>{eventColumnHeader}</span>
                 {renderResizeHandle('event', eventColumnHeader)}
@@ -1532,7 +1532,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.trigger}px`,
                   maxWidth: `${columnWidths.trigger}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Trigger">Trigger</span>
                 {renderResizeHandle('trigger', 'Trigger')}
@@ -1544,7 +1544,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.audience}px`,
                   maxWidth: `${columnWidths.audience}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Audience">Audience</span>
                 {renderResizeHandle('audience', 'Audience')}
@@ -1556,7 +1556,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.communicationObjective}px`,
                   maxWidth: `${columnWidths.communicationObjective}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Communication Objective">Communication Objective</span>
                 {renderResizeHandle('communicationObjective', 'Communication Objective')}
@@ -1568,7 +1568,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.desiredOutcome}px`,
                   maxWidth: `${columnWidths.desiredOutcome}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Desired Outcome">Desired Outcome</span>
                 {renderResizeHandle('desiredOutcome', 'Desired Outcome')}
@@ -1580,7 +1580,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.pushSubject}px`,
                   maxWidth: `${columnWidths.pushSubject}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Push Notification Subject Line">Push Notification Subject Line</span>
                 {renderResizeHandle('pushSubject', 'Push Notification Subject Line')}
@@ -1592,7 +1592,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.pushBody}px`,
                   maxWidth: `${columnWidths.pushBody}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Push Notification">Push Notification</span>
                 {renderResizeHandle('pushBody', 'Push Notification')}
@@ -1604,7 +1604,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.emailSubject}px`,
                   maxWidth: `${columnWidths.emailSubject}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Email Subject Line">Email Subject Line</span>
                 {renderResizeHandle('emailSubject', 'Email Subject Line')}
@@ -1616,7 +1616,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.emailBody}px`,
                   maxWidth: `${columnWidths.emailBody}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Email Message">Email Message</span>
                 {renderResizeHandle('emailBody', 'Email Message')}
@@ -1628,7 +1628,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.inAppExperience}px`,
                   maxWidth: `${columnWidths.inAppExperience}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="In-App Experience">In-App Experience</span>
                 {renderResizeHandle('inAppExperience', 'In-App Experience')}
@@ -1640,7 +1640,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.cta}px`,
                   maxWidth: `${columnWidths.cta}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Call to Action">Call to Action</span>
                 {renderResizeHandle('cta', 'Call to Action')}
@@ -1652,7 +1652,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.comments}px`,
                   maxWidth: `${columnWidths.comments}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap"
               >
                 <span className="truncate block" title="Comments">Comments</span>
                 {renderResizeHandle('comments', 'Comments')}
@@ -1664,7 +1664,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.status}px`,
                   maxWidth: `${columnWidths.status}px`,
                 }}
-                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap bg-[#107C41] text-white"
+                className="relative px-3 py-2.5 font-semibold text-xs tracking-normal border-r border-[#0D6535] whitespace-nowrap bg-[#107C41] text-white"
               >
                 <span className="truncate block" title="Status">Status</span>
                 {renderResizeHandle('status', 'Status')}
@@ -1676,7 +1676,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.action}px`,
                   maxWidth: `${columnWidths.action}px`,
                 }}
-                className="relative px-2 py-2.5 font-bold uppercase text-[11px] tracking-wider text-center whitespace-nowrap bg-[#107C41] text-white"
+                className="relative px-2 py-2.5 font-semibold text-xs tracking-normal text-center whitespace-nowrap bg-[#107C41] text-white"
               >
                 <span className="block" title="Action">Action</span>
                 {renderResizeHandle('action', 'Action')}
@@ -2070,15 +2070,17 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Status (Jira dropdown with down arrow) */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap overflow-hidden">
-                      <JiraStatusBadge
-                        status={row.status}
-                        onChange={(st) => onUpdateStatus(row.id, st)}
-                        onCreateDefect={() => setDefectScenario(row)}
-                        onOpenLog={() => setHistoryScenario(row)}
-                        availableStatuses={allStatuses}
-                        size="sm"
-                      />
+                    <td className="px-2.5 py-2 border-r border-[#E1E4E8] whitespace-nowrap overflow-hidden max-w-full">
+                      <div className="w-full max-w-full overflow-hidden flex items-center">
+                        <JiraStatusBadge
+                          status={row.status}
+                          onChange={(st) => onUpdateStatus(row.id, st)}
+                          onCreateDefect={() => setDefectScenario(row)}
+                          onOpenLog={() => setHistoryScenario(row)}
+                          availableStatuses={allStatuses}
+                          size="sm"
+                        />
+                      </div>
                     </td>
 
                     {/* Actions: View Details, History, Copy & Delete */}
@@ -2153,7 +2155,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with (i) Info Log button, View Details button and Close X button */}
-            <div className="shrink-0 px-3 py-2 bg-[#FAFBFC] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider flex items-center justify-between border-b border-slate-100 rounded-t-xl select-none">
+            <div className="shrink-0 px-3 py-2 bg-[#FAFBFC] text-xs font-semibold text-[#6B778C] flex items-center justify-between border-b border-slate-100 rounded-t-xl select-none">
               <span className="font-semibold text-slate-800 truncate pr-1">
                 {contextMenu.scenario.key} &bull; Quick Actions
               </span>
@@ -2461,41 +2463,41 @@ export const JiraTable: React.FC<JiraTableProps> = ({
         )
       })()}
 
-      {/* Floating Comment Tooltip Modal on Hover */}
+      {/* Floating Comment Tooltip on Hover */}
       {hoveredComment && hoveredComment.scenario.comments?.trim() && createPortal(
         (() => {
           const commentText = hoveredComment.scenario.comments.trim()
-          const isNearBottom = hoveredComment.rect.bottom + 220 > window.innerHeight
-          const isNearTop = hoveredComment.rect.top < 160
+          const isNearBottom = hoveredComment.rect.bottom + 120 > window.innerHeight
+          const isNearTop = hoveredComment.rect.top < 80
           const placeAbove = isNearBottom && !isNearTop
 
           const tooltipWidth = Math.min(
-            420,
-            Math.max(280, commentText.length > 100 ? 360 : 300)
+            380,
+            Math.max(180, commentText.length > 80 ? 320 : 220)
           )
 
           const left = Math.max(
-            16,
+            12,
             Math.min(
-              window.innerWidth - tooltipWidth - 16,
+              window.innerWidth - tooltipWidth - 12,
               hoveredComment.rect.left + hoveredComment.rect.width / 2 - tooltipWidth / 2
             )
           )
 
           const arrowOffset = Math.max(
-            16,
+            12,
             Math.min(
-              tooltipWidth - 24,
-              hoveredComment.rect.left + hoveredComment.rect.width / 2 - left - 5
+              tooltipWidth - 20,
+              hoveredComment.rect.left + hoveredComment.rect.width / 2 - left - 4
             )
           )
 
           return (
             <div
-              className="fixed z-[99999] pointer-events-none transition-all duration-150 animate-in fade-in zoom-in-95 ease-out select-none"
+              className="fixed z-[99999] pointer-events-none transition-all duration-100 animate-in fade-in zoom-in-95 ease-out select-none flex flex-col items-start"
               style={{
-                top: !placeAbove ? `${hoveredComment.rect.bottom + 8}px` : undefined,
-                bottom: placeAbove ? `${window.innerHeight - hoveredComment.rect.top + 8}px` : undefined,
+                top: !placeAbove ? `${hoveredComment.rect.bottom + 6}px` : undefined,
+                bottom: placeAbove ? `${window.innerHeight - hoveredComment.rect.top + 6}px` : undefined,
                 left: `${left}px`,
                 width: `${tooltipWidth}px`,
               }}
@@ -2503,48 +2505,20 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               {/* Arrow if placed below */}
               {!placeAbove && (
                 <div
-                  className="w-2.5 h-2.5 bg-white rotate-45 border-l border-t border-[#DFE1E6] -mb-1.5 z-10 shrink-0 shadow-xs"
+                  className="w-2 h-2 bg-[#172B4D] rotate-45 -mb-1 z-10 shrink-0"
                   style={{ marginLeft: `${arrowOffset}px` }}
                 />
               )}
 
-              {/* Tooltip Card */}
-              <div className="bg-white/98 backdrop-blur-md rounded-xl shadow-[0_12px_36px_rgba(9,30,66,0.22),0_0_1px_rgba(9,30,66,0.3)] border border-[#DFE1E6] p-3 text-[#172B4D] space-y-2">
-                {/* Header */}
-                <div className="flex items-center justify-between gap-2 border-b border-[#EBECF0] pb-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="w-5 h-5 rounded-md bg-[#DEEBFF] text-[#0052CC] flex items-center justify-center shrink-0">
-                      <MessageSquare className="w-3 h-3" />
-                    </span>
-                    <span className="text-[11px] font-bold text-[#172B4D] tracking-tight">Comment</span>
-                    <span className="font-mono text-[10px] bg-[#F4F5F7] text-[#42526E] px-1.5 py-0.5 rounded font-semibold border border-[#EBECF0]">
-                      {hoveredComment.scenario.key}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-[#6B778C] font-medium shrink-0">
-                    Row #{hoveredComment.rowNumber}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <div className="text-xs leading-relaxed text-[#172B4D] break-words whitespace-pre-wrap max-h-56 overflow-y-auto font-normal pr-1">
-                  {highlightMatches(commentText, searchQuery, matchedTerms, Boolean(searchQuery && searchQuery.trim()))}
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between border-t border-[#EBECF0] pt-1.5 text-[10px] text-[#6B778C]">
-                  <span className="flex items-center gap-1 text-[#0052CC] font-medium">
-                    <Pencil className="w-2.5 h-2.5" />
-                    <span>Click cell to edit</span>
-                  </span>
-                  <span>{commentText.length} chars</span>
-                </div>
+              {/* Simple Clean Tooltip - Text Only */}
+              <div className="bg-[#172B4D] text-white text-xs leading-relaxed rounded-md shadow-lg px-2.5 py-1.5 pointer-events-none select-none break-words whitespace-pre-wrap w-full font-normal">
+                {highlightMatches(commentText, searchQuery, matchedTerms, Boolean(searchQuery && searchQuery.trim()))}
               </div>
 
               {/* Arrow if placed above */}
               {placeAbove && (
                 <div
-                  className="w-2.5 h-2.5 bg-white rotate-45 border-r border-b border-[#DFE1E6] -mt-1.5 z-10 shrink-0 shadow-xs"
+                  className="w-2 h-2 bg-[#172B4D] rotate-45 -mt-1 z-10 shrink-0"
                   style={{ marginLeft: `${arrowOffset}px` }}
                 />
               )}
@@ -2583,7 +2557,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           allStatuses={allStatuses}
           isOpen={!!detailScenario}
           onClose={() => setDetailScenario(null)}
-          onUpdateStatus={(st) => {
+          onUpdateStatus={(st: ScenarioStatus) => {
             onUpdateStatus(detailScenario.scenario.id, st)
             setDetailScenario((prev) =>
               prev

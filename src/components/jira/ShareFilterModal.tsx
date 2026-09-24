@@ -81,7 +81,7 @@ export const ShareFilterModal: React.FC<ShareFilterModalProps> = ({
         <div className="p-5 space-y-4 text-xs">
           {/* Active Filter Chips */}
           <div>
-            <label className="block text-[11px] font-bold text-[#6B778C] uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-[#6B778C] mb-2">
               Active Filters Included ({matchingCount} matching records)
             </label>
             <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-[#F4F5F7] rounded border border-[#DFE1E6]">
@@ -125,7 +125,7 @@ export const ShareFilterModal: React.FC<ShareFilterModalProps> = ({
 
           {/* Shareable Link Input with One-Click Copy */}
           <div>
-            <label className="block text-[11px] font-bold text-[#6B778C] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[#6B778C] mb-1.5">
               Shareable URL
             </label>
             <div className="flex items-center gap-2">

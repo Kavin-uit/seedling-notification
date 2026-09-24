@@ -140,7 +140,7 @@ export const EngineBadge: React.FC<EngineBadgeProps> = ({
             className="w-72 rounded-xl bg-white shadow-2xl ring-1 ring-black/10 py-1 divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100 overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between bg-slate-50/70 border-b border-slate-100 rounded-t-xl">
+            <div className="px-3 py-1.5 text-xs font-semibold text-[#6B778C] flex items-center justify-between bg-slate-50/70 border-b border-slate-100 rounded-t-xl">
               <span>Transition Status</span>
               <div className="flex items-center gap-1">
                 {onOpenLog && (

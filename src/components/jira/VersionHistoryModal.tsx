@@ -41,7 +41,7 @@ const renderJiraLozenge = (status: string) => {
         return (
           <span
             key={st}
-            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}
+            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${cfg.bg} ${cfg.text}`}
           >
             {cfg.label}
           </span>
@@ -179,7 +179,7 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({
             <div className="border border-[#DFE1E6] rounded">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#DFE1E6] bg-[#FAFBFC] text-[#6B778C] font-semibold text-[11px] uppercase tracking-wider">
+                  <tr className="border-b border-[#DFE1E6] bg-[#FAFBFC] text-[#6B778C] font-semibold text-xs">
                     <th className="px-4 py-2.5 w-44">Date & Time</th>
                     <th className="px-4 py-2.5 w-28">Field</th>
                     <th className="px-4 py-2.5">Original Value</th>

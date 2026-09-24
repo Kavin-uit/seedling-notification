@@ -135,18 +135,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // Show a welcome toast if the page was opened with shared filter URL parameters
-  useEffect(() => {
-    if (initialFilters.hasFilterInUrl) {
-      const parts: string[] = []
-      if (initialFilters.status !== 'ALL') parts.push(`Status: ${initialFilters.status}`)
-      if (initialFilters.engine !== 'ALL') parts.push(`Engine: ${initialFilters.engine}`)
-      if (initialFilters.q) parts.push(`Search: "${initialFilters.q}"`)
-      if (parts.length > 0) {
-        showToast(`Viewing shared filter view (${parts.join(' • ')})`)
-      }
-    }
-  }, [initialFilters, showToast])
 
   // Reset all filters (engine, status, search) to show all records and clear storage
   const handleResetAllFilters = () => {

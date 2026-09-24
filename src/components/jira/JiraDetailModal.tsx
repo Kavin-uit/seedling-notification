@@ -7,8 +7,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Bell,
-  Mail,
   Smartphone,
   ExternalLink,
   MessageSquare,
@@ -28,9 +26,54 @@ interface JiraDetailModalProps {
   hasNext?: boolean
 }
 
+function parseEmailTemplate(scenario: NotificationScenario) {
+  let rawBody = scenario.emailBody?.trim() || ''
+  let buttonText: string | null = null
+
+  // Extract button ONLY if email content explicitly specifies "BOX: <Button Name>"
+  const boxMatch = rawBody.match(/(?:^|\s+)BOX\s*:\s*([^\n\r]+?)(?:\s*$|\.\s*$)/i)
+  if (boxMatch) {
+    buttonText = boxMatch[1].replace(/[."']+$/, '').trim()
+    rawBody = rawBody.replace(/(?:^|\s+)BOX\s*:\s*[^\n\r]+?(?:\s*$|\.\s*$)/i, '').trim()
+  }
+
+  const subject = scenario.emailSubject?.trim() || ''
+  let boldLead = ''
+  let remainingBody = rawBody
+
+  if (subject && rawBody) {
+    const cleanSubj = subject.replace(/[.!?]+$/, '').toLowerCase()
+    const bodyLower = rawBody.toLowerCase()
+    if (bodyLower.startsWith(cleanSubj)) {
+      let matchEnd = cleanSubj.length
+      if (rawBody[matchEnd] === '.' || rawBody[matchEnd] === '!' || rawBody[matchEnd] === '?') {
+        matchEnd += 1
+      }
+      boldLead = rawBody.slice(0, matchEnd).trim()
+      remainingBody = rawBody.slice(matchEnd).trim()
+    } else {
+      boldLead = subject.endsWith('.') || subject.endsWith('!') || subject.endsWith('?') ? subject : `${subject}.`
+      remainingBody = rawBody
+    }
+  } else if (subject && !rawBody) {
+    boldLead = subject
+    remainingBody = ''
+  } else if (rawBody) {
+    const firstSentenceMatch = rawBody.match(/^([^.!?]+[.!?])\s*(.*)$/s)
+    if (firstSentenceMatch) {
+      boldLead = firstSentenceMatch[1].trim()
+      remainingBody = firstSentenceMatch[2].trim()
+    } else {
+      boldLead = rawBody
+      remainingBody = ''
+    }
+  }
+
+  return { boldLead, remainingBody, buttonText }
+}
+
 export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
   scenario,
-  rowNumber,
   allStatuses,
   isOpen,
   onClose,
@@ -67,69 +110,43 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
     setTimeout(() => setCopiedField(null), 1500)
   }
 
-  const formatDate = (isoString?: string) => {
-    if (!isoString) return '—'
-    try {
-      const d = new Date(isoString)
-      if (isNaN(d.getTime())) return isoString
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      })
-    } catch {
-      return isoString
-    }
-  }
+  const emailTemplate = parseEmailTemplate(scenario)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-md animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-white/80 backdrop-blur-2xl rounded-2xl shadow-[0_24px_70px_-15px_rgba(15,23,42,0.18),0_0_0_1px_rgba(255,255,255,0.8)_inset] border border-white/70 w-full max-w-[1180px] max-h-[96vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] w-full max-w-[1000px] max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          fontFamily:
-            "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-        }}
       >
-        {/* Sleek Frosted Glass Header */}
-        <div className="px-5 py-3 border-b border-slate-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between gap-3 shrink-0">
-          {/* Breadcrumbs + Event Title inline */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-[#0052CC] border border-blue-500/20 uppercase tracking-wide shrink-0">
-              {scenario.engineCategory}
-            </span>
-            <span className="text-slate-300 text-xs">/</span>
-            <span className="font-semibold text-[#0052CC] text-xs font-mono shrink-0">
-              {scenario.key}
-            </span>
-            {rowNumber !== undefined && (
-              <>
-                <span className="text-slate-300 text-xs">/</span>
-                <span className="text-slate-500 text-xs font-mono font-medium shrink-0">
-                  Row #{rowNumber}
-                </span>
-              </>
-            )}
-            <span className="text-slate-300 text-xs hidden sm:inline">&bull;</span>
-            <h2 className="text-sm sm:text-base font-bold text-slate-800 truncate" title={scenario.governanceEvent}>
+        {/* Simple Human Header: Clean Event Title + Interactive Status */}
+        <div className="px-5 py-3.5 border-b border-[#DFE1E6] bg-white flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <h2 className="text-base sm:text-lg font-bold text-[#172B4D] truncate" title={scenario.governanceEvent}>
               {scenario.governanceEvent}
             </h2>
+            {onUpdateStatus && allStatuses && (
+              <div className="shrink-0">
+                <JiraStatusBadge
+                  status={scenario.status}
+                  onChange={onUpdateStatus}
+                  availableStatuses={allStatuses}
+                  size="sm"
+                />
+              </div>
+            )}
           </div>
 
           {/* Quick Actions & Navigation */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {onNavigatePrev && (
               <button
                 type="button"
                 onClick={onNavigatePrev}
                 disabled={!hasPrev}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-900/5 disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer disabled:cursor-not-allowed"
+                className="w-7 h-7 rounded flex items-center justify-center text-[#6B778C] hover:text-[#172B4D] hover:bg-[#EBECF0] disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer disabled:cursor-not-allowed"
                 title="Previous row (← Arrow)"
                 aria-label="Previous row"
               >
@@ -141,7 +158,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 type="button"
                 onClick={onNavigateNext}
                 disabled={!hasNext}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-900/5 disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer disabled:cursor-not-allowed"
+                className="w-7 h-7 rounded flex items-center justify-center text-[#6B778C] hover:text-[#172B4D] hover:bg-[#EBECF0] disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer disabled:cursor-not-allowed"
                 title="Next row (→ Arrow)"
                 aria-label="Next row"
               >
@@ -151,7 +168,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-900/5 transition cursor-pointer ml-1"
+              className="w-7 h-7 rounded flex items-center justify-center text-[#6B778C] hover:text-[#172B4D] hover:bg-[#EBECF0] transition cursor-pointer ml-1"
               title="Close (Esc)"
               aria-label="Close"
             >
@@ -160,373 +177,317 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Main Body (Left: Content / Right: Sidebar) */}
-        <div className="flex-1 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-200/40 overflow-y-auto">
-          {/* Main Content Area: Airy Glass Look */}
-          <div className="flex-1 p-3.5 sm:p-4 space-y-3 overflow-y-auto">
-            {/* ROW 1: Context & Strategy (Unified clean glass card without heavy individual box borders) */}
-            <div className="bg-white/55 backdrop-blur-md border border-white/80 rounded-xl p-3 shadow-2xs grid grid-cols-2 lg:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/40">
-              {/* Trigger */}
-              <div className="sm:pr-3 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Trigger
-                  </span>
-                  {scenario.trigger && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('trigger', scenario.trigger)}
-                      className="text-slate-400 hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title="Copy trigger"
-                    >
-                      {copiedField === 'trigger' ? (
-                        <Check className="w-2.5 h-2.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="w-2.5 h-2.5" />
-                      )}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12px] text-slate-800 font-medium leading-snug mt-1" title={scenario.trigger}>
-                  {scenario.trigger || <span className="text-slate-400 italic font-normal">None</span>}
-                </p>
-              </div>
-
-              {/* Audience */}
-              <div className="sm:px-3 pt-2 sm:pt-0 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Audience
-                  </span>
-                  {scenario.audience && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('audience', scenario.audience)}
-                      className="text-slate-400 hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title="Copy audience"
-                    >
-                      {copiedField === 'audience' ? (
-                        <Check className="w-2.5 h-2.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="w-2.5 h-2.5" />
-                      )}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12px] text-slate-800 font-medium leading-snug mt-1" title={scenario.audience}>
-                  {scenario.audience || <span className="text-slate-400 italic font-normal">None</span>}
-                </p>
-              </div>
-
-              {/* Communication Objective */}
-              <div className="sm:px-3 pt-2 sm:pt-0 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Objective
-                  </span>
-                  {scenario.communicationObjective && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('objective', scenario.communicationObjective)}
-                      className="text-slate-400 hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title="Copy objective"
-                    >
-                      {copiedField === 'objective' ? (
-                        <Check className="w-2.5 h-2.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="w-2.5 h-2.5" />
-                      )}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12px] text-slate-700 leading-snug mt-1" title={scenario.communicationObjective}>
-                  {scenario.communicationObjective || <span className="text-slate-400 italic">None</span>}
-                </p>
-              </div>
-
-              {/* Desired Outcome */}
-              <div className="sm:pl-3 pt-2 sm:pt-0 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Desired Outcome
-                  </span>
-                  {scenario.desiredOutcome && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('outcome', scenario.desiredOutcome)}
-                      className="text-slate-400 hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                      title="Copy outcome"
-                    >
-                      {copiedField === 'outcome' ? (
-                        <Check className="w-2.5 h-2.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="w-2.5 h-2.5" />
-                      )}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12px] text-slate-700 leading-snug mt-1" title={scenario.desiredOutcome}>
-                  {scenario.desiredOutcome || <span className="text-slate-400 italic">None</span>}
-                </p>
-              </div>
-            </div>
-
-            {/* ROW 2: Notification Channels (Translucent glass panels with zero box-in-box nesting) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              {/* Push Notification Glass Panel */}
-              <div className="bg-white/55 backdrop-blur-md border border-white/80 rounded-xl p-3.5 shadow-2xs flex flex-col transition hover:bg-white/65">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/40">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center text-[#0052CC]">
-                      <Bell className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">
-                      Push Notification
-                    </span>
-                  </div>
-                  {scenario.pushBody && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('pushBody', scenario.pushBody)}
-                      className="text-[11px] font-medium text-[#0052CC] hover:text-blue-700 flex items-center gap-1 cursor-pointer transition"
-                    >
-                      {copiedField === 'pushBody' ? (
-                        <>
-                          <Check className="w-2.5 h-2.5 text-emerald-600" />
-                          <span className="text-emerald-600 font-semibold">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-2.5 h-2.5" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-2 text-xs flex-1">
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
-                      Subject Line
-                    </span>
-                    <p className="font-semibold text-slate-800 text-[12px] mt-0.5">
-                      {scenario.pushSubject || <span className="text-slate-400 italic font-normal">None</span>}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
-                      Push Message Body
-                    </span>
-                    <p className="text-[12px] text-slate-700 leading-relaxed mt-1 whitespace-pre-wrap">
-                      {scenario.pushBody || <span className="text-slate-400 italic">None</span>}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Email Notification Glass Panel */}
-              <div className="bg-white/55 backdrop-blur-md border border-white/80 rounded-xl p-3.5 shadow-2xs flex flex-col transition hover:bg-white/65">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/40">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600">
-                      <Mail className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">
-                      Email Notification
-                    </span>
-                  </div>
-                  {scenario.emailBody && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('emailBody', scenario.emailBody)}
-                      className="text-[11px] font-medium text-[#0052CC] hover:text-blue-700 flex items-center gap-1 cursor-pointer transition"
-                    >
-                      {copiedField === 'emailBody' ? (
-                        <>
-                          <Check className="w-2.5 h-2.5 text-emerald-600" />
-                          <span className="text-emerald-600 font-semibold">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-2.5 h-2.5" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-2 text-xs flex-1">
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
-                      Subject Line
-                    </span>
-                    <p className="font-semibold text-slate-800 text-[12px] mt-0.5">
-                      {scenario.emailSubject || <span className="text-slate-400 italic font-normal">None</span>}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
-                      Email Message Body
-                    </span>
-                    <p className="text-[12px] text-slate-700 leading-relaxed mt-1 whitespace-pre-wrap">
-                      {scenario.emailBody || <span className="text-slate-400 italic">None</span>}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ROW 3: In-App, CTA & Comments (Simple airy glass panels) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* In-App Experience */}
-              <div className="bg-white/55 backdrop-blur-md border border-white/80 rounded-xl p-3 shadow-2xs flex flex-col transition hover:bg-white/65">
-                <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                  <Smartphone className="w-3.5 h-3.5 text-slate-400" />
-                  <span>In-App Experience</span>
-                </div>
-                <p className="text-[12px] text-slate-700 leading-relaxed flex-1 whitespace-pre-wrap">
-                  {scenario.inAppExperience || <span className="text-slate-400 italic">None</span>}
-                </p>
-              </div>
-
-              {/* Call to Action (CTA) */}
-              <div className="bg-white/55 backdrop-blur-md border border-white/80 rounded-xl p-3 shadow-2xs flex flex-col transition hover:bg-white/65">
-                <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Call to Action (CTA)</span>
-                </div>
-                <p className="text-[12px] text-slate-800 font-medium leading-relaxed flex-1 whitespace-pre-wrap">
-                  {scenario.cta || <span className="text-slate-400 italic font-normal">None</span>}
-                </p>
-              </div>
-
-              {/* QA Comments */}
-              <div className="bg-white/55 backdrop-blur-md border border-white/80 rounded-xl p-3 shadow-2xs flex flex-col transition hover:bg-white/65">
-                <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                  <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Comments & QA Remarks</span>
-                </div>
-                {scenario.comments && scenario.comments.trim() ? (
-                  <p className="text-[12px] text-slate-800 leading-relaxed whitespace-pre-wrap flex-1">
-                    {scenario.comments}
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-400 italic flex-1 flex items-center">
-                    No QA remarks or comments added.
-                  </p>
+        {/* Modal Main Body (Single clean layout without AI metadata sidebar) */}
+        <div className="flex-1 p-5 space-y-4 overflow-y-auto bg-[#F4F5F7]">
+          {/* ROW 1: Context & Strategy */}
+          <div className="bg-white border border-[#DFE1E6] rounded-xl p-4 shadow-2xs grid grid-cols-2 lg:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-[#DFE1E6]">
+            {/* Trigger */}
+            <div className="sm:pr-3 relative group">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#6B778C]">Trigger</span>
+                {scenario.trigger && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('trigger', scenario.trigger)}
+                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title="Copy trigger"
+                  >
+                    {copiedField === 'trigger' ? (
+                      <Check className="w-3 h-3 text-[#00875A]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
                 )}
               </div>
+              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.trigger}>
+                {scenario.trigger || <span className="text-[#6B778C] italic">None</span>}
+              </p>
             </div>
 
-            {/* Extra Notes (if present, frosted amber glass strip) */}
-            {scenario.notes && scenario.notes.trim() && (
-              <div className="bg-amber-500/10 backdrop-blur-sm border border-amber-500/20 rounded-xl p-2.5 flex items-start gap-2.5 text-xs">
-                <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">
-                    Notes
-                  </span>
-                  <p className="text-[12px] text-slate-800 leading-snug whitespace-pre-wrap mt-0.5">
-                    {scenario.notes}
-                  </p>
-                </div>
+            {/* Audience */}
+            <div className="sm:px-3 pt-2 sm:pt-0 relative group">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#6B778C]">Audience</span>
+                {scenario.audience && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('audience', scenario.audience)}
+                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title="Copy audience"
+                  >
+                    {copiedField === 'audience' ? (
+                      <Check className="w-3 h-3 text-[#00875A]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                )}
               </div>
-            )}
+              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.audience}>
+                {scenario.audience || <span className="text-[#6B778C] italic">None</span>}
+              </p>
+            </div>
+
+            {/* Communication Objective */}
+            <div className="sm:px-3 pt-2 sm:pt-0 relative group">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#6B778C]">Objective</span>
+                {scenario.communicationObjective && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('objective', scenario.communicationObjective)}
+                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title="Copy objective"
+                  >
+                    {copiedField === 'objective' ? (
+                      <Check className="w-3 h-3 text-[#00875A]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.communicationObjective}>
+                {scenario.communicationObjective || <span className="text-[#6B778C] italic">None</span>}
+              </p>
+            </div>
+
+            {/* Desired Outcome */}
+            <div className="sm:pl-3 pt-2 sm:pt-0 relative group">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#6B778C]">Desired Outcome</span>
+                {scenario.desiredOutcome && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('outcome', scenario.desiredOutcome)}
+                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                    title="Copy outcome"
+                  >
+                    {copiedField === 'outcome' ? (
+                      <Check className="w-3 h-3 text-[#00875A]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.desiredOutcome}>
+                {scenario.desiredOutcome || <span className="text-[#6B778C] italic">None</span>}
+              </p>
+            </div>
           </div>
 
-          {/* Right Sidebar: Frosted Glass Details Panel */}
-          <div className="w-full md:w-64 bg-slate-50/40 backdrop-blur-md p-4 space-y-4 shrink-0 text-xs border-t md:border-t-0 md:border-l border-slate-200/40">
-            <div>
-              <h3 className="font-bold text-[10px] uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-200/40">
-                Details
-              </h3>
+          {/* ROW 2: Notification Previews (Push Notification exact iOS iPhone Notification Banner + Email) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* iOS iPhone Push Notification Banner Preview */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-0.5">
+                <span className="text-xs font-semibold text-[#6B778C]">
+                  Push Notification Preview
+                </span>
+                {scenario.pushBody && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('pushBody', scenario.pushBody)}
+                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                  >
+                    {copiedField === 'pushBody' ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#00875A]" />
+                        <span className="text-[#00875A] font-semibold">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
 
-              <div className="mt-3 space-y-2.5">
-                {/* Status */}
-                <div>
-                  <span className="text-slate-400 text-[10px] font-semibold uppercase block mb-1">
-                    Status
+              {/* Exact Apple iOS iPhone Notification Banner Card */}
+              <div className="bg-[#F2F2F7]/95 border border-black/5 rounded-[22px] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.07),0_1px_2px_rgba(0,0,0,0.06)] transition-all">
+                {/* iOS Header */}
+                <div className="flex items-center justify-between pb-1.5">
+                  <div className="flex items-center gap-2">
+                    {/* Seedling App Icon */}
+                    <div className="w-5 h-5 rounded-[5px] bg-[#107C41] flex items-center justify-center text-white shadow-xs p-0.5 shrink-0 overflow-hidden">
+                      <img
+                        src="https://qa.seedlingsocial.org/static/media/seedling-icon.19cfcf4c.svg"
+                        onError={(e) => {
+                          e.currentTarget.src = '/seedling-icon.19cfcf4c.svg'
+                        }}
+                        alt="Seedling"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="text-[13px] font-semibold text-[#1C1C1E] tracking-tight">
+                      Seedling
+                    </span>
+                  </div>
+                  <span className="text-[12px] text-[#8E8E93] font-normal">
+                    now
                   </span>
-                  {onUpdateStatus && allStatuses ? (
-                    <JiraStatusBadge
-                      status={scenario.status}
-                      onChange={onUpdateStatus}
-                      availableStatuses={allStatuses}
-                      size="sm"
-                    />
+                </div>
+
+                {/* iOS Subject Line / Title */}
+                <div className="font-semibold text-[14px] text-[#1C1C1E] leading-snug tracking-tight mt-1">
+                  {scenario.pushSubject || <span className="text-[#8E8E93] italic font-normal">No subject line</span>}
+                </div>
+
+                {/* iOS Message Body */}
+                <div className="text-[13px] text-[#3A3A3C] leading-snug mt-0.5 whitespace-pre-wrap">
+                  {scenario.pushBody || <span className="text-[#8E8E93] italic">No message body</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* Email Notification Preview (Official Seedling Social Giving Email Template) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-0.5">
+                <span className="text-xs font-semibold text-[#6B778C]">
+                  Email Notification Preview
+                </span>
+                {(scenario.emailBody || scenario.emailSubject) && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('emailBody', scenario.emailBody || scenario.emailSubject || '')}
+                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                  >
+                    {copiedField === 'emailBody' ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#00875A]" />
+                        <span className="text-[#00875A] font-semibold">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Exact Seedling Social Giving Email Template Card */}
+              <div className="bg-white border border-[#DFE1E6] rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all">
+                {/* Solid Green Header Banner with Given Logo Without Modifications */}
+                <div className="bg-[#1E874B] px-5 py-3.5 sm:py-4 flex items-center justify-center gap-2.5 select-none shadow-xs">
+                  <img
+                    src="https://qa.seedlingsocial.org/static/media/seedling-icon.19cfcf4c.svg"
+                    onError={(e) => {
+                      e.currentTarget.src = '/seedling-icon.19cfcf4c.svg'
+                    }}
+                    alt="Seedling"
+                    className="w-6 h-6 object-contain shrink-0"
+                  />
+                  <span className="font-bold text-white text-[16px] sm:text-[17px] tracking-tight">
+                    Seedling Social Giving
+                  </span>
+                </div>
+
+                {/* Email Body Content */}
+                <div className="px-6 py-6 sm:px-8 sm:py-7 bg-white">
+                  {emailTemplate.boldLead || emailTemplate.remainingBody ? (
+                    <p className="text-[13.5px] sm:text-[14.5px] text-[#1C1C1E] leading-relaxed">
+                      {emailTemplate.boldLead && (
+                        <strong className="font-bold text-[#1C1C1E]">
+                          {emailTemplate.boldLead}{' '}
+                        </strong>
+                      )}
+                      <span>{emailTemplate.remainingBody}</span>
+                    </p>
                   ) : (
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200/60 text-slate-700 uppercase">
-                      {scenario.status}
-                    </span>
+                    <p className="text-xs text-[#8E8E93] italic">
+                      No email message configured
+                    </p>
                   )}
-                </div>
 
-                {/* Priority */}
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px] font-semibold uppercase">Priority:</span>
-                  <span className="font-semibold text-slate-700">{scenario.priority || 'Medium'}</span>
-                </div>
-
-                {/* Engine Category */}
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px] font-semibold uppercase">Engine:</span>
-                  <span className="font-medium text-slate-700">{scenario.engineCategory}</span>
-                </div>
-
-                {/* Environment */}
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px] font-semibold uppercase">Environment:</span>
-                  <span className="font-mono font-bold text-slate-800">{scenario.environment || 'STAGING'}</span>
-                </div>
-
-                {/* Scenario Key */}
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px] font-semibold uppercase">Key:</span>
-                  <span className="font-mono font-bold text-[#0052CC]">{scenario.key}</span>
-                </div>
-
-                {/* Row Number */}
-                {rowNumber !== undefined && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-[10px] font-semibold uppercase">Row:</span>
-                    <span className="font-mono font-bold text-slate-800">#{rowNumber}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Dates */}
-            <div>
-              <h3 className="font-bold text-[10px] uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-200/40">
-                Dates
-              </h3>
-              <div className="mt-2.5 space-y-1.5 text-[11px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Created:</span>
-                  <span className="text-slate-700 text-right">{formatDate(scenario.createdAt)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Updated:</span>
-                  <span className="text-slate-700 text-right">{formatDate(scenario.updatedAt)}</span>
+                  {/* Centered Green CTA Button */}
+                  {emailTemplate.buttonText && (
+                    <div className="mt-6 flex justify-center">
+                      <button
+                        type="button"
+                        className="bg-[#2D8040] hover:bg-[#236B34] text-white font-semibold text-sm px-6 py-2.5 rounded-md shadow-xs transition cursor-pointer"
+                      >
+                        {emailTemplate.buttonText}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
+
+          {/* ROW 3: In-App, CTA & Comments */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* In-App Experience */}
+            <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
+              <div className="flex items-center gap-1.5 mb-1.5 text-xs font-semibold text-[#6B778C]">
+                <Smartphone className="w-3.5 h-3.5 text-[#6B778C]" />
+                <span>In-App Experience</span>
+              </div>
+              <p className="text-xs text-[#172B4D] leading-relaxed flex-1 whitespace-pre-wrap">
+                {scenario.inAppExperience || <span className="text-[#6B778C] italic">None</span>}
+              </p>
+            </div>
+
+            {/* Call to Action (CTA) */}
+            <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
+              <div className="flex items-center gap-1.5 mb-1.5 text-xs font-semibold text-[#6B778C]">
+                <ExternalLink className="w-3.5 h-3.5 text-[#6B778C]" />
+                <span>Call to Action (CTA)</span>
+              </div>
+              <p className="text-xs text-[#172B4D] leading-relaxed flex-1 whitespace-pre-wrap">
+                {scenario.cta || <span className="text-[#6B778C] italic">None</span>}
+              </p>
+            </div>
+
+            {/* QA Comments */}
+            <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
+              <div className="flex items-center gap-1.5 mb-1.5 text-xs font-semibold text-[#6B778C]">
+                <MessageSquare className="w-3.5 h-3.5 text-[#6B778C]" />
+                <span>Comments & Notes</span>
+              </div>
+              {scenario.comments && scenario.comments.trim() ? (
+                <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap flex-1">
+                  {scenario.comments}
+                </p>
+              ) : (
+                <p className="text-xs text-[#6B778C] italic flex-1 flex items-center">
+                  No comments added.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Extra Notes (if present) */}
+          {scenario.notes && scenario.notes.trim() && (
+            <div className="bg-[#FFF0B3]/50 border border-[#FFAB00]/50 rounded-xl p-3 flex items-start gap-2.5 text-xs">
+              <FileText className="w-3.5 h-3.5 text-[#FF8B00] shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-semibold text-[#172B4D] block">Notes</span>
+                <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
+                  {scenario.notes}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Frosted Glass Footer */}
-        <div className="px-5 py-2.5 border-t border-slate-200/50 bg-white/40 backdrop-blur-md flex items-center justify-between shrink-0 text-xs">
-          <div className="text-[11px] text-slate-400">
-            Press <kbd className="px-1.5 py-0.5 bg-slate-200/50 rounded text-slate-700 font-mono text-[10px]">Esc</kbd> to close,{' '}
-            <kbd className="px-1.5 py-0.5 bg-slate-200/50 rounded text-slate-700 font-mono text-[10px]">←</kbd>{' '}
-            <kbd className="px-1.5 py-0.5 bg-slate-200/50 rounded text-slate-700 font-mono text-[10px]">→</kbd> to navigate
+        {/* Simple Footer */}
+        <div className="px-5 py-3 border-t border-[#DFE1E6] bg-white flex items-center justify-between shrink-0 text-xs">
+          <div className="text-xs text-[#6B778C]">
+            Press <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-medium border border-[#DFE1E6]">Esc</kbd> to close,{' '}
+            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-medium border border-[#DFE1E6]">←</kbd>{' '}
+            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-medium border border-[#DFE1E6]">→</kbd> to navigate
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-slate-200/60 hover:bg-slate-300/70 rounded-lg transition cursor-pointer active:scale-95"
+            className="px-4 py-1.5 text-xs font-semibold text-[#42526E] bg-[#EBECF0] hover:bg-[#DFE1E6] hover:text-[#172B4D] rounded transition cursor-pointer"
           >
             Close
           </button>
