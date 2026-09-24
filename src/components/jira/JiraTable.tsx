@@ -89,6 +89,64 @@ type EditableField =
   | 'cta'
   | 'comments'
 
+export type TableColumnKey =
+  | 'index'
+  | 'engine'
+  | 'event'
+  | 'trigger'
+  | 'audience'
+  | 'communicationObjective'
+  | 'desiredOutcome'
+  | 'pushSubject'
+  | 'pushBody'
+  | 'emailSubject'
+  | 'emailBody'
+  | 'inAppExperience'
+  | 'cta'
+  | 'comments'
+  | 'status'
+  | 'action'
+
+const COLUMN_STORAGE_KEY = 'seedling_sheet_column_widths_v2'
+
+const DEFAULT_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
+  index: 48,
+  engine: 140,
+  event: 220,
+  trigger: 150,
+  audience: 130,
+  communicationObjective: 180,
+  desiredOutcome: 150,
+  pushSubject: 200,
+  pushBody: 240,
+  emailSubject: 200,
+  emailBody: 250,
+  inAppExperience: 180,
+  cta: 130,
+  comments: 220,
+  status: 130,
+  action: 76,
+}
+
+const MIN_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
+  index: 36,
+  engine: 85,
+  event: 120,
+  trigger: 90,
+  audience: 85,
+  communicationObjective: 100,
+  desiredOutcome: 90,
+  pushSubject: 110,
+  pushBody: 120,
+  emailSubject: 110,
+  emailBody: 120,
+  inAppExperience: 100,
+  cta: 80,
+  comments: 120,
+  status: 90,
+  action: 65,
+}
+
 const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const STOP_WORDS_SET = new Set([
@@ -435,7 +493,144 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const [copiedToast, setCopiedToast] = useState<string | null>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
-  // Right-click context menu state
+  // Adjustable column widths (Excel spreadsheet style)
+  const [columnWidths, setColumnWidths] = useState<Record<TableColumnKey, number>>(() => {
+    try {
+      const raw = localStorage.getItem(COLUMN_STORAGE_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        return { ...DEFAULT_COLUMN_WIDTHS, ...parsed }
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved column widths', e)
+    }
+    return DEFAULT_COLUMN_WIDTHS
+  })
+
+  const [activeResizingCol, setActiveResizingCol] = useState<TableColumnKey | null>(null)
+  const resizingStateRef = useRef<{
+    colKey: TableColumnKey
+    startX: number
+    startWidth: number
+  } | null>(null)
+
+  const isAnyColumnCustomized = useMemo(() => {
+    return (Object.keys(DEFAULT_COLUMN_WIDTHS) as TableColumnKey[]).some(
+      (k) => columnWidths[k] !== DEFAULT_COLUMN_WIDTHS[k]
+    )
+  }, [columnWidths])
+
+  const handleResetAllColumnWidths = () => {
+    setColumnWidths(DEFAULT_COLUMN_WIDTHS)
+    try {
+      localStorage.removeItem(COLUMN_STORAGE_KEY)
+    } catch {}
+    setCopiedToast('Reset all columns to default width')
+    setTimeout(() => setCopiedToast(null), 2000)
+  }
+
+  const handleResizeStart = (colKey: TableColumnKey, e: React.PointerEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    resizingStateRef.current = {
+      colKey,
+      startX: e.clientX,
+      startWidth: columnWidths[colKey] ?? DEFAULT_COLUMN_WIDTHS[colKey],
+    }
+    setActiveResizingCol(colKey)
+
+    const onPointerMove = (ev: PointerEvent) => {
+      if (!resizingStateRef.current) return
+      const { colKey: key, startX, startWidth } = resizingStateRef.current
+      const delta = ev.clientX - startX
+      const minW = MIN_COLUMN_WIDTHS[key] || 40
+      const newWidth = Math.min(1200, Math.max(minW, Math.round(startWidth + delta)))
+      setColumnWidths((prev) => ({
+        ...prev,
+        [key]: newWidth,
+      }))
+    }
+
+    const onPointerUp = () => {
+      if (resizingStateRef.current) {
+        setColumnWidths((latest) => {
+          try {
+            localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(latest))
+          } catch (err) {
+            console.error('Failed to save column widths to localStorage', err)
+          }
+          return latest
+        })
+      }
+      resizingStateRef.current = null
+      setActiveResizingCol(null)
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+  }
+
+  const handleResizeDoubleClick = (colKey: TableColumnKey, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const defaultW = DEFAULT_COLUMN_WIDTHS[colKey]
+    setColumnWidths((prev) => {
+      const next = { ...prev, [colKey]: defaultW }
+      try {
+        localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(next))
+      } catch {}
+      return next
+    })
+    setCopiedToast(`Reset ${colKey} column to default width (${defaultW}px)`)
+    setTimeout(() => setCopiedToast(null), 1800)
+  }
+
+  // Manage cursor & text selection styling on document.body during resize
+  useEffect(() => {
+    if (activeResizingCol) {
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+      return () => {
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+    }
+  }, [activeResizingCol])
+
+  const totalTableWidth = useMemo(() => {
+    return (Object.keys(DEFAULT_COLUMN_WIDTHS) as TableColumnKey[]).reduce(
+      (sum, key) => sum + (columnWidths[key] ?? DEFAULT_COLUMN_WIDTHS[key]),
+      0
+    )
+  }, [columnWidths])
+
+  const renderResizeHandle = (colKey: TableColumnKey, colTitle: string) => {
+    const isResizing = activeResizingCol === colKey
+    return (
+      <div
+        onPointerDown={(e) => handleResizeStart(colKey, e)}
+        onDoubleClick={(e) => handleResizeDoubleClick(colKey, e)}
+        className="absolute top-0 bottom-0 -right-1.5 w-3 z-30 cursor-col-resize select-none flex items-center justify-center group/resizer"
+        title={`Drag to adjust ${colTitle} width • Double-click to reset (${DEFAULT_COLUMN_WIDTHS[colKey]}px)`}
+      >
+        <div
+          className={`w-[2px] h-full transition-colors ${
+            isResizing
+              ? 'bg-amber-300 w-[3px]'
+              : 'bg-transparent group-hover/resizer:bg-white/90'
+          }`}
+        />
+        {isResizing && (
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-[#172B4D] text-[#57D9A3] text-[10px] font-mono font-bold rounded shadow-lg whitespace-nowrap pointer-events-none z-50 border border-emerald-400">
+            {columnWidths[colKey]}px
+          </div>
+        )}
+      </div>
+    )
+  }
   const [contextMenu, setContextMenu] = useState<{
     x: number
     y: number
@@ -1106,6 +1301,18 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           <span className="text-[11px] text-[#6B778C]">
             Showing <strong>{filteredScenarios.length}</strong> rows
           </span>
+
+          {isAnyColumnCustomized && (
+            <button
+              type="button"
+              onClick={handleResetAllColumnWidths}
+              title="Reset all table column widths back to standard Excel layout"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold text-slate-600 hover:text-[#0052CC] bg-white hover:bg-[#DEEBFF] border border-slate-300 hover:border-[#B3D4FF] shadow-2xs transition cursor-pointer select-none"
+            >
+              <RotateCcw className="w-2.5 h-2.5" />
+              <span>Reset column widths</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1115,7 +1322,32 @@ export const JiraTable: React.FC<JiraTableProps> = ({
         ref={tableContainerRef}
         onScroll={() => setHoveredInfo(null)}
       >
-        <table className="w-full border-collapse text-left text-xs font-sans">
+        <table
+          className="border-collapse text-left text-xs font-sans w-max min-w-full"
+          style={{
+            tableLayout: 'fixed',
+            width: `${totalTableWidth}px`,
+          }}
+        >
+          <colgroup>
+            <col style={{ width: `${columnWidths.index}px` }} />
+            <col style={{ width: `${columnWidths.engine}px` }} />
+            <col style={{ width: `${columnWidths.event}px` }} />
+            <col style={{ width: `${columnWidths.trigger}px` }} />
+            <col style={{ width: `${columnWidths.audience}px` }} />
+            <col style={{ width: `${columnWidths.communicationObjective}px` }} />
+            <col style={{ width: `${columnWidths.desiredOutcome}px` }} />
+            <col style={{ width: `${columnWidths.pushSubject}px` }} />
+            <col style={{ width: `${columnWidths.pushBody}px` }} />
+            <col style={{ width: `${columnWidths.emailSubject}px` }} />
+            <col style={{ width: `${columnWidths.emailBody}px` }} />
+            <col style={{ width: `${columnWidths.inAppExperience}px` }} />
+            <col style={{ width: `${columnWidths.cta}px` }} />
+            <col style={{ width: `${columnWidths.comments}px` }} />
+            <col style={{ width: `${columnWidths.status}px` }} />
+            <col style={{ width: `${columnWidths.action}px` }} />
+          </colgroup>
+
           {/* Header styled like Microsoft Excel / Google Sheets green header */}
           <thead className="bg-[#107C41] text-white sticky top-0 z-20 shadow-xs select-none border-b border-[#0D6535]">
             <tr className="border-b border-[#0D6535]">
@@ -1127,58 +1359,197 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     setSelectedRowIds(new Set(filteredScenarios.map((s) => s.id)))
                   }
                 }}
-                className="w-12 px-2 py-2.5 font-bold text-center border-r border-[#0D6535] bg-[#0E6C38] text-white cursor-pointer hover:bg-[#0A542B] transition select-none sticky left-0 z-30 shadow-[1px_0_0_0_#0D6535]"
+                style={{
+                  width: `${columnWidths.index}px`,
+                  minWidth: `${columnWidths.index}px`,
+                  maxWidth: `${columnWidths.index}px`,
+                }}
+                className="relative px-2 py-2.5 font-bold text-center border-r border-[#0D6535] bg-[#0E6C38] text-white cursor-pointer hover:bg-[#0A542B] transition select-none sticky left-0 z-30 shadow-[1px_0_0_0_#0D6535]"
                 title={selectedRowIds.size > 0 ? 'Click to deselect all rows' : 'Click to select all rows'}
               >
-                #
+                <span>#</span>
+                {renderResizeHandle('index', 'Row Number')}
               </th>
 
               {/* Engine Column with Quick Status Dropdown */}
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[130px] lg:min-w-[140px] bg-[#107C41] text-white">
-                Engine
+              <th
+                style={{
+                  width: `${columnWidths.engine}px`,
+                  minWidth: `${columnWidths.engine}px`,
+                  maxWidth: `${columnWidths.engine}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap bg-[#107C41] text-white"
+              >
+                <span className="truncate block" title="Engine">Engine</span>
+                {renderResizeHandle('engine', 'Engine')}
               </th>
 
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[190px] xl:min-w-[220px]">
-                {eventColumnHeader}
+              <th
+                style={{
+                  width: `${columnWidths.event}px`,
+                  minWidth: `${columnWidths.event}px`,
+                  maxWidth: `${columnWidths.event}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title={eventColumnHeader}>{eventColumnHeader}</span>
+                {renderResizeHandle('event', eventColumnHeader)}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[130px] xl:min-w-[150px]">
-                Trigger
+
+              <th
+                style={{
+                  width: `${columnWidths.trigger}px`,
+                  minWidth: `${columnWidths.trigger}px`,
+                  maxWidth: `${columnWidths.trigger}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Trigger">Trigger</span>
+                {renderResizeHandle('trigger', 'Trigger')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[120px] xl:min-w-[140px]">
-                Audience
+
+              <th
+                style={{
+                  width: `${columnWidths.audience}px`,
+                  minWidth: `${columnWidths.audience}px`,
+                  maxWidth: `${columnWidths.audience}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Audience">Audience</span>
+                {renderResizeHandle('audience', 'Audience')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[160px] xl:min-w-[180px]">
-                Communication Objective
+
+              <th
+                style={{
+                  width: `${columnWidths.communicationObjective}px`,
+                  minWidth: `${columnWidths.communicationObjective}px`,
+                  maxWidth: `${columnWidths.communicationObjective}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Communication Objective">Communication Objective</span>
+                {renderResizeHandle('communicationObjective', 'Communication Objective')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[130px] xl:min-w-[150px]">
-                Desired Outcome
+
+              <th
+                style={{
+                  width: `${columnWidths.desiredOutcome}px`,
+                  minWidth: `${columnWidths.desiredOutcome}px`,
+                  maxWidth: `${columnWidths.desiredOutcome}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Desired Outcome">Desired Outcome</span>
+                {renderResizeHandle('desiredOutcome', 'Desired Outcome')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[180px] xl:min-w-[200px]">
-                Push Notification Subject Line
+
+              <th
+                style={{
+                  width: `${columnWidths.pushSubject}px`,
+                  minWidth: `${columnWidths.pushSubject}px`,
+                  maxWidth: `${columnWidths.pushSubject}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Push Notification Subject Line">Push Notification Subject Line</span>
+                {renderResizeHandle('pushSubject', 'Push Notification Subject Line')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[210px] xl:min-w-[240px]">
-                Push Notification
+
+              <th
+                style={{
+                  width: `${columnWidths.pushBody}px`,
+                  minWidth: `${columnWidths.pushBody}px`,
+                  maxWidth: `${columnWidths.pushBody}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Push Notification">Push Notification</span>
+                {renderResizeHandle('pushBody', 'Push Notification')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[180px] xl:min-w-[200px]">
-                Email Subject Line
+
+              <th
+                style={{
+                  width: `${columnWidths.emailSubject}px`,
+                  minWidth: `${columnWidths.emailSubject}px`,
+                  maxWidth: `${columnWidths.emailSubject}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Email Subject Line">Email Subject Line</span>
+                {renderResizeHandle('emailSubject', 'Email Subject Line')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[220px] xl:min-w-[250px]">
-                Email Message
+
+              <th
+                style={{
+                  width: `${columnWidths.emailBody}px`,
+                  minWidth: `${columnWidths.emailBody}px`,
+                  maxWidth: `${columnWidths.emailBody}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Email Message">Email Message</span>
+                {renderResizeHandle('emailBody', 'Email Message')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[150px] xl:min-w-[180px]">
-                In-App Experience
+
+              <th
+                style={{
+                  width: `${columnWidths.inAppExperience}px`,
+                  minWidth: `${columnWidths.inAppExperience}px`,
+                  maxWidth: `${columnWidths.inAppExperience}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="In-App Experience">In-App Experience</span>
+                {renderResizeHandle('inAppExperience', 'In-App Experience')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[110px] xl:min-w-[130px]">
-                Call to Action
+
+              <th
+                style={{
+                  width: `${columnWidths.cta}px`,
+                  minWidth: `${columnWidths.cta}px`,
+                  maxWidth: `${columnWidths.cta}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Call to Action">Call to Action</span>
+                {renderResizeHandle('cta', 'Call to Action')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[170px] xl:min-w-[200px]">
-                Comments
+
+              <th
+                style={{
+                  width: `${columnWidths.comments}px`,
+                  minWidth: `${columnWidths.comments}px`,
+                  maxWidth: `${columnWidths.comments}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap"
+              >
+                <span className="truncate block" title="Comments">Comments</span>
+                {renderResizeHandle('comments', 'Comments')}
               </th>
-              <th className="px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap min-w-[120px] xl:min-w-[130px] bg-[#107C41] text-white">
-                Status
+
+              <th
+                style={{
+                  width: `${columnWidths.status}px`,
+                  minWidth: `${columnWidths.status}px`,
+                  maxWidth: `${columnWidths.status}px`,
+                }}
+                className="relative px-3 py-2.5 font-bold uppercase text-[11px] tracking-wider border-r border-[#0D6535] whitespace-nowrap bg-[#107C41] text-white"
+              >
+                <span className="truncate block" title="Status">Status</span>
+                {renderResizeHandle('status', 'Status')}
               </th>
-              <th className="px-2 py-2.5 font-bold uppercase text-[11px] tracking-wider text-center whitespace-nowrap bg-[#107C41] text-white min-w-[70px] xl:min-w-[76px]">
-                Action
+
+              <th
+                style={{
+                  width: `${columnWidths.action}px`,
+                  minWidth: `${columnWidths.action}px`,
+                  maxWidth: `${columnWidths.action}px`,
+                }}
+                className="relative px-2 py-2.5 font-bold uppercase text-[11px] tracking-wider text-center whitespace-nowrap bg-[#107C41] text-white"
+              >
+                <span className="truncate block" title="Action">Action</span>
+                {renderResizeHandle('action', 'Action')}
               </th>
             </tr>
           </thead>
@@ -1293,6 +1664,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     <td
                       onClick={(e) => handleRowNumberClick(e, row.id)}
                       title={`Row #${rowNumber} • Click to ${isSelected ? 'unselect row' : 'highlight full row (DBeaver style)'}`}
+                      style={{
+                        width: `${columnWidths.index}px`,
+                        minWidth: `${columnWidths.index}px`,
+                        maxWidth: `${columnWidths.index}px`,
+                      }}
                       className={`px-2 py-2 font-mono text-[11px] text-center font-bold border-r border-[#E1E4E8] select-none transition-colors cursor-pointer sticky left-0 z-10 shadow-[1px_0_0_0_#E1E4E8] ${
                         isSelected
                           ? 'border-l-[4px] border-l-[#0052CC] bg-[#0052CC] text-white shadow-xs'
@@ -1311,7 +1687,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Engine Column with Quick Status Dropdown */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap overflow-hidden">
                       <EngineBadge
                         category={row.engineCategory || 'Governance'}
                         currentStatus={row.status}
@@ -1322,9 +1698,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Event Name with (i) Info Brief Button */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] font-medium group/event">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] font-medium group/event overflow-hidden">
                       <div className="flex items-center justify-between gap-1.5">
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           {renderCell('governanceEvent', row.governanceEvent)}
                         </div>
                         <button
@@ -1354,57 +1730,57 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Trigger */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('trigger', row.trigger)}
                     </td>
 
                     {/* Audience */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('audience', row.audience)}
                     </td>
 
                     {/* Communication Objective */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('communicationObjective', row.communicationObjective)}
                     </td>
 
                     {/* Desired Outcome */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('desiredOutcome', row.desiredOutcome)}
                     </td>
 
                     {/* Push Notification Subject Line */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('pushSubject', row.pushSubject)}
                     </td>
 
                     {/* Push Notification */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('pushBody', row.pushBody)}
                     </td>
 
                     {/* Email Subject Line */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('emailSubject', row.emailSubject)}
                     </td>
 
                     {/* Email Message */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('emailBody', row.emailBody)}
                     </td>
 
                     {/* In-App Experience */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('inAppExperience', row.inAppExperience)}
                     </td>
 
                     {/* Call to Action */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8]">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('cta', row.cta)}
                     </td>
 
                     {/* Manual Comments */}
-                    <td className="px-2 py-1.5 border-r border-[#E1E4E8] min-w-[200px] max-w-[320px]">
+                    <td className="px-2 py-1.5 border-r border-[#E1E4E8] overflow-hidden">
                       {editingCommentId === row.id ? (
                         <div
                           className="flex items-center gap-1 w-full"
@@ -1518,7 +1894,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Status (Jira dropdown with down arrow) */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap overflow-hidden">
                       <JiraStatusBadge
                         status={row.status}
                         onChange={(st) => onUpdateStatus(row.id, st)}
@@ -1530,7 +1906,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Actions: History, Copy & Delete */}
-                    <td className="px-2 py-2 text-center whitespace-nowrap">
+                    <td className="px-2 py-2 text-center whitespace-nowrap overflow-hidden">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
