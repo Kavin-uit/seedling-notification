@@ -56,7 +56,6 @@ function parseEmailTemplate(scenario: NotificationScenario) {
 
 export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
   scenario,
-  rowNumber,
   allStatuses,
   isOpen,
   onClose,
@@ -104,38 +103,21 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
         className="bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] w-full max-w-[1020px] max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Tier 1 Header: System Metadata Breadcrumb & Navigation */}
-        <div className="px-5 py-2.5 border-b border-[#EBECF0] bg-[#FAFBFC] flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-[#EBECF0] text-[#344563] uppercase tracking-wider shrink-0">
-              {scenario.engineCategory}
-            </span>
-            <span className="font-mono font-bold text-[#0052CC] text-xs bg-[#DEEBFF] px-2 py-0.5 rounded shrink-0">
-              {scenario.key}
-            </span>
-            {rowNumber !== undefined && (
-              <span className="text-[#6B778C] font-mono text-xs shrink-0">
-                Row #{rowNumber}
-              </span>
-            )}
-            <span className="text-[#DFE1E6] hidden sm:inline">•</span>
-            {scenario.environment && (
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium text-[#42526E] bg-white border border-[#DFE1E6] shrink-0">
-                {scenario.environment}
-              </span>
-            )}
-            {scenario.priority && (
-              <span
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold border shrink-0 ${
-                  scenario.priority === 'Highest' || scenario.priority === 'High'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                    : scenario.priority === 'Medium'
-                    ? 'bg-amber-50 text-amber-700 border-amber-200'
-                    : 'bg-slate-50 text-slate-600 border-slate-200'
-                }`}
-              >
-                {scenario.priority} Priority
-              </span>
+        {/* Clean Header: Event Title + Interactive Status & Navigation */}
+        <div className="px-5 py-3.5 border-b border-[#EBECF0] bg-white flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <h1 className="text-base sm:text-lg font-bold text-[#172B4D] tracking-tight truncate" title={scenario.governanceEvent}>
+              {scenario.governanceEvent}
+            </h1>
+            {onUpdateStatus && allStatuses && (
+              <div className="shrink-0 flex items-center gap-2">
+                <JiraStatusBadge
+                  status={scenario.status}
+                  onChange={onUpdateStatus}
+                  availableStatuses={allStatuses}
+                  size="sm"
+                />
+              </div>
             )}
           </div>
 
@@ -175,28 +157,6 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
               <X className="w-4 h-4" />
             </button>
           </div>
-        </div>
-
-        {/* Tier 2 Header: Prominent Event Title + Interactive Status Dropdown */}
-        <div className="px-5 py-3 bg-white border-b border-[#EBECF0] flex items-center justify-between gap-4 shrink-0">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-base sm:text-lg font-bold text-[#172B4D] tracking-tight truncate" title={scenario.governanceEvent}>
-              {scenario.governanceEvent}
-            </h1>
-          </div>
-          {onUpdateStatus && allStatuses && (
-            <div className="shrink-0 flex items-center gap-2">
-              <span className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider hidden sm:inline">
-                Status:
-              </span>
-              <JiraStatusBadge
-                status={scenario.status}
-                onChange={onUpdateStatus}
-                availableStatuses={allStatuses}
-                size="md"
-              />
-            </div>
-          )}
         </div>
 
         {/* Modal Main Body */}
@@ -654,25 +614,6 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Modal Footer */}
-        <div className="px-5 py-3 border-t border-[#DFE1E6] bg-white flex items-center justify-between shrink-0 text-xs">
-          <div className="text-xs text-[#6B778C] flex items-center gap-1.5">
-            <span>Press</span>
-            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-mono border border-[#DFE1E6]">Esc</kbd>
-            <span>to close,</span>
-            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-mono border border-[#DFE1E6]">←</kbd>
-            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-mono border border-[#DFE1E6]">→</kbd>
-            <span>to navigate</span>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-[#42526E] bg-[#EBECF0] hover:bg-[#DFE1E6] hover:text-[#172B4D] rounded-md transition cursor-pointer"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>
