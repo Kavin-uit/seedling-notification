@@ -101,53 +101,40 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] w-full max-w-[1000px] max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] w-full max-w-[1020px] max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Simple Clean Header: Engine, Key, Row, Title + Interactive Status & Metadata */}
-        <div className="px-5 py-3.5 border-b border-[#DFE1E6] bg-white flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1 flex-wrap">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#EBECF0] text-[#42526E] uppercase tracking-wide shrink-0">
+        {/* Tier 1 Header: System Metadata Breadcrumb & Navigation */}
+        <div className="px-5 py-2.5 border-b border-[#EBECF0] bg-[#FAFBFC] flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-[#EBECF0] text-[#344563] uppercase tracking-wider shrink-0">
               {scenario.engineCategory}
             </span>
-            <span className="font-bold text-[#0052CC] text-xs font-mono shrink-0">
+            <span className="font-mono font-bold text-[#0052CC] text-xs bg-[#DEEBFF] px-2 py-0.5 rounded shrink-0">
               {scenario.key}
             </span>
             {rowNumber !== undefined && (
-              <span className="text-[#6B778C] text-xs font-mono font-medium shrink-0">
-                #{rowNumber}
+              <span className="text-[#6B778C] font-mono text-xs shrink-0">
+                Row #{rowNumber}
               </span>
             )}
-            <span className="text-[#DFE1E6] hidden sm:inline">|</span>
-            <h2 className="text-base sm:text-lg font-bold text-[#172B4D] truncate" title={scenario.governanceEvent}>
-              {scenario.governanceEvent}
-            </h2>
-            {onUpdateStatus && allStatuses && (
-              <div className="shrink-0">
-                <JiraStatusBadge
-                  status={scenario.status}
-                  onChange={onUpdateStatus}
-                  availableStatuses={allStatuses}
-                  size="sm"
-                />
-              </div>
+            <span className="text-[#DFE1E6] hidden sm:inline">•</span>
+            {scenario.environment && (
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium text-[#42526E] bg-white border border-[#DFE1E6] shrink-0">
+                {scenario.environment}
+              </span>
             )}
             {scenario.priority && (
               <span
-                className={`px-2 py-0.5 rounded text-[11px] font-medium shrink-0 ${
+                className={`px-2 py-0.5 rounded text-[11px] font-semibold border shrink-0 ${
                   scenario.priority === 'Highest' || scenario.priority === 'High'
-                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
                     : scenario.priority === 'Medium'
-                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-slate-50 text-slate-600 border-slate-200'
                 }`}
               >
-                {scenario.priority}
-              </span>
-            )}
-            {scenario.environment && (
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono text-[#5E6C84] bg-[#F4F5F7] border border-[#DFE1E6] shrink-0">
-                {scenario.environment}
+                {scenario.priority} Priority
               </span>
             )}
           </div>
@@ -159,9 +146,9 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 type="button"
                 onClick={onNavigatePrev}
                 disabled={!hasPrev}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#6B778C] hover:text-[#172B4D] hover:bg-[#EBECF0] disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer disabled:cursor-not-allowed"
-                title="Previous row (← Arrow)"
-                aria-label="Previous row"
+                className="w-7 h-7 rounded border border-[#DFE1E6] bg-white flex items-center justify-center text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] disabled:opacity-25 disabled:hover:bg-white transition cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                title="Previous scenario (← Arrow)"
+                aria-label="Previous scenario"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -171,9 +158,9 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 type="button"
                 onClick={onNavigateNext}
                 disabled={!hasNext}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#6B778C] hover:text-[#172B4D] hover:bg-[#EBECF0] disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer disabled:cursor-not-allowed"
-                title="Next row (→ Arrow)"
-                aria-label="Next row"
+                className="w-7 h-7 rounded border border-[#DFE1E6] bg-white flex items-center justify-center text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] disabled:opacity-25 disabled:hover:bg-white transition cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                title="Next scenario (→ Arrow)"
+                aria-label="Next scenario"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -181,7 +168,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-7 h-7 rounded flex items-center justify-center text-[#6B778C] hover:text-[#172B4D] hover:bg-[#EBECF0] transition cursor-pointer ml-1"
+              className="w-7 h-7 rounded border border-[#DFE1E6] bg-white flex items-center justify-center text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] transition cursor-pointer ml-1 shadow-2xs"
               title="Close (Esc)"
               aria-label="Close"
             >
@@ -190,110 +177,149 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Main Body (Single clean layout without AI metadata sidebar) */}
-        <div className="flex-1 p-5 space-y-4 overflow-y-auto bg-[#F4F5F7]">
-          {/* ROW 1: Context & Strategy */}
-          <div className="bg-white border border-[#DFE1E6] rounded-xl p-4 shadow-2xs grid grid-cols-2 lg:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-[#DFE1E6]">
-            {/* Trigger */}
-            <div className="sm:pr-3 relative group">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B778C]">Trigger</span>
-                {scenario.trigger && (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy('trigger', scenario.trigger)}
-                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                    title="Copy trigger"
-                  >
-                    {copiedField === 'trigger' ? (
-                      <Check className="w-3 h-3 text-[#00875A]" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.trigger}>
-                {scenario.trigger || <span className="text-[#6B778C] italic">None</span>}
-              </p>
+        {/* Tier 2 Header: Prominent Event Title + Interactive Status Dropdown */}
+        <div className="px-5 py-3 bg-white border-b border-[#EBECF0] flex items-center justify-between gap-4 shrink-0">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-base sm:text-lg font-bold text-[#172B4D] tracking-tight truncate" title={scenario.governanceEvent}>
+              {scenario.governanceEvent}
+            </h1>
+          </div>
+          {onUpdateStatus && allStatuses && (
+            <div className="shrink-0 flex items-center gap-2">
+              <span className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider hidden sm:inline">
+                Status:
+              </span>
+              <JiraStatusBadge
+                status={scenario.status}
+                onChange={onUpdateStatus}
+                availableStatuses={allStatuses}
+                size="md"
+              />
             </div>
+          )}
+        </div>
 
-            {/* Audience */}
-            <div className="sm:px-3 pt-2 sm:pt-0 relative group">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B778C]">Audience</span>
-                {scenario.audience && (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy('audience', scenario.audience)}
-                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                    title="Copy audience"
-                  >
-                    {copiedField === 'audience' ? (
-                      <Check className="w-3 h-3 text-[#00875A]" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                )}
+        {/* Modal Main Body */}
+        <div className="flex-1 p-4 sm:p-5 space-y-4 overflow-y-auto bg-[#F4F5F7]">
+          {/* SECTION 1: Strategic Specification Strip (5 Parameters with Target CTA integrated) */}
+          <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 divide-y md:divide-y-0 md:divide-x divide-[#EBECF0]">
+              {/* Trigger */}
+              <div className="px-2 pt-1 md:pt-0 relative group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                    Trigger
+                  </span>
+                  {scenario.trigger && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('trigger', scenario.trigger)}
+                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
+                      title="Copy trigger"
+                    >
+                      {copiedField === 'trigger' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  )}
+                </div>
+                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                  {scenario.trigger || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                </p>
               </div>
-              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.audience}>
-                {scenario.audience || <span className="text-[#6B778C] italic">None</span>}
-              </p>
-            </div>
 
-            {/* Communication Objective */}
-            <div className="sm:px-3 pt-2 sm:pt-0 relative group">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B778C]">Objective</span>
-                {scenario.communicationObjective && (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy('objective', scenario.communicationObjective)}
-                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                    title="Copy objective"
-                  >
-                    {copiedField === 'objective' ? (
-                      <Check className="w-3 h-3 text-[#00875A]" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                )}
+              {/* Audience */}
+              <div className="px-2 pt-2 md:pt-0 relative group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                    Audience
+                  </span>
+                  {scenario.audience && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('audience', scenario.audience)}
+                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
+                      title="Copy audience"
+                    >
+                      {copiedField === 'audience' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  )}
+                </div>
+                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                  {scenario.audience || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                </p>
               </div>
-              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.communicationObjective}>
-                {scenario.communicationObjective || <span className="text-[#6B778C] italic">None</span>}
-              </p>
-            </div>
 
-            {/* Desired Outcome */}
-            <div className="sm:pl-3 pt-2 sm:pt-0 relative group">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B778C]">Desired Outcome</span>
-                {scenario.desiredOutcome && (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy('outcome', scenario.desiredOutcome)}
-                    className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                    title="Copy outcome"
-                  >
-                    {copiedField === 'outcome' ? (
-                      <Check className="w-3 h-3 text-[#00875A]" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                )}
+              {/* Objective */}
+              <div className="px-2 pt-2 md:pt-0 relative group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                    Objective
+                  </span>
+                  {scenario.communicationObjective && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('objective', scenario.communicationObjective)}
+                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
+                      title="Copy objective"
+                    >
+                      {copiedField === 'objective' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  )}
+                </div>
+                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                  {scenario.communicationObjective || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                </p>
               </div>
-              <p className="text-xs text-[#172B4D] leading-relaxed mt-1" title={scenario.desiredOutcome}>
-                {scenario.desiredOutcome || <span className="text-[#6B778C] italic">None</span>}
-              </p>
+
+              {/* Desired Outcome */}
+              <div className="px-2 pt-2 md:pt-0 relative group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                    Desired Outcome
+                  </span>
+                  {scenario.desiredOutcome && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('outcome', scenario.desiredOutcome)}
+                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
+                      title="Copy outcome"
+                    >
+                      {copiedField === 'outcome' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  )}
+                </div>
+                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                  {scenario.desiredOutcome || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                </p>
+              </div>
+
+              {/* Target CTA Action */}
+              <div className="px-2.5 pt-2 md:pt-0 col-span-2 md:col-span-1 bg-[#FAFBFC] -my-1 -mr-1 p-2 rounded-lg border border-[#EBECF0] relative group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-bold text-[#0052CC] uppercase tracking-wider flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" />
+                    <span>Target CTA</span>
+                  </span>
+                  {scenario.cta && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('cta', scenario.cta)}
+                      className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded transition cursor-pointer"
+                      title="Copy CTA action"
+                    >
+                      {copiedField === 'cta' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  )}
+                </div>
+                <p className="text-[12px] font-semibold text-[#0052CC] mt-1 leading-snug break-words">
+                  {scenario.cta || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* ROW 2: Notification Previews (Push + In-App on Left, Email on Right) */}
+          {/* SECTION 2: Notification Channels (Balanced 2-Column Architecture) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-            {/* LEFT COLUMN: App Notifications (Push + In-App Feed) */}
+            {/* LEFT COLUMN: Mobile Channels + QA Notes */}
             <div className="space-y-4">
               {/* 1. iOS iPhone Push Notification Banner Preview */}
               <div className="space-y-1.5">
@@ -332,7 +358,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 </div>
 
                 {/* Exact Apple iOS iPhone Notification Banner Card */}
-                <div className="bg-[#F2F2F7]/95 border border-black/5 rounded-[22px] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.07),0_1px_2px_rgba(0,0,0,0.06)] transition-all">
+                <div className="bg-[#F2F2F7]/95 border border-black/5 rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] transition-all">
                   {/* iOS Header */}
                   <div className="flex items-center justify-between pb-1.5">
                     <div className="flex items-center gap-2">
@@ -357,7 +383,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                   </div>
 
                   {/* iOS Subject Line / Title */}
-                  <div className="font-semibold text-[14px] text-[#1C1C1E] leading-snug tracking-tight mt-1">
+                  <div className="font-semibold text-[13.5px] text-[#1C1C1E] leading-snug tracking-tight mt-1">
                     {scenario.pushSubject || <span className="text-[#8E8E93] italic font-normal">No subject line</span>}
                   </div>
 
@@ -411,7 +437,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                       />
                     </div>
                     {/* Notification Content */}
-                    <div className="text-[13.5px] sm:text-[14px] text-[#11221C] leading-snug font-normal select-text break-words min-w-0 flex-1">
+                    <div className="text-[13.5px] text-[#11221C] leading-snug font-normal select-text break-words min-w-0 flex-1">
                       {scenario.inAppExperience}
                     </div>
                   </div>
@@ -420,6 +446,78 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                     No in-app notification configured
                   </div>
                 )}
+              </div>
+
+              {/* 3. QA Notes & Verification Logic (Balances left column with Email) */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-xs font-semibold text-[#6B778C] flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-[#6B778C]" />
+                    <span>QA Notes & Verification Logic</span>
+                  </span>
+                  {(scenario.comments || scenario.notes) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const fullNotes = [
+                          scenario.notes ? `Logic Note: ${scenario.notes}` : '',
+                          scenario.comments ? `QA Comments: ${scenario.comments}` : '',
+                        ]
+                          .filter(Boolean)
+                          .join('\n\n')
+                        handleCopy('qaNotes', fullNotes)
+                      }}
+                      className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
+                      title="Copy notes and comments"
+                    >
+                      {copiedField === 'qaNotes' ? (
+                        <>
+                          <Check className="w-3 h-3 text-[#00875A]" />
+                          <span className="text-[#00875A] font-semibold">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs space-y-2.5">
+                  {scenario.notes && scenario.notes.trim() && (
+                    <div className="flex items-start gap-2.5 text-xs">
+                      <FileText className="w-3.5 h-3.5 text-[#0052CC] shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C] block">
+                          Business Rule / Trigger Note
+                        </span>
+                        <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
+                          {scenario.notes}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {scenario.comments && scenario.comments.trim() ? (
+                    <div className={`flex items-start gap-2.5 text-xs ${scenario.notes && scenario.notes.trim() ? 'pt-2.5 border-t border-[#EBECF0]' : ''}`}>
+                      <MessageSquare className="w-3.5 h-3.5 text-[#00875A] shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C] block">
+                          QA Comments
+                        </span>
+                        <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
+                          {scenario.comments}
+                        </p>
+                      </div>
+                    </div>
+                  ) : !scenario.notes ? (
+                    <p className="text-xs text-[#6B778C] italic">
+                      No QA comments or special trigger notes recorded for this scenario.
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </div>
 
@@ -461,37 +559,52 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
               {/* Exact Seedling Social Giving Email Template Card */}
               <div className="bg-white border border-[#DFE1E6] rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col flex-1 transition-all">
-                {/* Email Subject Line Header Bar */}
-                <div className="px-4 py-2.5 bg-[#FAFBFC] border-b border-[#EBECF0] flex items-center justify-between gap-3 shrink-0">
-                  <div className="flex items-baseline gap-2 min-w-0 flex-1">
-                    <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider shrink-0 select-none">
-                      Subject:
-                    </span>
-                    <span
-                      className="text-xs sm:text-[13px] font-semibold text-[#172B4D] truncate select-text"
-                      title={scenario.emailSubject}
-                    >
-                      {scenario.emailSubject || (
-                        <span className="text-[#8E8E93] italic font-normal">
-                          No subject line configured
-                        </span>
-                      )}
-                    </span>
+                {/* Email Client Envelope Header */}
+                <div className="px-4 py-3 bg-[#FAFBFC] border-b border-[#EBECF0] space-y-1.5 shrink-0">
+                  <div className="flex items-center justify-between text-[11px] text-[#6B778C]">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="font-semibold text-[#42526E]">From:</span>
+                      <span className="text-[#172B4D] font-medium">Seedling Social Giving</span>
+                      <span className="text-[#8E8E93] hidden sm:inline">&lt;notifications@seedlingsocial.org&gt;</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="font-semibold text-[#42526E]">To:</span>
+                      <span className="text-[#172B4D] font-medium">{scenario.audience || 'User'}</span>
+                    </div>
                   </div>
-                  {scenario.emailSubject && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('emailSubject', scenario.emailSubject)}
-                      className="text-[#6B778C] hover:text-[#0052CC] p-1 rounded hover:bg-[#EBECF0] transition cursor-pointer shrink-0"
-                      title="Copy email subject"
-                    >
-                      {copiedField === 'emailSubject' ? (
-                        <Check className="w-3.5 h-3.5 text-[#00875A]" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  )}
+
+                  {/* Subject Line */}
+                  <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-[#EBECF0]">
+                    <div className="flex items-baseline gap-2 min-w-0 flex-1">
+                      <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider shrink-0 select-none">
+                        Subject:
+                      </span>
+                      <span
+                        className="text-xs sm:text-[13.5px] font-semibold text-[#172B4D] truncate select-text"
+                        title={scenario.emailSubject}
+                      >
+                        {scenario.emailSubject || (
+                          <span className="text-[#8E8E93] italic font-normal">
+                            No subject line configured
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    {scenario.emailSubject && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopy('emailSubject', scenario.emailSubject)}
+                        className="text-[#6B778C] hover:text-[#0052CC] p-1 rounded hover:bg-[#EBECF0] transition cursor-pointer shrink-0"
+                        title="Copy email subject"
+                      >
+                        {copiedField === 'emailSubject' ? (
+                          <Check className="w-3.5 h-3.5 text-[#00875A]" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Solid Green Header Banner with Given Logo Without Modifications */}
@@ -541,107 +654,22 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
               </div>
             </div>
           </div>
-
-          {/* ROW 3: Call to Action (CTA) & QA Comments (2 Balanced Columns matching grid above) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Call to Action (CTA) */}
-            <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6B778C]">
-                  <ExternalLink className="w-3.5 h-3.5 text-[#6B778C]" />
-                  <span>Call to Action (CTA)</span>
-                </div>
-                {scenario.cta && (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy('cta', scenario.cta)}
-                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
-                    title="Copy CTA"
-                  >
-                    {copiedField === 'cta' ? (
-                      <>
-                        <Check className="w-3 h-3 text-[#00875A]" />
-                        <span className="text-[#00875A] font-semibold">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3 h-3" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-[#172B4D] leading-relaxed flex-1 whitespace-pre-wrap">
-                {scenario.cta || <span className="text-[#6B778C] italic">None</span>}
-              </p>
-            </div>
-
-            {/* QA Comments */}
-            <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs flex flex-col">
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6B778C]">
-                  <MessageSquare className="w-3.5 h-3.5 text-[#6B778C]" />
-                  <span>Comments & Notes</span>
-                </div>
-                {scenario.comments && scenario.comments.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy('comments', scenario.comments || '')}
-                    className="text-xs font-medium text-[#0052CC] hover:text-[#0747A6] flex items-center gap-1 cursor-pointer transition"
-                    title="Copy comments"
-                  >
-                    {copiedField === 'comments' ? (
-                      <>
-                        <Check className="w-3 h-3 text-[#00875A]" />
-                        <span className="text-[#00875A] font-semibold">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3 h-3" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-              {scenario.comments && scenario.comments.trim() ? (
-                <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap flex-1">
-                  {scenario.comments}
-                </p>
-              ) : (
-                <p className="text-xs text-[#6B778C] italic flex-1 flex items-center">
-                  No comments added.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Extra Notes (if present) */}
-          {scenario.notes && scenario.notes.trim() && (
-            <div className="bg-[#FFF0B3]/50 border border-[#FFAB00]/50 rounded-xl p-3 flex items-start gap-2.5 text-xs">
-              <FileText className="w-3.5 h-3.5 text-[#FF8B00] shrink-0 mt-0.5" />
-              <div className="min-w-0 flex-1">
-                <span className="text-xs font-semibold text-[#172B4D] block">Notes</span>
-                <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
-                  {scenario.notes}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Simple Footer */}
+        {/* Modal Footer */}
         <div className="px-5 py-3 border-t border-[#DFE1E6] bg-white flex items-center justify-between shrink-0 text-xs">
-          <div className="text-xs text-[#6B778C]">
-            Press <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-medium border border-[#DFE1E6]">Esc</kbd> to close,{' '}
-            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-medium border border-[#DFE1E6]">←</kbd>{' '}
-            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-medium border border-[#DFE1E6]">→</kbd> to navigate
+          <div className="text-xs text-[#6B778C] flex items-center gap-1.5">
+            <span>Press</span>
+            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-mono border border-[#DFE1E6]">Esc</kbd>
+            <span>to close,</span>
+            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-mono border border-[#DFE1E6]">←</kbd>
+            <kbd className="px-1.5 py-0.5 bg-[#EBECF0] rounded text-[#172B4D] text-xs font-mono border border-[#DFE1E6]">→</kbd>
+            <span>to navigate</span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-[#42526E] bg-[#EBECF0] hover:bg-[#DFE1E6] hover:text-[#172B4D] rounded transition cursor-pointer"
+            className="px-4 py-1.5 text-xs font-semibold text-[#42526E] bg-[#EBECF0] hover:bg-[#DFE1E6] hover:text-[#172B4D] rounded-md transition cursor-pointer"
           >
             Close
           </button>
