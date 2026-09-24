@@ -80,6 +80,8 @@ export function parseFilterUrlParams(urlOrSearch?: string): {
       const lowerEngine = engineParam.trim().toLowerCase()
       if (lowerEngine === 'governance') engine = 'Governance'
       else if (lowerEngine === 'contribution') engine = 'Contribution'
+      else if (lowerEngine === 'participation') engine = 'Participation'
+      else if (lowerEngine === 'opportunity') engine = 'Opportunity'
     }
 
     // Split multiple status params and comma-separated status lists
