@@ -19,16 +19,66 @@ import { Loader2, Check } from 'lucide-react'
 import { parseFilterUrlParams, syncFiltersToUrl, buildFilterShareUrl } from './utils/filterShare'
 import { parseStatuses } from './types/notification'
 
+const FILTERS_STORAGE_KEY = 'seedling_active_filters_v1'
+
+interface InitialFiltersState {
+  engine: EngineCategoryFilter
+  status: string
+  q: string
+  hasFilterInUrl: boolean
+}
+
+function loadInitialFilters(): InitialFiltersState {
+  // 1. URL search params take highest priority (e.g. shared deep links)
+  const urlFilters = parseFilterUrlParams()
+  if (urlFilters.hasFilterInUrl) {
+    try {
+      localStorage.setItem(
+        FILTERS_STORAGE_KEY,
+        JSON.stringify({
+          engine: urlFilters.engine,
+          status: urlFilters.status,
+          q: urlFilters.q,
+        })
+      )
+    } catch {}
+    return urlFilters
+  }
+
+  // 2. If no filter in URL, restore saved filters from localStorage
+  try {
+    const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return {
+        engine: (parsed.engine as EngineCategoryFilter) || 'ALL',
+        status: typeof parsed.status === 'string' ? parsed.status : 'ALL',
+        q: typeof parsed.q === 'string' ? parsed.q : '',
+        hasFilterInUrl: false,
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to parse filters from localStorage', err)
+  }
+
+  return {
+    engine: 'ALL',
+    status: 'ALL',
+    q: '',
+    hasFilterInUrl: false,
+  }
+}
+
 export default function App() {
   const [scenarios, setScenarios] = useState<NotificationScenario[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [dbEngines, setDbEngines] = useState<string[]>([])
 
-  // Initialize filters from URL query parameters (for deep linking & sharing)
-  const [initialUrlParams] = useState(() => parseFilterUrlParams())
-  const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>(initialUrlParams.engine)
-  const [searchQuery, setSearchQuery] = useState(initialUrlParams.q)
-  const [statusFilter, setStatusFilter] = useState<string>(initialUrlParams.status)
+  // Initialize filters from URL query parameters or localStorage (persists across page refresh)
+  const [initialFilters] = useState(() => loadInitialFilters())
+  const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>(initialFilters.engine)
+  const [searchQuery, setSearchQuery] = useState<string>(initialFilters.q)
+  const [statusFilter, setStatusFilter] = useState<string>(initialFilters.status)
   const [isImportOpen, setIsImportOpen] = useState(false)
 
   // Toast feedback state for sharing links & actions
@@ -43,8 +93,29 @@ export default function App() {
     }, 2800)
   }, [])
 
-  // Keep URL search query parameters synced with currently active filters
+  // Keep URL search query parameters & localStorage synced with currently active filters
   useEffect(() => {
+    try {
+      if (
+        selectedEngine !== 'ALL' ||
+        statusFilter !== 'ALL' ||
+        Boolean(searchQuery && searchQuery.trim().length > 0)
+      ) {
+        localStorage.setItem(
+          FILTERS_STORAGE_KEY,
+          JSON.stringify({
+            engine: selectedEngine,
+            status: statusFilter,
+            q: searchQuery,
+          })
+        )
+      } else {
+        localStorage.removeItem(FILTERS_STORAGE_KEY)
+      }
+    } catch (e) {
+      console.warn('Failed to persist filters to localStorage', e)
+    }
+
     syncFiltersToUrl({
       engine: selectedEngine,
       status: statusFilter,
@@ -66,22 +137,25 @@ export default function App() {
 
   // Show a welcome toast if the page was opened with shared filter URL parameters
   useEffect(() => {
-    if (initialUrlParams.hasFilterInUrl) {
+    if (initialFilters.hasFilterInUrl) {
       const parts: string[] = []
-      if (initialUrlParams.status !== 'ALL') parts.push(`Status: ${initialUrlParams.status}`)
-      if (initialUrlParams.engine !== 'ALL') parts.push(`Engine: ${initialUrlParams.engine}`)
-      if (initialUrlParams.q) parts.push(`Search: "${initialUrlParams.q}"`)
+      if (initialFilters.status !== 'ALL') parts.push(`Status: ${initialFilters.status}`)
+      if (initialFilters.engine !== 'ALL') parts.push(`Engine: ${initialFilters.engine}`)
+      if (initialFilters.q) parts.push(`Search: "${initialFilters.q}"`)
       if (parts.length > 0) {
         showToast(`Viewing shared filter view (${parts.join(' • ')})`)
       }
     }
-  }, [initialUrlParams, showToast])
+  }, [initialFilters, showToast])
 
-  // Reset all filters (engine, status, search) to show all records
+  // Reset all filters (engine, status, search) to show all records and clear storage
   const handleResetAllFilters = () => {
     setSelectedEngine('ALL')
     setSearchQuery('')
     setStatusFilter('ALL')
+    try {
+      localStorage.removeItem(FILTERS_STORAGE_KEY)
+    } catch {}
   }
 
   // Sheet Verification State (verifies against Google Sheets on every refresh/load)
