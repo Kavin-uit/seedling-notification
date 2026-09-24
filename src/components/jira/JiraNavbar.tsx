@@ -10,8 +10,6 @@ import {
   Plus,
   PanelLeft,
   LayoutGrid,
-  Bell,
-  Settings,
 } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
@@ -449,34 +447,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           <span className="hidden sm:inline">Export .xlsx</span>
           <span className="sm:hidden">Export</span>
         </button>
-
-        {/* Notification Bell with '9+' Badge */}
-        <div
-          className="relative hidden md:flex items-center justify-center p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer shrink-0"
-          title="Notifications"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute -top-0.5 -right-0.5 px-1 py-0.2 bg-[#FF5630] text-white text-[9px] font-bold rounded-full leading-none shadow-xs">
-            9+
-          </span>
-        </div>
-
-        {/* Settings Gear */}
-        <button
-          type="button"
-          className="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer hidden lg:flex items-center justify-center shrink-0"
-          title="Settings"
-        >
-          <Settings className="w-4 h-4" />
-        </button>
-
-        {/* User Avatar 'K' */}
-        <div
-          className="w-7 h-7 rounded-full bg-[#DE350B] text-white flex items-center justify-center text-xs font-bold shadow-xs ring-1 ring-white/30 shrink-0 cursor-pointer select-none"
-          title="Kavin (Account)"
-        >
-          K
-        </div>
       </div>
     </header>
   )
