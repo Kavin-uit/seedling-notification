@@ -109,44 +109,44 @@ export type TableColumnKey =
   | 'status'
   | 'action'
 
-const COLUMN_STORAGE_KEY = 'seedling_sheet_column_widths_v5'
+const COLUMN_STORAGE_KEY = 'seedling_sheet_column_widths_v6'
 
 const DEFAULT_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
-  index: 56,
-  engine: 160,
-  event: 320,
-  trigger: 280,
-  audience: 220,
-  communicationObjective: 360,
-  desiredOutcome: 260,
-  pushSubject: 300,
-  pushBody: 440,
-  emailSubject: 300,
-  emailBody: 520,
-  inAppExperience: 420,
-  cta: 260,
-  comments: 340,
-  status: 145,
-  action: 150,
+  index: 48,
+  engine: 140,
+  event: 220,
+  trigger: 150,
+  audience: 130,
+  communicationObjective: 180,
+  desiredOutcome: 150,
+  pushSubject: 200,
+  pushBody: 240,
+  emailSubject: 200,
+  emailBody: 250,
+  inAppExperience: 180,
+  cta: 130,
+  comments: 220,
+  status: 130,
+  action: 76,
 }
 
 const MIN_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
-  index: 40,
-  engine: 100,
-  event: 140,
-  trigger: 100,
-  audience: 100,
-  communicationObjective: 120,
-  desiredOutcome: 100,
-  pushSubject: 120,
-  pushBody: 140,
-  emailSubject: 120,
-  emailBody: 140,
-  inAppExperience: 120,
-  cta: 90,
-  comments: 130,
-  status: 100,
-  action: 110,
+  index: 36,
+  engine: 85,
+  event: 120,
+  trigger: 90,
+  audience: 85,
+  communicationObjective: 100,
+  desiredOutcome: 90,
+  pushSubject: 110,
+  pushBody: 120,
+  emailSubject: 110,
+  emailBody: 120,
+  inAppExperience: 100,
+  cta: 80,
+  comments: 120,
+  status: 90,
+  action: 65,
 }
 
 const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -525,8 +525,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   // Adjustable column widths (Excel spreadsheet style)
   const [columnWidths, setColumnWidths] = useState<Record<TableColumnKey, number>>(() => {
     try {
-      // Clear older versions so all users get the fresh full-size default layout
-      ['seedling_sheet_column_widths_v1', 'seedling_sheet_column_widths_v2', 'seedling_sheet_column_widths_v3', 'seedling_sheet_column_widths_v4'].forEach((k) => {
+      // Clear older versions so all users get the fresh default layout
+      ['seedling_sheet_column_widths_v1', 'seedling_sheet_column_widths_v2', 'seedling_sheet_column_widths_v3', 'seedling_sheet_column_widths_v4', 'seedling_sheet_column_widths_v5'].forEach((k) => {
         try { localStorage.removeItem(k) } catch {}
       })
       const raw = localStorage.getItem(COLUMN_STORAGE_KEY)
@@ -565,7 +565,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     try {
       localStorage.removeItem(COLUMN_STORAGE_KEY)
     } catch {}
-    setCopiedToast('Reset all columns to full size default view')
+    setCopiedToast('Reset all columns to default width')
     setTimeout(() => setCopiedToast(null), 2000)
   }
 
@@ -668,11 +668,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   }, [activeResizingCol])
 
   const totalTableWidth = useMemo(() => {
-    const colsTotal = (Object.keys(DEFAULT_COLUMN_WIDTHS) as TableColumnKey[]).reduce(
+    return (Object.keys(DEFAULT_COLUMN_WIDTHS) as TableColumnKey[]).reduce(
       (sum, key) => sum + (columnWidths[key] ?? DEFAULT_COLUMN_WIDTHS[key]),
       0
     )
-    return colsTotal + 100 // includes 100px trailing canvas spacer
   }, [columnWidths])
 
   const renderResizeHandle = (colKey: TableColumnKey, colTitle: string) => {
@@ -1477,7 +1476,6 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             <col style={{ width: `${columnWidths.comments}px` }} />
             <col style={{ width: `${columnWidths.status}px` }} />
             <col style={{ width: `${columnWidths.action}px` }} />
-            <col style={{ width: '100px' }} />
           </colgroup>
 
           {/* Header styled like Microsoft Excel / Google Sheets green header */}
@@ -1678,14 +1676,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.action}px`,
                   maxWidth: `${columnWidths.action}px`,
                 }}
-                className="relative px-2 py-2.5 font-bold uppercase text-[11px] tracking-wider text-center whitespace-nowrap bg-[#107C41] text-white border-r border-[#0D6535]"
+                className="relative px-2 py-2.5 font-bold uppercase text-[11px] tracking-wider text-center whitespace-nowrap bg-[#107C41] text-white"
               >
                 <span className="block" title="Action">Action</span>
                 {renderResizeHandle('action', 'Action')}
               </th>
-
-              {/* Trailing canvas spacer header: keeps Action column clear of vertical scrollbar so resize handle is always unobstructed */}
-              <th className="bg-[#107C41] border-b border-[#0D6535] min-w-[100px] select-none" />
             </tr>
           </thead>
 
@@ -1693,7 +1688,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           <tbody className="divide-y divide-[#E1E4E8] bg-white">
             {filteredScenarios.length === 0 ? (
               <tr>
-                <td colSpan={17} className="py-12 text-center text-[#6B778C]">
+                <td colSpan={16} className="py-12 text-center text-[#6B778C]">
                   <p className="font-semibold text-sm">No matching notification rows</p>
                   <p className="text-xs text-slate-400 mt-1">Adjust search query or status filter to view scenarios</p>
                 </td>
@@ -1743,13 +1738,13 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                             anchorRect: rect,
                           })
                         }}
-                        className="inline-flex items-start gap-1.5 px-2 py-1 rounded-md bg-[#FFF0ED] text-[#D70015] border border-[#FF3B30]/40 font-medium min-h-[22px] max-w-full select-text cursor-pointer hover:bg-[#FFE5E0] transition-all shadow-2xs group/mismatch whitespace-normal break-words leading-relaxed"
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FFF0ED] text-[#D70015] border border-[#FF3B30]/40 font-medium min-h-[20px] max-w-full select-text cursor-pointer hover:bg-[#FFE5E0] transition-all shadow-2xs group/mismatch"
                         title="Sheet Data Mismatch • Click or hover to view expected value"
                       >
-                        <span className="w-3.5 h-3.5 rounded-full bg-[#FF3B30] text-white flex items-center justify-center text-[9px] font-black shrink-0 shadow-xs mt-0.5">
+                        <span className="w-3.5 h-3.5 rounded-full bg-[#FF3B30] text-white flex items-center justify-center text-[9px] font-black shrink-0 shadow-xs">
                           !
                         </span>
-                        <span className="underline decoration-[#FF3B30]/70 decoration-wavy underline-offset-2">
+                        <span className="truncate underline decoration-[#FF3B30]/70 decoration-wavy underline-offset-2">
                           {highlightMatches(value, searchQuery, matchedTerms, hasSearchMatch)}
                         </span>
                       </div>
@@ -1758,7 +1753,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
                   return (
                     <div
-                      className={`px-1 py-1 rounded min-h-[22px] select-text cursor-default leading-relaxed whitespace-normal break-words transition-all ${
+                      className={`px-1 py-0.5 rounded min-h-[20px] truncate select-text cursor-default transition-all ${
                         isSelected
                           ? "text-[#0747A6] font-semibold"
                           : isTested
@@ -1836,7 +1831,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Engine Column with Quick Status Dropdown */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap overflow-hidden">
                       <EngineBadge
                         category={row.engineCategory || 'Governance'}
                         currentStatus={row.status}
@@ -1847,9 +1842,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Event Name with iOS View Details Button and (i) Info Brief Button */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] font-medium group/event align-top">
-                      <div className="flex items-start justify-between gap-1.5">
-                        <div className="flex-1 min-w-0">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] font-medium group/event overflow-hidden">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           {renderCell('governanceEvent', row.governanceEvent)}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
@@ -1895,58 +1890,58 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Trigger */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('trigger', row.trigger)}
                     </td>
 
                     {/* Audience */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('audience', row.audience)}
                     </td>
 
                     {/* Communication Objective */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('communicationObjective', row.communicationObjective)}
                     </td>
 
                     {/* Desired Outcome */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('desiredOutcome', row.desiredOutcome)}
                     </td>
 
                     {/* Push Notification Subject Line */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('pushSubject', row.pushSubject)}
                     </td>
 
                     {/* Push Notification */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('pushBody', row.pushBody)}
                     </td>
 
                     {/* Email Subject Line */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('emailSubject', row.emailSubject)}
                     </td>
 
                     {/* Email Message */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('emailBody', row.emailBody)}
                     </td>
 
                     {/* In-App Experience */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('inAppExperience', row.inAppExperience)}
                     </td>
 
                     {/* Call to Action */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
                       {renderCell('cta', row.cta)}
                     </td>
 
                     {/* Manual Comments */}
                     <td
-                      className="px-2 py-2 border-r border-[#E1E4E8] align-top relative"
+                      className="px-2 py-1.5 border-r border-[#E1E4E8] overflow-hidden relative"
                       onMouseEnter={(e) => {
                         if (editingCommentId !== row.id && row.comments && row.comments.trim().length > 0) {
                           const rect = e.currentTarget.getBoundingClientRect()
@@ -2050,10 +2045,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                             setHoveredComment(null)
                             startEditingComment(row)
                           }}
-                          className="flex items-start justify-between gap-1 group-hover/comment:bg-blue-50/60 px-1 py-0.5 rounded transition cursor-pointer group/comment"
+                          className="flex items-center justify-between gap-1 group-hover/comment:bg-blue-50/60 px-1 py-0.5 rounded transition cursor-pointer group/comment"
                         >
                           <div
-                            className={`text-xs leading-relaxed whitespace-normal break-words flex-1 ${
+                            className={`truncate text-xs ${
                               row.comments
                                 ? 'text-[#172B4D] font-medium'
                                 : 'text-slate-400 italic group-hover/comment:text-[#0052CC]'
@@ -2064,18 +2059,18 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                               highlightMatches(row.comments, searchQuery, matchedTerms, hasSearchMatch)
                             ) : (
                               <span className="flex items-center gap-1 text-[11px] font-normal text-slate-400 group-hover/comment:text-[#0052CC]">
-                                <Pencil className="w-3 h-3 opacity-60 group-hover/comment:opacity-100 mt-0.5 shrink-0" />
+                                <Pencil className="w-3 h-3 opacity-60 group-hover/comment:opacity-100" />
                                 <span>Add comment...</span>
                               </span>
                             )}
                           </div>
-                          <Pencil className="w-3 h-3 text-[#0052CC] opacity-0 group-hover/comment:opacity-100 shrink-0 transition mt-0.5" />
+                          <Pencil className="w-3 h-3 text-[#0052CC] opacity-0 group-hover/comment:opacity-100 shrink-0 transition" />
                         </div>
                       )}
                     </td>
 
                     {/* Status (Jira dropdown with down arrow) */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap align-top">
+                    <td className="px-3 py-2 border-r border-[#E1E4E8] whitespace-nowrap overflow-hidden">
                       <JiraStatusBadge
                         status={row.status}
                         onChange={(st) => onUpdateStatus(row.id, st)}
@@ -2087,8 +2082,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Actions: View Details, History, Copy & Delete */}
-                    <td className="px-2 py-2 text-center whitespace-nowrap align-top border-r border-[#E1E4E8]">
-                      <div className="flex items-center justify-center gap-1 pt-0.5">
+                    <td className="px-2 py-2 text-center whitespace-nowrap overflow-hidden">
+                      <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
                           onClick={() => setDetailScenario({ scenario: row, rowNumber })}
@@ -2127,9 +2122,6 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                         </button>
                       </div>
                     </td>
-
-                    {/* Trailing canvas spacer cell matching the header spacer */}
-                    <td className="min-w-[100px] bg-slate-50/20" />
                   </tr>
                 )
               })
