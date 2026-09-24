@@ -14,7 +14,12 @@ import {
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
-export type EngineCategoryFilter = 'ALL' | 'Governance' | 'Contribution'
+export type EngineCategoryFilter = 'ALL' | string
+
+export interface EngineMenuItem {
+  name: string
+  count: number
+}
 
 interface JiraNavbarProps {
   searchQuery: string
@@ -22,11 +27,13 @@ interface JiraNavbarProps {
   onAddRow?: () => void
   onImportClick?: () => void
   onExportClick: () => void
-  selectedEngine: EngineCategoryFilter
-  onSelectEngine: (engine: EngineCategoryFilter) => void
+  selectedEngine: string
+  onSelectEngine: (engine: string) => void
   onResetAllFilters?: () => void
-  govCount: number
-  contribCount: number
+  engines?: EngineMenuItem[]
+  engineCounts?: Record<string, number>
+  govCount?: number
+  contribCount?: number
   totalRows: number
   verificationSummary?: SheetVerificationSummary | null
   isVerifying?: boolean
@@ -44,6 +51,8 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   selectedEngine,
   onSelectEngine,
   onResetAllFilters,
+  engines,
+  engineCounts,
   govCount,
   contribCount,
   totalRows,
@@ -86,14 +95,19 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
     statusFilter !== 'ALL' ||
     Boolean(searchQuery && searchQuery.trim().length > 0)
 
-  const handleShareEngine = async (engine: EngineCategoryFilter, e: React.MouseEvent) => {
+  const getEngineDisplayLabel = (name: string) => {
+    if (name === 'ALL') return 'All Engines'
+    return name.toLowerCase().endsWith('engine') ? name : `${name} Engine`
+  }
+
+  const handleShareEngine = async (engine: string, e: React.MouseEvent) => {
     e.stopPropagation()
     const url = buildFilterShareUrl({ engine: engine !== 'ALL' ? engine : undefined })
     const ok = await copyShareUrlToClipboard(url)
     if (ok) {
       setCopiedEngineKey(engine)
       setTimeout(() => setCopiedEngineKey(null), 2000)
-      const label = engine === 'ALL' ? 'All Engines' : `${engine} Engine`
+      const label = getEngineDisplayLabel(engine)
       if (onShowToast) {
         onShowToast(`Copied link for ${label}! Anyone opening it will see these records.`)
       }
@@ -127,12 +141,20 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
     }
   }
 
+  const engineList: EngineMenuItem[] =
+    engines && engines.length > 0
+      ? engines
+      : [
+          { name: 'Governance', count: govCount ?? 0 },
+          { name: 'Contribution', count: contribCount ?? 0 },
+        ]
+
   const activeCount =
-    selectedEngine === 'Governance'
-      ? govCount
-      : selectedEngine === 'Contribution'
-      ? contribCount
-      : totalRows
+    selectedEngine === 'ALL'
+      ? totalRows
+      : (engineCounts?.[selectedEngine] ??
+         engineList.find((e) => e.name.toLowerCase() === selectedEngine.toLowerCase())?.count ??
+         (selectedEngine === 'Governance' ? (govCount ?? 0) : selectedEngine === 'Contribution' ? (contribCount ?? 0) : 0))
 
   return (
     <header className="h-13 bg-[#0747A6] text-white flex items-center justify-between px-3 sm:px-4 select-none shrink-0 border-b border-[#0052CC] shadow-xs gap-2 sm:gap-3 flex-nowrap min-w-0">
@@ -178,9 +200,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           <button
             type="button"
             onClick={() => setIsEngineMenuOpen((prev) => !prev)}
-            title={`Select Notification Engine (Currently: ${
-              selectedEngine === 'ALL' ? 'All Engines' : `${selectedEngine} Engine`
-            })`}
+            title={`Select Notification Engine (Currently: ${getEngineDisplayLabel(selectedEngine)})`}
             aria-label="Filter Notification Engine"
             className={`cursor-pointer h-8 px-2.5 rounded text-xs font-medium flex items-center gap-1.5 transition select-none ${
               isEngineMenuOpen
@@ -189,6 +209,9 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5 opacity-85 shrink-0" />
+            <span className="font-semibold hidden sm:inline">
+              {getEngineDisplayLabel(selectedEngine)}
+            </span>
             <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-white/20 text-white leading-none">
               {activeCount}
             </span>
@@ -201,81 +224,52 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
 
           {/* Atlassian Jira Dropdown Menu */}
           {isEngineMenuOpen && (
-            <div className="absolute left-0 mt-1 w-64 bg-white rounded-[3px] shadow-[0_4px_12px_-2px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1 z-50 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-1.5 text-[11px] font-semibold text-[#6B778C] border-b border-[#EBECF0] mb-0.5 flex items-center justify-between">
+            <div className="absolute left-0 mt-1 w-68 bg-white rounded-[3px] shadow-[0_4px_16px_-2px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1 z-50 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 max-h-[min(480px,80vh)] overflow-y-auto">
+              <div className="px-3 py-1.5 text-[11px] font-semibold text-[#6B778C] border-b border-[#EBECF0] mb-0.5 flex items-center justify-between sticky top-0 bg-white z-10">
                 <span>Engines</span>
                 <span className="text-[10px] font-normal text-[#6B778C]">Click 🔗 to share</span>
               </div>
 
-              {/* Governance Engine */}
-              <div
-                onClick={() => {
-                  onSelectEngine('Governance')
-                  setIsEngineMenuOpen(false)
-                }}
-                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs group ${
-                  selectedEngine === 'Governance'
-                    ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
-                    : 'text-[#172B4D]'
-                }`}
-              >
-                <span>Governance Engine</span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
-                    {govCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => handleShareEngine('Governance', e)}
-                    title="Copy direct share link for Governance Engine"
-                    className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-70 group-hover:opacity-100 cursor-pointer"
+              {engineList.map((eng) => {
+                const isSelected = selectedEngine === eng.name
+                const displayLabel = getEngineDisplayLabel(eng.name)
+                return (
+                  <div
+                    key={eng.name}
+                    onClick={() => {
+                      onSelectEngine(eng.name)
+                      setIsEngineMenuOpen(false)
+                    }}
+                    className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs group ${
+                      isSelected
+                        ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
+                        : 'text-[#172B4D]'
+                    }`}
                   >
-                    {copiedEngineKey === 'Governance' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                    ) : (
-                      <Share className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                  {selectedEngine === 'Governance' && (
-                    <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-                  )}
-                </div>
-              </div>
-
-              {/* Contribution Engine */}
-              <div
-                onClick={() => {
-                  onSelectEngine('Contribution')
-                  setIsEngineMenuOpen(false)
-                }}
-                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs group ${
-                  selectedEngine === 'Contribution'
-                    ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
-                    : 'text-[#172B4D]'
-                }`}
-              >
-                <span>Contribution Engine</span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
-                    {contribCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => handleShareEngine('Contribution', e)}
-                    title="Copy direct share link for Contribution Engine"
-                    className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-70 group-hover:opacity-100 cursor-pointer"
-                  >
-                    {copiedEngineKey === 'Contribution' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                    ) : (
-                      <Share className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                  {selectedEngine === 'Contribution' && (
-                    <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-                  )}
-                </div>
-              </div>
+                    <span className="truncate mr-2">{displayLabel}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
+                        {eng.count}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleShareEngine(eng.name, e)}
+                        title={`Copy direct share link for ${displayLabel}`}
+                        className="p-1 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition opacity-70 group-hover:opacity-100 cursor-pointer"
+                      >
+                        {copiedEngineKey === eng.name ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                        ) : (
+                          <Share className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      {isSelected && (
+                        <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
 
               {/* All Engines - Reset all filters */}
               <div
@@ -287,7 +281,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                   }
                   setIsEngineMenuOpen(false)
                 }}
-                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs border-t border-[#EBECF0] mt-0.5 group ${
+                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs border-t border-[#EBECF0] mt-0.5 group sticky bottom-0 bg-white z-10 ${
                   selectedEngine === 'ALL'
                     ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
                     : 'text-[#172B4D]'

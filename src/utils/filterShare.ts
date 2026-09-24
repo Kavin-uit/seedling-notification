@@ -76,10 +76,9 @@ export function parseFilterUrlParams(urlOrSearch?: string): {
     const qParam = params.get('q') || params.get('search') || ''
 
     let engine: EngineCategoryFilter = 'ALL'
-    if (engineParam) {
-      const lowerEngine = engineParam.trim().toLowerCase()
-      if (lowerEngine === 'governance') engine = 'Governance'
-      else if (lowerEngine === 'contribution') engine = 'Contribution'
+    if (engineParam && engineParam.trim().toUpperCase() !== 'ALL') {
+      const trimmed = engineParam.trim()
+      engine = trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
     }
 
     // Split multiple status params and comma-separated status lists

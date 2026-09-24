@@ -23,22 +23,19 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
   onClose,
   onUpdateScenario,
 }) => {
-  if (!scenario) return null
-
-  const [isEditing, setIsEditing] = useState<boolean>(!scenario.notes?.trim())
-  const [draftNotes, setDraftNotes] = useState<string>(scenario.notes || '')
+  const [isEditing, setIsEditing] = useState<boolean>(!scenario?.notes?.trim())
+  const [draftNotes, setDraftNotes] = useState<string>(scenario?.notes || '')
   const [isPolishing, setIsPolishing] = useState(false)
   const [polishedSuccess, setPolishedSuccess] = useState(false)
   const [saveToast, setSaveToast] = useState<string | null>(null)
 
-  const isChanged = draftNotes.trim() !== (scenario.notes || '').trim()
-
   // Sync draftNotes whenever scenario changes
   useEffect(() => {
+    if (!scenario) return
     setDraftNotes(scenario.notes || '')
     setIsEditing(!scenario.notes?.trim())
     setPolishedSuccess(false)
-  }, [scenario.id, scenario.notes])
+  }, [scenario?.id, scenario?.notes])
 
   // Close on Escape key
   useEffect(() => {
@@ -50,6 +47,10 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
+
+  if (!scenario) return null
+
+  const isChanged = draftNotes.trim() !== (scenario.notes || '').trim()
 
   const handleAiPolish = async () => {
     if (!draftNotes.trim() || isPolishing) return

@@ -65,7 +65,7 @@ export interface ScenarioVersion {
     comments?: string
     notes?: string
     status: ScenarioStatus
-    engineCategory: 'Governance' | 'Contribution'
+    engineCategory: string
     priority: PriorityLevel
     environment: Environment
   }
@@ -80,7 +80,7 @@ export interface FieldVersionRecord {
 export interface NotificationScenario {
   id: string
   key: string // e.g., 'GOV-1' or 'CONTRIB-1'
-  engineCategory: 'Governance' | 'Contribution'
+  engineCategory: string
   governanceEvent: string
   trigger: string
   audience: string

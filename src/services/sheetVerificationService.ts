@@ -78,7 +78,7 @@ export const FIELD_LABELS: Record<EditableField, string> = {
   cta: 'Call to Action',
 }
 
-// Default Registered Sheets per Engine (Extensible for future engines)
+// Default Registered Sheets per Engine (Extensible for all database engines)
 export const DEFAULT_ENGINE_SHEETS: Record<string, EngineSheetConfig> = {
   Governance: {
     engineCategory: 'Governance',
@@ -96,6 +96,42 @@ export const DEFAULT_ENGINE_SHEETS: Record<string, EngineSheetConfig> = {
       'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
     csvExportUrl:
       'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/export?format=csv',
+    enabled: true,
+  },
+  Participation: {
+    engineCategory: 'Participation',
+    sheetName: 'Participation Content Sheet',
+    sheetUrl:
+      'https://docs.google.com/spreadsheets/d/1sbkCjQX8F5NvR3BZDU2j_YBOQIYguGVy/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
+    csvExportUrl:
+      'https://docs.google.com/spreadsheets/d/1sbkCjQX8F5NvR3BZDU2j_YBOQIYguGVy/export?format=csv',
+    enabled: true,
+  },
+  Identity: {
+    engineCategory: 'Identity',
+    sheetName: 'Identity Content Sheet',
+    sheetUrl:
+      'https://docs.google.com/spreadsheets/d/1gW1y-0azkHNdgDELrl-WNKOzYmfO9cjr/edit?gid=2121080523#gid=2121080523',
+    csvExportUrl:
+      'https://docs.google.com/spreadsheets/d/1gW1y-0azkHNdgDELrl-WNKOzYmfO9cjr/export?format=csv&gid=2121080523',
+    enabled: true,
+  },
+  Opportunity: {
+    engineCategory: 'Opportunity',
+    sheetName: 'Opportunity Content Sheet',
+    sheetUrl:
+      'https://docs.google.com/spreadsheets/d/1jD0q7YXiHRo6BAp64F36n6kE48xWonvZ/edit?gid=659053223#gid=659053223',
+    csvExportUrl:
+      'https://docs.google.com/spreadsheets/d/1jD0q7YXiHRo6BAp64F36n6kE48xWonvZ/export?format=csv&gid=659053223',
+    enabled: true,
+  },
+  Discovery: {
+    engineCategory: 'Discovery',
+    sheetName: 'Discovery Content Sheet',
+    sheetUrl:
+      'https://docs.google.com/spreadsheets/d/1a6VS21ynlS1lAM9PQVxqUoQGneI_3-pF/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
+    csvExportUrl:
+      'https://docs.google.com/spreadsheets/d/1a6VS21ynlS1lAM9PQVxqUoQGneI_3-pF/export?format=csv',
     enabled: true,
   },
 }
@@ -485,8 +521,8 @@ export async function verifyAllEngines(
     lastCheckedAt: new Date().toISOString(),
     isLoading: false,
     error: null,
-    sheetName: 'Governance & Contribution Sheets',
-    sheetUrl: configs['Governance']?.sheetUrl || configs['Contribution']?.sheetUrl || '',
+    sheetName: enabledEngines.length > 0 ? `${enabledEngines.join(', ')} Sheets` : 'All Registered Engine Sheets',
+    sheetUrl: Object.values(configs).find((c) => c.enabled && c.sheetUrl)?.sheetUrl || configs['Governance']?.sheetUrl || '',
     totalSheetRows: 0,
     totalScenariosChecked: 0,
     totalMismatches: 0,

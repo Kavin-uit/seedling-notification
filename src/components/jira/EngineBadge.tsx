@@ -3,10 +3,10 @@ import type { ScenarioStatus } from '../../types/notification'
 import { ChevronDown, Check, Bug, Info, X } from 'lucide-react'
 
 interface EngineBadgeProps {
-  category: 'Governance' | 'Contribution'
+  category: string
   currentStatus: ScenarioStatus
   onUpdateStatus: (newStatus: ScenarioStatus) => void
-  onSwitchEngine?: (newCategory: 'Governance' | 'Contribution') => void
+  onSwitchEngine?: (newCategory: string) => void
   onCreateDefect?: () => void
   onOpenLog?: () => void
   interactive?: boolean

@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import type { NotificationScenario, ScenarioStatus } from './types/notification'
 import { JiraNavbar } from './components/jira/JiraNavbar'
-import type { EngineCategoryFilter } from './components/jira/JiraNavbar'
+import type { EngineCategoryFilter, EngineMenuItem } from './components/jira/JiraNavbar'
 import { JiraTable } from './components/jira/JiraTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
 import { engineSheetsApi } from './api/engineSheetsApi'
+import { enginesApi } from './api/enginesApi'
 import { recordScenarioUpdate } from './utils/versionHistory'
 import {
   verifyAllEngines,
@@ -21,6 +22,7 @@ import { parseStatuses } from './types/notification'
 export default function App() {
   const [scenarios, setScenarios] = useState<NotificationScenario[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [dbEngines, setDbEngines] = useState<string[]>([])
 
   // Initialize filters from URL query parameters (for deep linking & sharing)
   const [initialUrlParams] = useState(() => parseFilterUrlParams())
@@ -105,13 +107,20 @@ export default function App() {
     [selectedEngine]
   )
 
-  // Load scenarios & registered engine sheet links dynamically from Cloudflare D1 & verify on refresh
+  // Load scenarios, registered engine sheets, & distinct engines dynamically from Cloudflare D1
   useEffect(() => {
-    Promise.all([scenariosApi.fetchScenarios(), engineSheetsApi.fetchEngineSheets()])
-      .then(([{ scenarios: data }]) => {
+    Promise.all([
+      scenariosApi.fetchScenarios(),
+      engineSheetsApi.fetchEngineSheets(),
+      enginesApi.fetchEngines(),
+    ])
+      .then(([{ scenarios: data }, _sheets, enginesList]) => {
         if (data && data.length > 0) {
           setScenarios(data)
           runVerification(data)
+        }
+        if (enginesList && enginesList.length > 0) {
+          setDbEngines(enginesList)
         }
       })
       .finally(() => {
@@ -137,19 +146,81 @@ export default function App() {
     }
   }, [scenarios])
 
-  // Count per engine category
-  const govCount = scenarios.filter((s) => s.engineCategory === 'Governance').length
-  const contribCount = scenarios.filter((s) => s.engineCategory === 'Contribution').length
+  // Derive all unique engines dynamically from:
+  // 1. D1 engines API (scenarios & engine_sheets in D1)
+  // 2. Currently loaded scenarios in state
+  // 3. Fallback defaults
+  const dynamicEngines = useMemo<string[]>(() => {
+    const set = new Set<string>()
+    // From D1 engines endpoint
+    dbEngines.forEach((e) => {
+      const trimmed = (e || '').trim()
+      if (trimmed) set.add(trimmed)
+    })
+    // From loaded scenarios
+    scenarios.forEach((s) => {
+      const trimmed = (s.engineCategory || '').trim()
+      if (trimmed) set.add(trimmed)
+    })
+    // Core fallback defaults if empty
+    if (set.size === 0) {
+      set.add('Governance')
+      set.add('Contribution')
+      set.add('Participation')
+      set.add('Identity')
+      set.add('Opportunity')
+      set.add('Discovery')
+    }
+
+    const list = Array.from(set)
+    return list.sort((a, b) => {
+      if (a === 'Governance') return -1
+      if (b === 'Governance') return 1
+      if (a === 'Contribution') return -1
+      if (b === 'Contribution') return 1
+      return a.localeCompare(b)
+    })
+  }, [dbEngines, scenarios])
+
+  // Count per engine category dynamically
+  const engineCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    dynamicEngines.forEach((e) => {
+      counts[e] = 0
+    })
+    scenarios.forEach((s) => {
+      const cat = (s.engineCategory || 'Governance').trim()
+      counts[cat] = (counts[cat] || 0) + 1
+    })
+    return counts
+  }, [dynamicEngines, scenarios])
+
+  // Formatted list for JiraNavbar
+  const navbarEngines = useMemo<EngineMenuItem[]>(() => {
+    return dynamicEngines.map((name) => ({
+      name,
+      count: engineCounts[name] || 0,
+    }))
+  }, [dynamicEngines, engineCounts])
 
   // Add new row directly into active engine category (persisted to D1)
   const handleAddRow = (): NotificationScenario => {
-    const targetEngine = selectedEngine === 'Contribution' ? 'Contribution' : 'Governance'
-    const prefix = targetEngine === 'Contribution' ? 'CONTRIB' : 'GOV'
+    const targetEngine = selectedEngine !== 'ALL' ? selectedEngine : 'Governance'
+    let prefix = 'GOV'
+    if (targetEngine === 'Contribution') prefix = 'CONTRIB'
+    else if (targetEngine === 'Participation') prefix = 'PART'
+    else if (targetEngine === 'Identity') prefix = 'ID'
+    else if (targetEngine === 'Opportunity') prefix = 'OPP'
+    else if (targetEngine === 'Discovery') prefix = 'DISC'
+    else {
+      const clean = targetEngine.toUpperCase().replace(/[^A-Z0-9]/g, '')
+      prefix = clean.length > 5 ? clean.slice(0, 5) : clean || 'SCEN'
+    }
 
     const existingNums = scenarios
-      .filter((s) => s.engineCategory === targetEngine)
+      .filter((s) => (s.engineCategory || '').toLowerCase() === targetEngine.toLowerCase())
       .map((s) => {
-        const match = s.key.match(new RegExp(`${prefix}-(\\d+)`))
+        const match = s.key.match(new RegExp(`${prefix}-(\\d+)`, 'i'))
         return match ? parseInt(match[1], 10) : 0
       })
     const maxNum = existingNums.length > 0 ? Math.max(...existingNums) : 0
@@ -159,7 +230,7 @@ export default function App() {
       id: `${prefix.toLowerCase()}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       key: `${prefix}-${newNum}`,
       engineCategory: targetEngine,
-      governanceEvent: targetEngine === 'Contribution' ? 'New Contribution Event' : 'New Governance Event',
+      governanceEvent: `New ${targetEngine} Event`,
       trigger: '',
       audience: targetEngine === 'Contribution' ? 'Donor' : 'Community Member',
       communicationObjective: '',
@@ -346,8 +417,10 @@ export default function App() {
         selectedEngine={selectedEngine}
         onSelectEngine={setSelectedEngine}
         onResetAllFilters={handleResetAllFilters}
-        govCount={govCount}
-        contribCount={contribCount}
+        engines={navbarEngines}
+        engineCounts={engineCounts}
+        govCount={engineCounts['Governance'] || 0}
+        contribCount={engineCounts['Contribution'] || 0}
         totalRows={scenarios.length}
         verificationSummary={verificationSummary}
         isVerifying={isVerifying}
@@ -378,6 +451,7 @@ export default function App() {
             onClearSearch={() => setSearchQuery('')}
             selectedEngine={selectedEngine}
             onSelectEngine={setSelectedEngine}
+            availableEngines={dynamicEngines}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             onResetAllFilters={handleResetAllFilters}

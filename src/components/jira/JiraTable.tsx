@@ -64,8 +64,9 @@ interface JiraTableProps {
   onAddRow: () => NotificationScenario | void
   searchQuery: string
   onClearSearch?: () => void
-  selectedEngine: 'ALL' | 'Governance' | 'Contribution'
-  onSelectEngine?: (engine: 'ALL' | 'Governance' | 'Contribution') => void
+  selectedEngine: string
+  onSelectEngine?: (engine: string) => void
+  availableEngines?: string[]
   statusFilter?: string
   onStatusFilterChange?: (status: string) => void
   onResetAllFilters?: () => void
@@ -210,6 +211,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   onClearSearch,
   selectedEngine,
   onSelectEngine,
+  availableEngines = ['Governance', 'Contribution', 'Participation', 'Identity', 'Opportunity', 'Discovery'],
   statusFilter: propsStatusFilter,
   onStatusFilterChange,
   onResetAllFilters,
@@ -683,10 +685,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
   // Header label based on engine category
   const eventColumnHeader =
-    selectedEngine === 'Governance'
-      ? 'Governance Event'
-      : selectedEngine === 'Contribution'
-      ? 'Contribution Event'
+    selectedEngine !== 'ALL'
+      ? `${selectedEngine} Event`
       : 'Event'
 
   const allStatuses = useMemo<ScenarioStatus[]>(() => {
@@ -764,16 +764,20 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border-emerald-300 shadow-2xs'
                   : selectedEngine === 'Contribution'
                   ? 'bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300 shadow-2xs'
+                  : selectedEngine === 'Participation'
+                  ? 'bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300 shadow-2xs'
+                  : selectedEngine === 'Identity'
+                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300 shadow-2xs'
+                  : selectedEngine !== 'ALL'
+                  ? 'bg-teal-100 hover:bg-teal-200 text-teal-800 border-teal-300 shadow-2xs'
                   : hasActiveFilters
                   ? 'bg-[#DEEBFF] hover:bg-[#B3D4FF] text-[#0052CC] border-[#B3D4FF] shadow-2xs'
                   : 'bg-[#EBECF0] hover:bg-[#DFE1E6] text-[#172B4D] border-[#C1C7D0]'
               }`}
             >
               <span>
-                {selectedEngine === 'Governance'
-                  ? 'Governance Engine Sheet'
-                  : selectedEngine === 'Contribution'
-                  ? 'Contribution Engine Sheet'
+                {selectedEngine !== 'ALL'
+                  ? `${selectedEngine.toLowerCase().endsWith('engine') ? selectedEngine : `${selectedEngine} Engine`} Sheet`
                   : 'All Engine Categories'}
               </span>
               {selectedEngine !== 'ALL' ? (
@@ -1643,7 +1647,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             <div className="px-3 py-1 text-[10px] font-bold text-[#6B778C] uppercase">
               Switch Engine
             </div>
-            {(['Governance', 'Contribution'] as const).map((cat) => {
+            {availableEngines.map((cat) => {
               const isSelected = contextMenu.scenario.engineCategory === cat
               return (
                 <button

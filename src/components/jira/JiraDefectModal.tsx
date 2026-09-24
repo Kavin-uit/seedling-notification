@@ -171,10 +171,8 @@ export const JiraDefectModal: React.FC<JiraDefectModalProps> = ({
   onClose,
   onMarkNotWorking,
 }) => {
-  if (!isOpen || !scenario) return null
-
   const [failureType, setFailureType] = useState<DefectFailureType>(() =>
-    getInitialFailureType(scenario.status)
+    scenario ? getInitialFailureType(scenario.status) : 'PUSH'
   )
   const [viewMode, setViewMode] = useState<'form' | 'preview'>('form')
 
@@ -187,6 +185,7 @@ export const JiraDefectModal: React.FC<JiraDefectModalProps> = ({
 
   // Initialize or recompute when scenario or failureType changes
   useEffect(() => {
+    if (!isOpen || !scenario) return
     const initial = getInitialFailureType(scenario.status)
     setFailureType(initial)
     const data = buildDefectData(scenario, initial)
@@ -195,7 +194,9 @@ export const JiraDefectModal: React.FC<JiraDefectModalProps> = ({
     setSteps(data.steps)
     setExpected(data.expected)
     setActual(data.actual)
-  }, [scenario.id, scenario.status])
+  }, [isOpen, scenario?.id, scenario?.status])
+
+  if (!isOpen || !scenario) return null
 
   const handleFailureTypeChange = (newType: DefectFailureType) => {
     setFailureType(newType)
