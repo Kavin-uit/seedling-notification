@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { NotificationScenario, ScenarioStatus } from '../../types/notification'
 import { parseStatuses } from '../../types/notification'
@@ -714,6 +714,40 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   } | null>(null)
   const contextMenuRef = useRef<HTMLDivElement>(null)
 
+  // Dynamically clamp context menu strictly within viewport bounds after DOM render
+  useLayoutEffect(() => {
+    if (!contextMenu || !contextMenuRef.current) return
+    const el = contextMenuRef.current
+    const rect = el.getBoundingClientRect()
+    const PADDING = 16
+
+    let adjustedTop = rect.top
+    let adjustedLeft = rect.left
+    let modified = false
+
+    if (rect.bottom > window.innerHeight - PADDING) {
+      adjustedTop = Math.max(PADDING, window.innerHeight - rect.height - PADDING)
+      modified = true
+    }
+    if (rect.right > window.innerWidth - PADDING) {
+      adjustedLeft = Math.max(PADDING, window.innerWidth - rect.width - PADDING)
+      modified = true
+    }
+    if (adjustedTop < PADDING) {
+      adjustedTop = PADDING
+      modified = true
+    }
+    if (adjustedLeft < PADDING) {
+      adjustedLeft = PADDING
+      modified = true
+    }
+
+    if (modified) {
+      el.style.top = `${adjustedTop}px`
+      el.style.left = `${adjustedLeft}px`
+    }
+  }, [contextMenu])
+
   // Copy entire row values to clipboard in tab-separated format (spreadsheet ready)
   const handleCopyRow = (scenario: NotificationScenario) => {
     const rowValues = [
@@ -944,12 +978,30 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   // Data is protected and read-only for production: cell editing and pasting disabled.
   // Status transitions remain fully active and persist to Cloudflare D1.
 
-  // Handle right-click context menu
+  // Handle right-click context menu (smart positioning to fit within viewport)
   const handleContextMenu = (e: React.MouseEvent, scenario: NotificationScenario) => {
     e.preventDefault()
+    const MENU_WIDTH = 250
+    const ESTIMATED_HEIGHT = 480
+    const PADDING = 16
+
+    let x = e.clientX
+    if (x + MENU_WIDTH > window.innerWidth - PADDING) {
+      x = Math.max(PADDING, window.innerWidth - MENU_WIDTH - PADDING)
+    }
+
+    let y = e.clientY
+    const spaceBelow = window.innerHeight - e.clientY
+    if (spaceBelow < 380 && e.clientY > 380) {
+      // Flip upward when near the bottom of the screen
+      y = Math.max(PADDING, e.clientY - ESTIMATED_HEIGHT)
+    } else if (y + ESTIMATED_HEIGHT > window.innerHeight - PADDING) {
+      y = Math.max(PADDING, window.innerHeight - ESTIMATED_HEIGHT - PADDING)
+    }
+
     setContextMenu({
-      x: Math.min(e.clientX, window.innerWidth - 220),
-      y: Math.min(e.clientY, window.innerHeight - 300),
+      x,
+      y,
       scenario,
     })
   }
@@ -2087,7 +2139,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       </div>
 
       {/* Right-Click Context Menu */}
-      {contextMenu && (
+      {contextMenu && createPortal(
         <>
           {/* Full-screen backdrop to dismiss context menu on any click or tap */}
           <div
@@ -2100,14 +2152,20 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           />
           <div
             ref={contextMenuRef}
-            style={{ top: contextMenu.y, left: contextMenu.x }}
-            className="fixed z-50 w-56 bg-white rounded-lg shadow-2xl border border-[#DFE1E6] py-1 text-xs text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 divide-y divide-slate-100"
+            style={{
+              top: `${contextMenu.y}px`,
+              left: `${contextMenu.x}px`,
+              maxHeight: 'calc(100vh - 32px)',
+            }}
+            className="fixed z-50 w-60 bg-white rounded-xl shadow-2xl border border-[#DFE1E6] text-xs text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with (i) Info Log button, View Details button and Close X button */}
-            <div className="px-3 py-2 bg-[#FAFBFC] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider flex items-center justify-between border-b border-slate-100 rounded-t-lg">
-              <span className="font-semibold">{contextMenu.scenario.key} &bull; Quick Actions</span>
-              <div className="flex items-center gap-1.5">
+            <div className="shrink-0 px-3 py-2 bg-[#FAFBFC] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider flex items-center justify-between border-b border-slate-100 rounded-t-xl select-none">
+              <span className="font-semibold text-slate-800 truncate pr-1">
+                {contextMenu.scenario.key} &bull; Quick Actions
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -2153,149 +2211,153 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               </div>
             </div>
 
-          {/* Transition Status Options */}
-          <div className="py-1">
-            <div className="px-3 py-1 text-[10px] font-bold text-[#6B778C] uppercase flex items-center justify-between">
-              <span>Transition Status</span>
-              <ChevronRight className="w-3 h-3 text-slate-400" />
-            </div>
-            {allStatuses.map((st) => {
-              const isSelected = contextMenu.scenario.status === st
-              return (
+            {/* Scrollable Actions Container */}
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 overscroll-contain">
+              {/* Transition Status Options */}
+              <div className="py-1">
+                <div className="px-3 py-1 text-[10px] font-bold text-[#6B778C] uppercase flex items-center justify-between">
+                  <span>Transition Status</span>
+                  <ChevronRight className="w-3 h-3 text-slate-400" />
+                </div>
+                {allStatuses.map((st) => {
+                  const isSelected = contextMenu.scenario.status === st
+                  return (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => {
+                        onUpdateStatus(contextMenu.scenario.id, st)
+                        setContextMenu(null)
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-slate-50 cursor-pointer transition text-left text-xs ${
+                        isSelected ? 'font-bold bg-slate-50 text-[#0052CC]' : 'text-[#42526E]'
+                      }`}
+                    >
+                      <span>{st}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#0052CC]" />}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Change Engine Category */}
+              <div className="py-1">
+                <div className="px-3 py-1 text-[10px] font-bold text-[#6B778C] uppercase">
+                  Switch Engine
+                </div>
+                {availableEngines.map((cat) => {
+                  const isSelected = contextMenu.scenario.engineCategory === cat
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        onUpdateScenario({
+                          ...contextMenu.scenario,
+                          engineCategory: cat,
+                          updatedAt: new Date().toISOString(),
+                        })
+                        setContextMenu(null)
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-slate-50 cursor-pointer transition text-left text-xs ${
+                        isSelected ? 'font-bold bg-slate-50 text-emerald-700' : 'text-[#42526E]'
+                      }`}
+                    >
+                      <span>{cat} Engine</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Edit Comments */}
+              <div className="py-1">
                 <button
-                  key={st}
                   type="button"
                   onClick={() => {
-                    onUpdateStatus(contextMenu.scenario.id, st)
+                    const target = contextMenu.scenario
                     setContextMenu(null)
+                    startEditingComment(target)
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-slate-50 cursor-pointer transition text-left text-xs ${
-                    isSelected ? 'font-bold bg-slate-50 text-[#0052CC]' : 'text-[#42526E]'
-                  }`}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 text-[#0052CC] cursor-pointer transition text-left text-xs font-semibold"
                 >
-                  <span>{st}</span>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-[#0052CC]" />}
+                  <MessageSquare className="w-3.5 h-3.5 text-[#0052CC]" />
+                  <span>Edit Comments</span>
                 </button>
-              )
-            })}
-          </div>
+              </div>
 
-          {/* Change Engine Category */}
-          <div className="py-1">
-            <div className="px-3 py-1 text-[10px] font-bold text-[#6B778C] uppercase">
-              Switch Engine
-            </div>
-            {availableEngines.map((cat) => {
-              const isSelected = contextMenu.scenario.engineCategory === cat
-              return (
+              {/* Copy Entire Row */}
+              <div className="py-1">
                 <button
-                  key={cat}
+                  type="button"
+                  onClick={() => handleCopyRow(contextMenu.scenario)}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 text-[#172B4D] cursor-pointer transition text-left text-xs font-semibold"
+                >
+                  <Copy className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Copy Entire Row</span>
+                </button>
+              </div>
+
+              {/* Version History & Rollback */}
+              <div className="py-1">
+                <button
                   type="button"
                   onClick={() => {
-                    onUpdateScenario({
-                      ...contextMenu.scenario,
-                      engineCategory: cat,
-                      updatedAt: new Date().toISOString(),
-                    })
+                    setHistoryScenario(contextMenu.scenario)
                     setContextMenu(null)
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 hover:bg-slate-50 cursor-pointer transition text-left text-xs ${
-                    isSelected ? 'font-bold bg-slate-50 text-emerald-700' : 'text-[#42526E]'
-                  }`}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 text-[#0052CC] cursor-pointer transition text-left text-xs font-semibold"
                 >
-                  <span>{cat} Engine</span>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  <History className="w-3.5 h-3.5 text-[#0052CC]" />
+                  <span>Change History & Log ({contextMenu.scenario.versionHistory?.length || 0}/10)</span>
                 </button>
-              )
-            })}
-          </div>
+              </div>
 
-          {/* Edit Comments */}
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={() => {
-                const target = contextMenu.scenario
-                setContextMenu(null)
-                startEditingComment(target)
-              }}
-              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 text-[#0052CC] cursor-pointer transition text-left text-xs font-semibold"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-[#0052CC]" />
-              <span>Edit Comments</span>
-            </button>
-          </div>
+              {/* Create Defect Ticket */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDefectScenario(contextMenu.scenario)
+                    setContextMenu(null)
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-rose-50 text-[#BF2600] cursor-pointer transition text-left text-xs font-bold"
+                >
+                  <Bug className="w-3.5 h-3.5 text-[#BF2600]" />
+                  <span>Create Defect Ticket</span>
+                </button>
+              </div>
 
-          {/* Copy Entire Row */}
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={() => handleCopyRow(contextMenu.scenario)}
-              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 text-[#172B4D] cursor-pointer transition text-left text-xs font-semibold"
-            >
-              <Copy className="w-3.5 h-3.5 text-slate-500" />
-              <span>Copy Entire Row</span>
-            </button>
-          </div>
+              {/* Delete Row */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContextMenu(null)
+                    handleDeleteRow(contextMenu.scenario)
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-rose-50 text-[#BF2600] cursor-pointer transition text-left text-xs font-semibold"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-[#BF2600]" />
+                  <span>Delete Row</span>
+                </button>
+              </div>
+            </div>
 
-          {/* Version History & Rollback */}
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={() => {
-                setHistoryScenario(contextMenu.scenario)
-                setContextMenu(null)
-              }}
-              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 text-[#0052CC] cursor-pointer transition text-left text-xs font-semibold"
-            >
-              <History className="w-3.5 h-3.5 text-[#0052CC]" />
-              <span>Change History & Log ({contextMenu.scenario.versionHistory?.length || 0}/10)</span>
-            </button>
+            {/* Sticky Close Button Footer */}
+            <div className="shrink-0 py-1.5 px-2 bg-slate-50 border-t border-slate-100 rounded-b-xl">
+              <button
+                type="button"
+                onClick={() => setContextMenu(null)}
+                className="w-full flex items-center justify-center gap-1.5 py-1 hover:bg-slate-200/70 text-slate-600 hover:text-slate-900 rounded cursor-pointer transition text-xs font-semibold"
+              >
+                <X className="w-3.5 h-3.5 text-slate-400" />
+                <span>Close Menu</span>
+              </button>
+            </div>
           </div>
-
-          {/* Create Defect Ticket */}
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={() => {
-                setDefectScenario(contextMenu.scenario)
-                setContextMenu(null)
-              }}
-              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-rose-50 text-[#BF2600] cursor-pointer transition text-left text-xs font-bold"
-            >
-              <Bug className="w-3.5 h-3.5 text-[#BF2600]" />
-              <span>Create Defect Ticket</span>
-            </button>
-          </div>
-
-          {/* Delete Row */}
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={() => {
-                setContextMenu(null)
-                handleDeleteRow(contextMenu.scenario)
-              }}
-              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-rose-50 text-[#BF2600] cursor-pointer transition text-left text-xs font-semibold"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-[#BF2600]" />
-              <span>Delete Row</span>
-            </button>
-          </div>
-
-          {/* Close Menu Button */}
-          <div className="py-1 bg-slate-50 rounded-b-lg">
-            <button
-              type="button"
-              onClick={() => setContextMenu(null)}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-800 cursor-pointer transition text-xs font-semibold"
-            >
-              <X className="w-3.5 h-3.5 text-slate-400" />
-              <span>Close Menu</span>
-            </button>
-          </div>
-        </div>
-        </>
+        </>,
+        document.body
       )}
 
       {/* Jira Defect Generator Modal */}

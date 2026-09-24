@@ -165,6 +165,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [openUpward, setOpenUpward] = useState(false)
+  const [openLeftward, setOpenLeftward] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const activeStatuses = parseStatuses(status)
@@ -230,7 +231,8 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
     if (!isOpen && dropdownRef.current) {
       const rect = dropdownRef.current.getBoundingClientRect()
       const spaceBelow = window.innerHeight - rect.bottom
-      setOpenUpward(spaceBelow < 350 && rect.top > spaceBelow)
+      setOpenUpward(spaceBelow < 380 && rect.top > spaceBelow)
+      setOpenLeftward(rect.left + 330 > window.innerWidth)
     }
     setIsOpen(!isOpen)
   }
@@ -292,9 +294,9 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
             }}
           />
           <div
-            className={`absolute left-0 w-80 rounded-lg bg-white shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 ${
-              openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
-            }`}
+            className={`absolute w-80 rounded-lg bg-white shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 ${
+              openLeftward ? 'right-0' : 'left-0'
+            } ${openUpward ? 'bottom-full mb-1' : 'top-full mt-1'}`}
           >
             {/* Simple Human Header */}
             <div className="px-3.5 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
