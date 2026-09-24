@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, FileSpreadsheet, X, Layers, ChevronDown, Check, Share2 } from 'lucide-react'
+import { Search, FileSpreadsheet, X, Layers, ChevronDown, Check, Share } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
@@ -208,7 +208,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                     {copiedEngineKey === 'Governance' ? (
                       <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
                     ) : (
-                      <Share2 className="w-3.5 h-3.5" />
+                      <Share className="w-3.5 h-3.5" />
                     )}
                   </button>
                   {selectedEngine === 'Governance' && (
@@ -243,7 +243,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                     {copiedEngineKey === 'Contribution' ? (
                       <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
                     ) : (
-                      <Share2 className="w-3.5 h-3.5" />
+                      <Share className="w-3.5 h-3.5" />
                     )}
                   </button>
                   {selectedEngine === 'Contribution' && (
@@ -282,7 +282,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                     {copiedEngineKey === 'ALL' ? (
                       <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
                     ) : (
-                      <Share2 className="w-3.5 h-3.5" />
+                      <Share className="w-3.5 h-3.5" />
                     )}
                   </button>
                   {selectedEngine === 'ALL' && (
@@ -381,7 +381,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             </>
           ) : (
             <>
-              <Share2 className="w-3.5 h-3.5" />
+              <Share className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">
                 {hasActiveFilters ? 'Share Filter' : 'Share'}
               </span>

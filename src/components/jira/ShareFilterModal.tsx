@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { X, Copy, Check, ExternalLink, Share2, Layers, Filter } from 'lucide-react'
+import { X, Copy, Check, ExternalLink, Share, Layers, Filter } from 'lucide-react'
 import { copyShareUrlToClipboard } from '../../utils/filterShare'
 
 interface ShareFilterModalProps {
@@ -58,7 +58,7 @@ export const ShareFilterModal: React.FC<ShareFilterModalProps> = ({
         <div className="px-5 py-4 border-b border-[#EBECF0] flex items-center justify-between bg-[#FAFBFC]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-blue-100 text-[#0052CC] flex items-center justify-center">
-              <Share2 className="w-4 h-4" />
+              <Share className="w-4 h-4" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-[#172B4D]">Share Filtered View</h3>

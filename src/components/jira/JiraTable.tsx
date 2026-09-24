@@ -25,7 +25,7 @@ import {
   MessageSquare,
   Loader2,
   RotateCcw,
-  Share2,
+  Share,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
@@ -783,7 +783,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                 {copiedEngineFilter ? (
                   <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
                 ) : (
-                  <Share2 className="w-3.5 h-3.5" />
+                  <Share className="w-3.5 h-3.5" />
                 )}
               </button>
             )}
@@ -965,7 +965,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               </>
             ) : (
               <>
-                <Share2 className="w-3.5 h-3.5" />
+                <Share className="w-3.5 h-3.5" />
                 <span>Share Filter</span>
               </>
             )}
