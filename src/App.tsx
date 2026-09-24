@@ -18,6 +18,7 @@ import { ShareFilterModal } from './components/jira/ShareFilterModal'
 import { Loader2, Check } from 'lucide-react'
 import { parseFilterUrlParams, syncFiltersToUrl, buildFilterShareUrl } from './utils/filterShare'
 import { parseStatuses } from './types/notification'
+import { executeSearch } from './utils/aiSearch'
 
 const FILTERS_STORAGE_KEY = 'seedling_active_filters_v1'
 
@@ -447,11 +448,15 @@ export default function App() {
     scenariosApi.deleteScenario(id)
   }
 
-  // Filter exported data according to active engine filter
-  const exportTargetScenarios =
-    selectedEngine === 'ALL'
+  // Filter exported data according to active engine filter or global search
+  const exportTargetScenarios = useMemo(() => {
+    if (searchQuery.trim()) {
+      return executeSearch(scenarios, searchQuery, false).results
+    }
+    return selectedEngine === 'ALL'
       ? scenarios
       : scenarios.filter((s) => s.engineCategory === selectedEngine)
+  }, [scenarios, searchQuery, selectedEngine])
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
@@ -460,20 +465,25 @@ export default function App() {
       ? statusFilter.split(',').map((s) => s.trim()).filter((s) => s && s !== 'ALL')
       : []
 
-  const matchingCount = scenarios.filter((s) => {
-    const matchesEngine =
-      selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
-    if (!matchesEngine) return false
-    if (activeStatuses.length === 0) return true
-    const upperActive = parseStatuses(s.status).map((st) => st.trim().toUpperCase())
-    return activeStatuses.some((sel) => {
-      const clean = sel.trim().toUpperCase()
-      if (clean === 'NOT_WORKING_ANY' || clean === 'ALL NOT WORKING') {
-        return upperActive.some((st) => st.includes('NOT WORKING'))
-      }
-      return upperActive.includes(clean)
-    })
-  }).length
+  const matchingCount = useMemo(() => {
+    if (searchQuery.trim()) {
+      return executeSearch(scenarios, searchQuery, false).results.length
+    }
+    return scenarios.filter((s) => {
+      const matchesEngine =
+        selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
+      if (!matchesEngine) return false
+      if (activeStatuses.length === 0) return true
+      const upperActive = parseStatuses(s.status).map((st) => st.trim().toUpperCase())
+      return activeStatuses.some((sel) => {
+        const clean = sel.trim().toUpperCase()
+        if (clean === 'NOT_WORKING_ANY' || clean === 'ALL NOT WORKING') {
+          return upperActive.some((st) => st.includes('NOT WORKING'))
+        }
+        return upperActive.includes(clean)
+      })
+    }).length
+  }, [scenarios, searchQuery, selectedEngine, activeStatuses])
 
   const currentShareUrl = buildFilterShareUrl({
     engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,

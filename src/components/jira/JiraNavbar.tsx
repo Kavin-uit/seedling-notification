@@ -373,7 +373,8 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                 onSearchChange('')
               }
             }}
-            placeholder="Search events, triggers, communication..."
+            placeholder="Search globally across all engines..."
+            title="Search globally across all engines, events, triggers, and notification text"
             className="w-full h-8.5 bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-[13px] rounded-[4px] pl-8.5 pr-8 transition outline-none border border-transparent focus:border-[#4C9AFF] focus:ring-2 focus:ring-white/80 shadow-xs"
           />
 

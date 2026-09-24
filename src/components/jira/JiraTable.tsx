@@ -28,6 +28,7 @@ import {
   RotateCcw,
   Share,
   Eye,
+  Globe,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
@@ -921,17 +922,22 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     })
   }, [scenarios, selectedEngine, selectedStatuses])
 
-  // 2. Spreadsheet behavior: Search does NOT filter out rows - all rows stay visible!
-  // It only highlights the matched values where they appear in the cells.
-  const filteredScenarios = baseFiltered
+  // 2. Global Search: When search query is entered, search GLOBALLY across ALL scenarios,
+  // completely bypassing active engine and status filters as explicitly requested.
+  const isSearchActive = Boolean(searchQuery && searchQuery.trim().length > 0)
 
-  // 3. Find matching rows & terms for highlighting and match navigation
+  // 3. Find matching rows & terms globally across all scenarios
   const { results: matchingScenarios, matchedTerms } = useMemo(() => {
-    if (!searchQuery.trim()) {
+    if (!isSearchActive) {
       return { results: [], matchedTerms: new Set<string>() }
     }
-    return executeSearch(baseFiltered, searchQuery, Boolean(isAiSearch))
-  }, [baseFiltered, searchQuery, isAiSearch])
+    // Search GLOBALLY across all scenarios (ignoring selectedEngine and selectedStatuses)
+    return executeSearch(scenarios, searchQuery, Boolean(isAiSearch))
+  }, [scenarios, searchQuery, isAiSearch, isSearchActive])
+
+  // When search query is entered, display matching scenarios globally across all engines.
+  // When search is empty, display baseFiltered (respecting current engine and status filters).
+  const filteredScenarios = isSearchActive ? matchingScenarios : baseFiltered
 
   const matchingRowIds = useMemo(() => {
     return new Set(matchingScenarios.map((s) => s.id))
@@ -1371,6 +1377,22 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             )}
           </button>
 
+          {/* Active Global Search Indicator Pill */}
+          {isSearchActive && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#DEEBFF] text-[#0052CC] border border-[#B3D4FF] text-xs font-semibold select-none shrink-0 shadow-2xs">
+              <Globe className="w-3.5 h-3.5 text-[#0052CC]" />
+              <span>Global Search: &quot;{searchQuery}&quot;</span>
+              <button
+                type="button"
+                onClick={onClearSearch}
+                className="ml-1 hover:bg-[#B3D4FF] text-[#0052CC] rounded p-0.5 transition cursor-pointer"
+                title="Clear global search"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
           {/* Reset all filters button when any filter is active */}
           {hasActiveFilters && (
             <button
@@ -1426,7 +1448,15 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           )}
 
           <span className="text-[11px] text-[#6B778C]">
-            Showing <strong>{filteredScenarios.length}</strong> rows
+            {isSearchActive ? (
+              <>
+                Showing <strong>{filteredScenarios.length}</strong> global {filteredScenarios.length === 1 ? 'match' : 'matches'}
+              </>
+            ) : (
+              <>
+                Showing <strong>{filteredScenarios.length}</strong> rows
+              </>
+            )}
           </span>
 
           {isAnyColumnCustomized && (
@@ -1690,18 +1720,28 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               <tr>
                 <td colSpan={16} className="py-12 text-center text-[#6B778C]">
                   <p className="font-semibold text-sm">No matching notification rows</p>
-                  <p className="text-xs text-slate-400 mt-1">Adjust search query or status filter to view scenarios</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {isSearchActive
+                      ? `No scenarios found globally matching "${searchQuery}".`
+                      : 'Adjust engine category or status filter to view scenarios'}
+                  </p>
+                  {isSearchActive && (
+                    <button
+                      type="button"
+                      onClick={onClearSearch}
+                      className="mt-3 px-3 py-1.5 bg-[#DEEBFF] hover:bg-[#B3D4FF] text-[#0052CC] font-semibold text-xs rounded transition cursor-pointer"
+                    >
+                      Clear search
+                    </button>
+                  )}
                 </td>
               </tr>
             ) : (
               filteredScenarios.map((row, index) => {
-                // Show original spreadsheet row number (Excel-style)
-                const engineList =
-                  selectedEngine === 'ALL'
-                    ? scenarios
-                    : scenarios.filter(
-                        (s) => (s.engineCategory || 'Governance') === selectedEngine
-                      )
+                // Show original spreadsheet row number within its engine (Excel-style)
+                const engineList = scenarios.filter(
+                  (s) => (s.engineCategory || 'Governance') === (row.engineCategory || 'Governance')
+                )
                 const originalIndex = engineList.findIndex((s) => s.id === row.id)
                 const rowNumber = originalIndex >= 0 ? originalIndex + 1 : index + 1
 
