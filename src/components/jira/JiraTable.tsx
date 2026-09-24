@@ -8,6 +8,7 @@ import { JiraDefectModal } from './JiraDefectModal'
 import { VersionHistoryModal } from './VersionHistoryModal'
 import { EventBriefModal } from './EventBriefModal'
 import { IosMismatchTooltip } from './IosMismatchTooltip'
+import { JiraDetailModal } from './JiraDetailModal'
 import type { SheetVerificationSummary, FieldMismatch } from '../../services/sheetVerificationService'
 import {
   Filter,
@@ -26,6 +27,7 @@ import {
   Loader2,
   RotateCcw,
   Share,
+  Eye,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
@@ -479,6 +481,10 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   const [selectedEventBrief, setSelectedEventBrief] = useState<{
     scenario: NotificationScenario
     rect: DOMRect
+  } | null>(null)
+  const [detailScenario, setDetailScenario] = useState<{
+    scenario: NotificationScenario
+    rowNumber: number
   } | null>(null)
   const [activeMismatchTooltip, setActiveMismatchTooltip] = useState<{
     scenario: NotificationScenario
@@ -1663,13 +1669,13 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     {/* Excel Row Number with Visual Indicator & DBeaver Click Selection */}
                     <td
                       onClick={(e) => handleRowNumberClick(e, row.id)}
-                      title={`Row #${rowNumber} • Click to ${isSelected ? 'unselect row' : 'highlight full row (DBeaver style)'}`}
+                      title={`Row #${rowNumber} • Click to ${isSelected ? 'unselect row' : 'highlight full row'} • Click eye to view all details`}
                       style={{
                         width: `${columnWidths.index}px`,
                         minWidth: `${columnWidths.index}px`,
                         maxWidth: `${columnWidths.index}px`,
                       }}
-                      className={`px-2 py-2 font-mono text-[11px] text-center font-bold border-r border-[#E1E4E8] select-none transition-colors cursor-pointer sticky left-0 z-10 shadow-[1px_0_0_0_#E1E4E8] ${
+                      className={`px-1 py-2 font-mono text-[11px] text-center font-bold border-r border-[#E1E4E8] select-none transition-colors cursor-pointer sticky left-0 z-10 shadow-[1px_0_0_0_#E1E4E8] group/numcell ${
                         isSelected
                           ? 'border-l-[4px] border-l-[#0052CC] bg-[#0052CC] text-white shadow-xs'
                           : isCurrentMatch
@@ -1683,7 +1689,21 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           : 'border-l-[4px] border-l-transparent bg-[#F4F5F7] text-[#6B778C] hover:bg-[#EBECF0] hover:text-[#172B4D]'
                       }`}
                     >
-                      {rowNumber}
+                      <div className="flex items-center justify-center gap-1">
+                        <span>{rowNumber}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setDetailScenario({ scenario: row, rowNumber })
+                          }}
+                          className="opacity-0 group-hover/numcell:opacity-100 p-0.5 rounded text-slate-400 hover:text-[#0052CC] hover:bg-white/80 transition cursor-pointer"
+                          title={`View full details for row #${rowNumber}`}
+                          aria-label="View row details"
+                        >
+                          <Eye className="w-3 h-3 stroke-[2]" />
+                        </button>
+                      </div>
                     </td>
 
                     {/* Engine Column with Quick Status Dropdown */}
@@ -1697,35 +1717,51 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                       />
                     </td>
 
-                    {/* Event Name with (i) Info Brief Button */}
+                    {/* Event Name with iOS View Details Button and (i) Info Brief Button */}
                     <td className="px-3 py-2 border-r border-[#E1E4E8] font-medium group/event overflow-hidden">
                       <div className="flex items-center justify-between gap-1.5">
                         <div className="flex-1 min-w-0 overflow-hidden">
                           {renderCell('governanceEvent', row.governanceEvent)}
                         </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setHoveredInfo(null)
-                            const rect = e.currentTarget.getBoundingClientRect()
-                            setSelectedEventBrief({ scenario: row, rect })
-                          }}
-                          onMouseEnter={(e) => {
-                            if (selectedEventBrief || !row.notes?.trim()) return
-                            const rect = e.currentTarget.getBoundingClientRect()
-                            setHoveredInfo({ scenario: row, rect })
-                          }}
-                          onMouseLeave={() => setHoveredInfo(null)}
-                          className={`w-5 h-5 rounded-full flex items-center justify-center transition cursor-pointer shrink-0 ${
-                            row.notes?.trim()
-                              ? 'text-[#0052CC] bg-blue-50/90 hover:bg-blue-100 ring-1 ring-blue-200/60 opacity-100'
-                              : 'text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 opacity-70 hover:opacity-100 group-hover/event:opacity-100'
-                          }`}
-                          aria-label="Event info"
-                        >
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {/* iOS-like View Details Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setDetailScenario({ scenario: row, rowNumber })
+                            }}
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 opacity-70 hover:opacity-100 group-hover/event:opacity-100 transition cursor-pointer shrink-0 active:scale-90"
+                            title={`View all column details for #${rowNumber} (${row.key})`}
+                            aria-label="View row details"
+                          >
+                            <Eye className="w-3.5 h-3.5 stroke-[1.8]" />
+                          </button>
+                          {/* Info Brief Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setHoveredInfo(null)
+                              const rect = e.currentTarget.getBoundingClientRect()
+                              setSelectedEventBrief({ scenario: row, rect })
+                            }}
+                            onMouseEnter={(e) => {
+                              if (selectedEventBrief || !row.notes?.trim()) return
+                              const rect = e.currentTarget.getBoundingClientRect()
+                              setHoveredInfo({ scenario: row, rect })
+                            }}
+                            onMouseLeave={() => setHoveredInfo(null)}
+                            className={`w-5 h-5 rounded-full flex items-center justify-center transition cursor-pointer shrink-0 ${
+                              row.notes?.trim()
+                                ? 'text-[#0052CC] bg-blue-50/90 hover:bg-blue-100 ring-1 ring-blue-200/60 opacity-100'
+                                : 'text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 opacity-70 hover:opacity-100 group-hover/event:opacity-100'
+                            }`}
+                            aria-label="Event info"
+                          >
+                            <Info className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </td>
 
@@ -1905,9 +1941,18 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                       />
                     </td>
 
-                    {/* Actions: History, Copy & Delete */}
+                    {/* Actions: View Details, History, Copy & Delete */}
                     <td className="px-2 py-2 text-center whitespace-nowrap overflow-hidden">
                       <div className="flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setDetailScenario({ scenario: row, rowNumber })}
+                          className="p-1 text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 rounded transition cursor-pointer"
+                          title={`View all column details #${rowNumber} (${row.key})`}
+                          aria-label="View details"
+                        >
+                          <Eye className="w-3.5 h-3.5 stroke-[1.8]" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => setHistoryScenario(row)}
@@ -1963,18 +2008,39 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             className="fixed z-50 w-56 bg-white rounded-lg shadow-2xl border border-[#DFE1E6] py-1 text-xs text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 divide-y divide-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with (i) Info Log button and Close X button */}
+            {/* Header with (i) Info Log button, View Details button and Close X button */}
             <div className="px-3 py-2 bg-[#FAFBFC] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider flex items-center justify-between border-b border-slate-100 rounded-t-lg">
               <span className="font-semibold">{contextMenu.scenario.key} &bull; Quick Actions</span>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
-                    setHistoryScenario(contextMenu.scenario)
+                    const foundRowIdx = filteredScenarios.findIndex((s) => s.id === contextMenu.scenario.id)
+                    const engineList =
+                      selectedEngine === 'ALL'
+                        ? scenarios
+                        : scenarios.filter((s) => s.engineCategory === contextMenu.scenario.engineCategory)
+                    const rowNum = engineList.findIndex((s) => s.id === contextMenu.scenario.id) + 1
+                    setDetailScenario({
+                      scenario: contextMenu.scenario,
+                      rowNumber: rowNum > 0 ? rowNum : foundRowIdx + 1,
+                    })
                     setContextMenu(null)
                   }}
                   className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-[#0052CC] hover:bg-blue-100 border border-blue-200 text-[10px] font-bold transition cursor-pointer shadow-2xs"
-                  title="View Jira + GitHub Log Page"
+                  title="View Jira Details"
+                >
+                  <Eye className="w-3 h-3" />
+                  <span>View</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHistoryScenario(contextMenu.scenario)
+                    setContextMenu(null)
+                  }}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 text-[10px] font-bold transition cursor-pointer"
+                  title="View Change History"
                 >
                   <Info className="w-3 h-3" />
                   <span>Log</span>
@@ -2260,6 +2326,78 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               prev ? { ...prev, scenario: updated } : null
             )
           }}
+        />
+      )}
+
+      {/* Jira Issue Detail View Modal */}
+      {detailScenario && (
+        <JiraDetailModal
+          scenario={
+            scenarios.find((s) => s.id === detailScenario.scenario.id) ||
+            detailScenario.scenario
+          }
+          rowNumber={detailScenario.rowNumber}
+          allStatuses={allStatuses}
+          isOpen={!!detailScenario}
+          onClose={() => setDetailScenario(null)}
+          onUpdateStatus={(st) => {
+            onUpdateStatus(detailScenario.scenario.id, st)
+            setDetailScenario((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    scenario: { ...prev.scenario, status: st },
+                  }
+                : null
+            )
+          }}
+          onNavigatePrev={() => {
+            const currentIndex = filteredScenarios.findIndex(
+              (s) => s.id === detailScenario.scenario.id
+            )
+            if (currentIndex > 0) {
+              const prev = filteredScenarios[currentIndex - 1]
+              const engineList =
+                selectedEngine === 'ALL'
+                  ? scenarios
+                  : scenarios.filter((s) => s.engineCategory === prev.engineCategory)
+              const prevRowNumber = engineList.findIndex((s) => s.id === prev.id) + 1
+              setDetailScenario({
+                scenario: prev,
+                rowNumber: prevRowNumber > 0 ? prevRowNumber : currentIndex,
+              })
+            }
+          }}
+          onNavigateNext={() => {
+            const currentIndex = filteredScenarios.findIndex(
+              (s) => s.id === detailScenario.scenario.id
+            )
+            if (currentIndex >= 0 && currentIndex < filteredScenarios.length - 1) {
+              const next = filteredScenarios[currentIndex + 1]
+              const engineList =
+                selectedEngine === 'ALL'
+                  ? scenarios
+                  : scenarios.filter((s) => s.engineCategory === next.engineCategory)
+              const nextRowNumber = engineList.findIndex((s) => s.id === next.id) + 1
+              setDetailScenario({
+                scenario: next,
+                rowNumber: nextRowNumber > 0 ? nextRowNumber : currentIndex + 2,
+              })
+            }
+          }}
+          hasPrev={
+            filteredScenarios.findIndex(
+              (s) => s.id === detailScenario.scenario.id
+            ) > 0
+          }
+          hasNext={
+            (() => {
+              const idx = filteredScenarios.findIndex(
+                (s) => s.id === detailScenario.scenario.id
+              )
+              return idx >= 0 && idx < filteredScenarios.length - 1
+            })()
+          }
         />
       )}
 
