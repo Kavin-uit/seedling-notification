@@ -22,6 +22,19 @@ CREATE TABLE IF NOT EXISTS scenarios (
   updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS scenario_attachments (
+  id TEXT PRIMARY KEY,
+  scenario_id TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_type TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  r2_key TEXT NOT NULL,
+  public_url TEXT NOT NULL,
+  tag TEXT DEFAULT 'screenshot',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_attachments_scenario_id ON scenario_attachments(scenario_id);
+
 CREATE TABLE IF NOT EXISTS engine_sheets (
   engine_category TEXT PRIMARY KEY,
   sheet_name TEXT NOT NULL,

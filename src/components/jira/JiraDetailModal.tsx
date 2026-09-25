@@ -3,14 +3,14 @@ import type { NotificationScenario, ScenarioStatus } from '../../types/notificat
 import { JiraStatusBadge } from './JiraStatusBadge'
 import {
   X,
-  Copy,
-  Check,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ExternalLink,
   MessageSquare,
   FileText,
 } from 'lucide-react'
+import { ScenarioAttachmentsSection } from './ScenarioAttachmentsSection'
 
 interface JiraDetailModalProps {
   scenario: NotificationScenario | null
@@ -23,6 +23,7 @@ interface JiraDetailModalProps {
   onNavigateNext?: () => void
   hasPrev?: boolean
   hasNext?: boolean
+  onAttachmentCountChange?: (scenarioId: string, count: number) => void
 }
 
 function parseEmailTemplate(scenario: NotificationScenario) {
@@ -64,8 +65,9 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
   onNavigateNext,
   hasPrev = false,
   hasNext = false,
+  onAttachmentCountChange,
 }) => {
-  const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [isSpecsExpanded, setIsSpecsExpanded] = useState<boolean>(false)
 
   // Keyboard navigation & close on Escape
   useEffect(() => {
@@ -83,34 +85,44 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, hasPrev, hasNext, onNavigatePrev, onNavigateNext, onClose])
 
-  if (!isOpen || !scenario) return null
+  // Prevent background scrollbar jump & page jitter when modal opens
+  useEffect(() => {
+    if (!isOpen) return
+    const originalOverflow = document.body.style.overflow
+    const originalPaddingRight = document.body.style.paddingRight
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+    }
+    document.body.style.overflow = 'hidden'
 
-  const handleCopy = (label: string, text: string) => {
-    if (!text) return
-    navigator.clipboard.writeText(text)
-    setCopiedField(label)
-    setTimeout(() => setCopiedField(null), 1500)
-  }
+    return () => {
+      document.body.style.overflow = originalOverflow
+      document.body.style.paddingRight = originalPaddingRight
+    }
+  }, [isOpen])
+
+  if (!isOpen || !scenario) return null
 
   const emailTemplate = parseEmailTemplate(scenario)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] w-full max-w-[1020px] max-h-[94vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] w-full max-w-[1040px] max-h-[92vh] sm:max-h-[94vh] flex flex-col overflow-hidden transition-all duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Clean Header: Event Title + Interactive Status & Navigation */}
-        <div className="px-5 py-3.5 border-b border-[#EBECF0] bg-white flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <h1 className="text-base sm:text-lg font-bold text-[#172B4D] tracking-tight truncate" title={scenario.governanceEvent}>
+        <div className="px-3.5 sm:px-5 py-3 sm:py-3.5 border-b border-[#EBECF0] bg-white flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <h1 className="text-sm sm:text-base md:text-lg font-bold text-[#172B4D] tracking-tight truncate max-w-full" title={scenario.governanceEvent}>
               {scenario.governanceEvent}
             </h1>
             {onUpdateStatus && allStatuses && (
-              <div className="shrink-0 flex items-center gap-2">
+              <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
                 <JiraStatusBadge
                   status={scenario.status}
                   onChange={onUpdateStatus}
@@ -122,7 +134,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
           </div>
 
           {/* Quick Actions & Navigation */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1 shrink-0 ml-auto">
             {onNavigatePrev && (
               <button
                 type="button"
@@ -160,124 +172,8 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
         </div>
 
         {/* Modal Main Body */}
-        <div className="flex-1 p-4 sm:p-5 space-y-4 overflow-y-auto bg-[#F4F5F7]">
-          {/* SECTION 1: Strategic Specification Strip (5 Parameters with Target CTA integrated) */}
-          <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 divide-y md:divide-y-0 md:divide-x divide-[#EBECF0]">
-              {/* Trigger */}
-              <div className="px-2 pt-1 md:pt-0 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
-                    Trigger
-                  </span>
-                  {scenario.trigger && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('trigger', scenario.trigger)}
-                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
-                      title="Copy trigger"
-                    >
-                      {copiedField === 'trigger' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
-                  {scenario.trigger || <span className="text-[#8E8E93] italic font-normal">None</span>}
-                </p>
-              </div>
-
-              {/* Audience */}
-              <div className="px-2 pt-2 md:pt-0 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
-                    Audience
-                  </span>
-                  {scenario.audience && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('audience', scenario.audience)}
-                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
-                      title="Copy audience"
-                    >
-                      {copiedField === 'audience' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
-                  {scenario.audience || <span className="text-[#8E8E93] italic font-normal">None</span>}
-                </p>
-              </div>
-
-              {/* Objective */}
-              <div className="px-2 pt-2 md:pt-0 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
-                    Objective
-                  </span>
-                  {scenario.communicationObjective && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('objective', scenario.communicationObjective)}
-                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
-                      title="Copy objective"
-                    >
-                      {copiedField === 'objective' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
-                  {scenario.communicationObjective || <span className="text-[#8E8E93] italic font-normal">None</span>}
-                </p>
-              </div>
-
-              {/* Desired Outcome */}
-              <div className="px-2 pt-2 md:pt-0 relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
-                    Desired Outcome
-                  </span>
-                  {scenario.desiredOutcome && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('outcome', scenario.desiredOutcome)}
-                      className="text-[#6B778C] hover:text-[#0052CC] opacity-0 group-hover:opacity-100 transition p-0.5 rounded cursor-pointer"
-                      title="Copy outcome"
-                    >
-                      {copiedField === 'outcome' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
-                  {scenario.desiredOutcome || <span className="text-[#8E8E93] italic font-normal">None</span>}
-                </p>
-              </div>
-
-              {/* Target CTA Action */}
-              <div className="px-2.5 pt-2 md:pt-0 col-span-2 md:col-span-1 bg-[#FAFBFC] -my-1 -mr-1 p-2 rounded-lg border border-[#EBECF0] relative group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold text-[#0052CC] uppercase tracking-wider flex items-center gap-1">
-                    <ExternalLink className="w-3 h-3" />
-                    <span>Target CTA</span>
-                  </span>
-                  {scenario.cta && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('cta', scenario.cta)}
-                      className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded transition cursor-pointer"
-                      title="Copy CTA action"
-                    >
-                      {copiedField === 'cta' ? <Check className="w-3 h-3 text-[#00875A]" /> : <Copy className="w-3 h-3" />}
-                    </button>
-                  )}
-                </div>
-                <p className="text-[12px] font-semibold text-[#0052CC] mt-1 leading-snug break-words">
-                  {scenario.cta || <span className="text-[#8E8E93] italic font-normal">None</span>}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 2: Notification Channels (Balanced 2-Column Architecture) */}
+        <div className="flex-1 p-3.5 sm:p-4 md:p-5 space-y-4 overflow-y-auto overscroll-contain bg-[#F4F5F7]">
+          {/* SECTION 1: Notification Channels (Balanced 2-Column Architecture) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
             {/* LEFT COLUMN: Mobile Channels + QA Notes */}
             <div className="space-y-4">
@@ -295,14 +191,15 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                   <div className="flex items-center justify-between pb-1.5">
                     <div className="flex items-center gap-2">
                       {/* Seedling App Icon */}
-                      <div className="w-5 h-5 rounded-[5px] bg-[#107C41] flex items-center justify-center text-white shadow-xs p-0.5 shrink-0 overflow-hidden">
+                      <div className="w-5 h-5 rounded-[5px] flex items-center justify-center shadow-xs shrink-0 overflow-hidden">
                         <img
-                          src="https://qa.seedlingsocial.org/static/media/seedling-icon.19cfcf4c.svg"
+                          src="/seedling-logo.png"
                           onError={(e) => {
-                            e.currentTarget.src = '/seedling-icon.19cfcf4c.svg'
+                            e.currentTarget.src =
+                              'https://ci3.googleusercontent.com/meips/ADKq_Nb8_5vcgoSXqTmjjfnfqvHf0u5rSIkhLTzmMlql4lKWOoA8wILaqJiXfu_TZSJ7DriKUCZsks4KyVAgqw4PYBo6DAaWTvLh2wbCRcUkRIYu=s0-d-e1-ft#https://dev.seedlingsocial.org/seedling/static/favicon.png'
                           }}
                           alt="Seedling"
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-cover"
                         />
                       </div>
                       <span className="text-[13px] font-semibold text-[#1C1C1E] tracking-tight">
@@ -336,9 +233,9 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
                 {scenario.inAppExperience ? (
                   /* Official Seedling In-App Notification Card */
-                  <div className="bg-white border border-[#4D9873] rounded-lg p-3 sm:px-4 sm:py-3.5 flex items-center gap-3.5 shadow-2xs transition-all">
+                  <div className="bg-[#F2F2F7]/95 border border-[#4D9873] rounded-[18px] p-3 sm:px-4 sm:py-3.5 flex items-center gap-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] transition-all">
                     {/* Round Seedling Avatar */}
-                    <div className="w-11 h-11 rounded-full border border-[#DCDEE0] bg-white flex items-center justify-center p-2.5 shrink-0 shadow-2xs">
+                    <div className="w-11 h-11 rounded-full border border-black/5 bg-[#F2F2F7] flex items-center justify-center p-2.5 shrink-0 shadow-2xs">
                       <img
                         src="https://qa.seedlingsocial.org/static/media/seedling-icon.19cfcf4c.svg"
                         onError={(e) => {
@@ -354,53 +251,31 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-white border border-dashed border-[#DFE1E6] rounded-lg p-3.5 flex items-center justify-center text-xs text-[#6B778C] italic">
+                  <div className="bg-[#F2F2F7]/95 border border-dashed border-black/10 rounded-[18px] p-3.5 flex items-center justify-center text-xs text-[#6B778C] italic">
                     No in-app notification configured
                   </div>
                 )}
               </div>
 
-              {/* 3. QA Notes & Verification Logic (Balances left column with Email) */}
+              {/* 3. Target CTA */}
               <div className="space-y-1.5">
                 <div className="px-0.5">
-                  <span className="text-xs font-semibold text-[#6B778C] flex items-center gap-1.5">
-                    <MessageSquare className="w-3.5 h-3.5 text-[#6B778C]" />
-                    <span>QA Notes & Verification Logic</span>
+                  <span className="text-xs font-semibold text-[#6B778C]">
+                    Target CTA
                   </span>
                 </div>
 
-                <div className="bg-white border border-[#DFE1E6] rounded-xl p-3.5 shadow-2xs space-y-2.5">
-                  {scenario.notes && scenario.notes.trim() && (
-                    <div className="flex items-start gap-2.5 text-xs">
-                      <FileText className="w-3.5 h-3.5 text-[#0052CC] shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C] block">
-                          Business Rule / Trigger Note
+                <div className="bg-[#F2F2F7]/95 border border-black/5 rounded-[18px] p-3 sm:p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <ExternalLink className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                    <p className="text-[13px] font-semibold text-[#0052CC] break-words select-text">
+                      {scenario.cta || (
+                        <span className="text-[#8E8E93] italic font-normal">
+                          No target CTA specified
                         </span>
-                        <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
-                          {scenario.notes}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {scenario.comments && scenario.comments.trim() ? (
-                    <div className={`flex items-start gap-2.5 text-xs ${scenario.notes && scenario.notes.trim() ? 'pt-2.5 border-t border-[#EBECF0]' : ''}`}>
-                      <MessageSquare className="w-3.5 h-3.5 text-[#00875A] shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C] block">
-                          QA Comments
-                        </span>
-                        <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
-                          {scenario.comments}
-                        </p>
-                      </div>
-                    </div>
-                  ) : !scenario.notes ? (
-                    <p className="text-xs text-[#6B778C] italic">
-                      No QA comments or special trigger notes recorded for this scenario.
+                      )}
                     </p>
-                  ) : null}
+                  </div>
                 </div>
               </div>
             </div>
@@ -414,9 +289,9 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
               </div>
 
               {/* Exact Seedling Social Giving Email Template Card */}
-              <div className="bg-white border border-[#DFE1E6] rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col flex-1 transition-all">
+              <div className="bg-[#F2F2F7]/95 border border-black/5 rounded-[20px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] flex flex-col flex-1 transition-all">
                 {/* Email Subject Line Header Bar */}
-                <div className="px-4 py-2.5 bg-[#FAFBFC] border-b border-[#EBECF0] flex items-center justify-between gap-3 shrink-0">
+                <div className="px-4 py-2.5 bg-[#EAEAEE]/70 border-b border-black/5 flex items-center justify-between gap-3 shrink-0">
                   <div className="flex items-baseline gap-2 min-w-0 flex-1">
                     <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider shrink-0 select-none">
                       Subject:
@@ -432,31 +307,18 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                       )}
                     </span>
                   </div>
-                  {scenario.emailSubject && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopy('emailSubject', scenario.emailSubject)}
-                      className="text-[#6B778C] hover:text-[#0052CC] p-1 rounded hover:bg-[#EBECF0] transition cursor-pointer shrink-0"
-                      title="Copy email subject"
-                    >
-                      {copiedField === 'emailSubject' ? (
-                        <Check className="w-3.5 h-3.5 text-[#00875A]" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  )}
                 </div>
 
-                {/* Solid Green Header Banner with Given Logo Without Modifications */}
+                {/* Solid Green Header Banner with Seedling Logo */}
                 <div className="bg-[#1E874B] px-5 py-3.5 sm:py-4 flex items-center justify-center gap-2.5 select-none shadow-xs shrink-0">
                   <img
-                    src="https://qa.seedlingsocial.org/static/media/seedling-icon.19cfcf4c.svg"
+                    src="/seedling-logo.png"
                     onError={(e) => {
-                      e.currentTarget.src = '/seedling-icon.19cfcf4c.svg'
+                      e.currentTarget.src =
+                        'https://ci3.googleusercontent.com/meips/ADKq_Nb8_5vcgoSXqTmjjfnfqvHf0u5rSIkhLTzmMlql4lKWOoA8wILaqJiXfu_TZSJ7DriKUCZsks4KyVAgqw4PYBo6DAaWTvLh2wbCRcUkRIYu=s0-d-e1-ft#https://dev.seedlingsocial.org/seedling/static/favicon.png'
                     }}
                     alt="Seedling"
-                    className="w-6 h-6 object-contain shrink-0"
+                    className="w-6 h-6 object-contain shrink-0 rounded-xs"
                   />
                   <span className="font-bold text-white text-[16px] sm:text-[17px] tracking-tight">
                     Seedling Social Giving
@@ -464,7 +326,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 </div>
 
                 {/* Email Body Content */}
-                <div className="px-6 py-6 sm:px-8 sm:py-7 bg-white flex flex-col justify-between flex-1">
+                <div className="px-6 py-6 sm:px-8 sm:py-7 bg-[#F2F2F7]/95 flex flex-col justify-between flex-1">
                   {emailTemplate.boldLead || emailTemplate.remainingBody ? (
                     <p className="text-[13.5px] sm:text-[14.5px] text-[#1C1C1E] leading-relaxed">
                       {emailTemplate.boldLead && (
@@ -494,6 +356,117 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* SECTION 2: Expandable Specifications & Notes Section */}
+          <div className="pt-0.5">
+            <button
+              type="button"
+              onClick={() => setIsSpecsExpanded((prev) => !prev)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B778C] hover:text-[#0052CC] transition cursor-pointer py-1 px-1 rounded hover:bg-slate-200/50 select-none"
+            >
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  isSpecsExpanded ? 'rotate-180' : ''
+                }`}
+              />
+              <span>{isSpecsExpanded ? 'Hide Specifications & Notes' : 'Expand Specifications & Notes'}</span>
+            </button>
+
+            {isSpecsExpanded && (
+              <div className="space-y-3 pt-2 mt-1 border-t border-[#EBECF0]">
+                {/* 4 Strategic Parameters */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 px-1">
+                  {/* Trigger */}
+                  <div>
+                    <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                      Trigger
+                    </span>
+                    <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                      {scenario.trigger || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                    </p>
+                  </div>
+
+                  {/* Audience */}
+                  <div>
+                    <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                      Audience
+                    </span>
+                    <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                      {scenario.audience || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                    </p>
+                  </div>
+
+                  {/* Objective */}
+                  <div>
+                    <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                      Objective
+                    </span>
+                    <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                      {scenario.communicationObjective || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                    </p>
+                  </div>
+
+                  {/* Desired Outcome */}
+                  <div>
+                    <span className="text-[10.5px] font-bold text-[#6B778C] uppercase tracking-wider">
+                      Desired Outcome
+                    </span>
+                    <p className="text-[12.5px] font-medium text-[#172B4D] mt-1 leading-snug break-words">
+                      {scenario.desiredOutcome || <span className="text-[#8E8E93] italic font-normal">None</span>}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notes Block */}
+                <div className="bg-[#F2F2F7]/95 border border-black/5 rounded-[18px] p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] space-y-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-[#6B778C]">Notes</span>
+                  </div>
+
+                  {scenario.notes && scenario.notes.trim() && (
+                    <div className="flex items-start gap-2.5 text-xs">
+                      <FileText className="w-3.5 h-3.5 text-[#0052CC] shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C] block">
+                          Business Rule / Trigger Note
+                        </span>
+                        <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
+                          {scenario.notes}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {scenario.comments && scenario.comments.trim() ? (
+                    <div className={`flex items-start gap-2.5 text-xs ${scenario.notes && scenario.notes.trim() ? 'pt-2.5 border-t border-black/5' : ''}`}>
+                      <MessageSquare className="w-3.5 h-3.5 text-[#00875A] shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C] block">
+                          QA Comments
+                        </span>
+                        <p className="text-xs text-[#172B4D] leading-relaxed whitespace-pre-wrap mt-0.5">
+                          {scenario.comments}
+                        </p>
+                      </div>
+                    </div>
+                  ) : !scenario.notes ? (
+                    <p className="text-xs text-[#6B778C] italic">
+                      No notes recorded for this scenario.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Cloudflare R2 Visual Proof & Screenshots Section */}
+          <div className="pt-2.5 sm:pt-3 border-t border-[#EBECF0]">
+            <ScenarioAttachmentsSection
+              scenarioId={scenario.id}
+              scenarioKey={scenario.key}
+              onAttachmentsChange={(count) => onAttachmentCountChange?.(scenario.id, count)}
+            />
           </div>
         </div>
       </div>

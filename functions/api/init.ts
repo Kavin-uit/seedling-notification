@@ -37,6 +37,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ env }) => {
       );
       CREATE INDEX IF NOT EXISTS idx_scenarios_engine ON scenarios(engine_category);
       CREATE INDEX IF NOT EXISTS idx_scenarios_status ON scenarios(status);
+
+      CREATE TABLE IF NOT EXISTS scenario_attachments (
+        id TEXT PRIMARY KEY,
+        scenario_id TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        file_size INTEGER NOT NULL,
+        r2_key TEXT NOT NULL,
+        public_url TEXT NOT NULL,
+        tag TEXT DEFAULT 'screenshot',
+        created_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_attachments_scenario_id ON scenario_attachments(scenario_id);
     `)
 
     try {

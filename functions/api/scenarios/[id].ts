@@ -147,6 +147,11 @@ export const onRequestDelete: PagesFunction<Env> = async ({ params, env }) => {
   }
 
   try {
+    try {
+      await env.DB.prepare('DELETE FROM scenario_attachments WHERE scenario_id = ?').bind(id).run()
+    } catch {
+      // safe ignore if table not yet initialized
+    }
     const res = await env.DB.prepare('DELETE FROM scenarios WHERE id = ?').bind(id).run()
     return jsonResponse({ success: true, id, changes: res.meta.changes }, 200)
   } catch (error: any) {

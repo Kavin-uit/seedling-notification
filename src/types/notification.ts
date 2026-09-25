@@ -109,6 +109,21 @@ export interface NotificationScenario {
   updatedAt: string
   versionHistory?: ScenarioVersion[]
   fieldHistory?: Record<string, FieldVersionRecord[]>
+  attachmentsCount?: number
+}
+
+export type AttachmentTag = 'screenshot' | 'push' | 'email' | 'in_app' | 'defect' | 'general'
+
+export interface ScenarioAttachment {
+  id: string
+  scenarioId: string
+  fileName: string
+  fileType: string
+  fileSize: number
+  r2Key: string
+  publicUrl: string
+  tag: AttachmentTag
+  createdAt: string
 }
 
 export type ActiveView = 'table' | 'board' | 'simulator' | 'metrics'
