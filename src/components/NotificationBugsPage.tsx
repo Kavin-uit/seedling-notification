@@ -212,7 +212,68 @@ export const NotificationBugsPage: React.FC = () => {
           </ul>
         </div>
 
+        {/* ISSUE 6 */}
+        <div style={{ marginBottom: '28px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#111827' }}>
+            6. DISC-8 (Discovery Engine): Friend Follows Nonprofit Action Not Working
+          </h3>
+          <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px', color: '#374151' }}>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Rule / Specification Reference:</strong> DISC-8 (CI-DISC-008) &mdash; <em>Friend Follows Nonprofit</em>
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Trigger:</strong> Friend activity
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>In-App Copy Target:</strong> <code>&ldquo;(Name), who you follow, is now following (nonprofit). Take a look and see what drew them in.  BOX: View Nonprofit&rdquo;</code>
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Bug:</strong> The CTA button (&ldquo;View Nonprofit&rdquo;) fails to navigate or deep-link to the nonprofit profile.
+            </li>
+          </ul>
+        </div>
 
+        {/* ISSUE 7 */}
+        <div style={{ marginBottom: '28px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#111827' }}>
+            7. DISC-9 (Discovery Engine): Friend Follows Grower Action Not Working
+          </h3>
+          <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px', color: '#374151' }}>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Rule / Specification Reference:</strong> DISC-9 (CI-DISC-009) &mdash; <em>Friend Follows Grower</em>
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Trigger:</strong> Friend activity
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>In-App Copy Target:</strong> <code>&ldquo;(Name), who you follow, is now following (Name). Take a look and see what drew them in.  BOX: View Profile&rdquo;</code>
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Bug:</strong> The CTA button (&ldquo;View Profile&rdquo; / &ldquo;Follow creator&rdquo;) fails to navigate or redirect to the creator profile.
+            </li>
+          </ul>
+        </div>
+
+        {/* ISSUE 8 */}
+        <div style={{ marginBottom: '28px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#111827' }}>
+            8. DISC-10 (Discovery Engine): Friend Supports Seedling Action Not Working
+          </h3>
+          <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px', color: '#374151' }}>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Rule / Specification Reference:</strong> DISC-10 (CI-DISC-010) &mdash; <em>Friend Supports Seedling</em>
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Trigger:</strong> Friend donation or engagement
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>In-App Copy Target:</strong> <code>&ldquo;(Name), who you follow, has donated to (Seedling). See what moved them to give and consider joining in.  BOX: View Seedling&rdquo;</code>
+            </li>
+            <li style={{ marginBottom: '5px' }}>
+              <strong>Bug:</strong> The CTA button (&ldquo;View Seedling&rdquo; / &ldquo;Visit campaign&rdquo;) fails to navigate or redirect directly to the Seedling campaign.
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   )
