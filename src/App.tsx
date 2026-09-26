@@ -4,7 +4,6 @@ import { JiraNavbar } from './components/jira/JiraNavbar'
 import type { EngineCategoryFilter, EngineMenuItem, ActiveDashboardView } from './components/jira/JiraNavbar'
 import { JiraTable } from './components/jira/JiraTable'
 import { RuleBookTable } from './components/jira/RuleBookTable'
-import { NotificationBugReport } from './components/jira/NotificationBugReport'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
@@ -21,6 +20,7 @@ import { Loader2, Check } from 'lucide-react'
 import { parseFilterUrlParams, syncFiltersToUrl, buildFilterShareUrl } from './utils/filterShare'
 import { parseStatuses } from './types/notification'
 import { executeSearch } from './utils/aiSearch'
+import { NotificationBugsPage } from './components/NotificationBugsPage'
 
 const FILTERS_STORAGE_KEY = 'seedling_active_filters_v1'
 
@@ -73,16 +73,28 @@ function loadInitialFilters(): InitialFiltersState {
 }
 
 export default function App() {
+  const isNotificationBugsRoute = useMemo(() => {
+    return (
+      window.location.pathname === '/notification-bugs' ||
+      window.location.pathname === '/notification-bugs/' ||
+      window.location.pathname.startsWith('/notification-bugs') ||
+      new URLSearchParams(window.location.search).get('page') === 'notification-bugs'
+    )
+  }, [])
+
+  if (isNotificationBugsRoute) {
+    return <NotificationBugsPage />
+  }
+
   const [scenarios, setScenarios] = useState<NotificationScenario[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [dbEngines, setDbEngines] = useState<string[]>([])
-  // Active view: 'scenarios' (QA test execution), 'rulebook' (Master Rule Book specification map), or 'bugs' (QA Bug Report)
+  // Active view: 'scenarios' (QA test execution) or 'rulebook' (Master Rule Book specification map)
   const [activeView, setActiveView] = useState<ActiveDashboardView>(() => {
     try {
       const params = new URLSearchParams(window.location.search)
       const v = params.get('view')
       if (v === 'rulebook') return 'rulebook'
-      if (v === 'bugs' || v === 'bug-report' || v === 'notification-bugs') return 'bugs'
       const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
       if (saved) {
         const parsed = JSON.parse(saved)
@@ -161,21 +173,6 @@ export default function App() {
     })
   }, [selectedEngine, statusFilter, searchQuery])
 
-  // Synchronize active view with URL query parameters for direct manager sharing
-  useEffect(() => {
-    try {
-      const url = new URL(window.location.href)
-      if (activeView === 'bugs') {
-        url.searchParams.set('view', 'bugs')
-      } else if (activeView === 'rulebook') {
-        url.searchParams.set('view', 'rulebook')
-      } else {
-        url.searchParams.delete('view')
-      }
-      window.history.replaceState({}, '', url.toString())
-    } catch {}
-  }, [activeView])
-
   // Handle browser back / forward navigation
   useEffect(() => {
     const handlePopState = () => {
@@ -185,14 +182,7 @@ export default function App() {
       setSearchQuery(parsed.q)
       try {
         const params = new URLSearchParams(window.location.search)
-        const v = params.get('view')
-        if (v === 'bugs' || v === 'bug-report' || v === 'notification-bugs') {
-          setActiveView('bugs')
-        } else if (v === 'rulebook') {
-          setActiveView('rulebook')
-        } else {
-          setActiveView('scenarios')
-        }
+        setActiveView(params.get('view') === 'rulebook' ? 'rulebook' : 'scenarios')
       } catch {}
     }
     window.addEventListener('popstate', handlePopState)
@@ -591,11 +581,6 @@ export default function App() {
             <p className="font-semibold text-sm text-[#172B4D]">Loading notification scenarios from production D1...</p>
             <p className="text-xs text-[#6B778C]">Connecting to Cloudflare edge database</p>
           </div>
-        ) : activeView === 'bugs' ? (
-          <NotificationBugReport
-            onShowToast={showToast}
-            onNavigateToRuleBook={() => setActiveView('rulebook')}
-          />
         ) : activeView === 'rulebook' ? (
           <RuleBookTable
             scenarios={scenarios}
