@@ -18,7 +18,6 @@ import {
   ChevronDown,
   ArrowRight,
   RotateCcw,
-  AlignJustify,
 } from 'lucide-react'
 
 export type RuleBookColumnKey =
@@ -37,7 +36,6 @@ export type RuleBookColumnKey =
   | 'candidateScore'
   | 'actions'
 
-export type RowDensity = 'compact' | 'standard' | 'wrap'
 
 export const DEFAULT_RULEBOOK_COLUMN_WIDTHS: Record<RuleBookColumnKey, number> = {
   index: 46,
@@ -74,7 +72,6 @@ export const MIN_RULEBOOK_COLUMN_WIDTHS: Record<RuleBookColumnKey, number> = {
 }
 
 const STORAGE_KEY_WIDTHS = 'seedling_rulebook_col_widths_v2'
-const STORAGE_KEY_DENSITY = 'seedling_rulebook_row_density_v2'
 
 interface RuleBookTableProps {
   scenarios: NotificationScenario[]
@@ -127,29 +124,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
 }) => {
   const [selectedEngine, setSelectedEngine] = useState<string>(initialEngineFilter)
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery)
-  const [tierFilter, setTierFilter] = useState<string>('ALL')
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
-
-  // Row Density State: Compact (28px) | Standard (36px) | Wrap Text (auto)
-  const [rowDensity, setRowDensity] = useState<RowDensity>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_DENSITY)
-      if (saved === 'compact' || saved === 'standard' || saved === 'wrap') {
-        return saved
-      }
-    } catch {}
-    return 'standard'
-  })
-
-  const handleChangeRowDensity = (density: RowDensity) => {
-    setRowDensity(density)
-    try {
-      localStorage.setItem(STORAGE_KEY_DENSITY, density)
-    } catch {}
-    if (onShowToast) {
-      onShowToast(`Row density set to ${density === 'wrap' ? 'Wrap Text' : density}`)
-    }
-  }
 
   // Column Widths with LocalStorage persistence & Resizing
   const [columnWidths, setColumnWidths] = useState<Record<RuleBookColumnKey, number>>(() => {
@@ -385,12 +360,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
       list = list.filter((r) => r.engine.toLowerCase() === eLower)
     }
 
-    // Tier Filter
-    if (tierFilter !== 'ALL') {
-      const tLower = tierFilter.toLowerCase()
-      list = list.filter((r) => r.channelTier.toLowerCase().includes(tLower))
-    }
-
     // Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
@@ -411,22 +380,11 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
     }
 
     return list
-  }, [selectedEngine, tierFilter, searchQuery])
+  }, [selectedEngine, searchQuery])
 
-
-
-  // Row height / wrapping class names based on density
-  const rowHeightClass =
-    rowDensity === 'compact'
-      ? 'h-7 py-1 text-[11px]'
-      : rowDensity === 'wrap'
-      ? 'min-h-12 py-2 text-[12px]'
-      : 'h-9 py-1.5 text-[12px]'
-
-  const cellTextClass =
-    rowDensity === 'wrap'
-      ? 'break-words whitespace-normal leading-snug'
-      : 'truncate whitespace-nowrap overflow-hidden'
+  // Clean standard spreadsheet row height and single-line ellipsis
+  const rowHeightClass = 'h-8 py-1 text-[12px]'
+  const cellTextClass = 'truncate whitespace-nowrap overflow-hidden'
 
   return (
     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white text-[#172B4D] font-sans">
@@ -479,66 +437,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             )}
           </div>
 
-          {/* Tier AutoFilter */}
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[11px] text-slate-500 font-medium">Tier:</span>
-            <select
-              value={tierFilter}
-              onChange={(e) => setTierFilter(e.target.value)}
-              className="h-7 bg-white border border-[#CBD5E1] rounded-[2px] px-2 text-xs text-slate-800 outline-none focus:border-[#107C41] cursor-pointer"
-              title="Filter Channel Tier"
-            >
-              <option value="ALL">All Tiers</option>
-              <option value="Tier 1">Tier 1 - Urgent / Guaranteed</option>
-              <option value="Tier 2">Tier 2 - Timely</option>
-              <option value="Tier 3">Tier 3 - Ambient / Digest</option>
-            </select>
-          </div>
-
-          {/* Row Height / Density Adjuster */}
-          <div className="flex items-center gap-1 shrink-0 bg-white border border-[#CBD5E1] rounded-[2px] p-0.5 shadow-2xs">
-            <span className="text-[11px] text-slate-500 pl-1 font-medium flex items-center gap-1">
-              <AlignJustify className="w-3 h-3 text-slate-400" />
-              <span>Row:</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => handleChangeRowDensity('compact')}
-              className={`cursor-pointer px-1.5 py-0.5 rounded-[2px] text-[11px] font-medium transition ${
-                rowDensity === 'compact'
-                  ? 'bg-[#107C41] text-white font-semibold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-              title="Compact row height (28px) - Maximum data density"
-            >
-              Compact
-            </button>
-            <button
-              type="button"
-              onClick={() => handleChangeRowDensity('standard')}
-              className={`cursor-pointer px-1.5 py-0.5 rounded-[2px] text-[11px] font-medium transition ${
-                rowDensity === 'standard'
-                  ? 'bg-[#107C41] text-white font-semibold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-              title="Standard row height (36px)"
-            >
-              Normal
-            </button>
-            <button
-              type="button"
-              onClick={() => handleChangeRowDensity('wrap')}
-              className={`cursor-pointer px-1.5 py-0.5 rounded-[2px] text-[11px] font-medium transition ${
-                rowDensity === 'wrap'
-                  ? 'bg-[#107C41] text-white font-semibold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-              title="Wrap text automatically - Expands row height to display full text without truncation"
-            >
-              Wrap Text
-            </button>
-          </div>
-
           {/* Reset Column Widths Button */}
           {isAnyColumnCustomized && (
             <button
@@ -549,22 +447,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             >
               <RotateCcw className="w-3 h-3" />
               <span>Reset columns</span>
-            </button>
-          )}
-
-          {(searchQuery || tierFilter !== 'ALL' || selectedEngine !== 'ALL') && (
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedEngine('ALL')
-                setSearchQuery('')
-                setTierFilter('ALL')
-              }}
-              className="cursor-pointer text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-0.5 shrink-0"
-              title="Clear active search, engine & tier filters"
-            >
-              <X className="w-3 h-3" />
-              <span>Clear filters</span>
             </button>
           )}
         </div>
