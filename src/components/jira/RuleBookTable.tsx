@@ -7,14 +7,13 @@ import {
   X,
   FileSpreadsheet,
   ExternalLink,
-  BookOpen,
   Copy,
   Check,
   ChevronUp,
   ChevronDown,
   ArrowRight,
   Download,
-  Info,
+  RotateCcw,
 } from 'lucide-react'
 
 interface RuleBookTableProps {
@@ -25,62 +24,38 @@ interface RuleBookTableProps {
   onShowToast?: (msg: string) => void
 }
 
-// Authentic Jira priority renderer
-function renderJiraPriority(priority?: string) {
+function renderExcelPriority(priority?: string) {
   const p = (priority || 'Medium').toLowerCase()
   if (p.includes('highest')) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] text-[#172B4D] font-medium" title="Highest priority">
-        <ChevronUp className="w-3.5 h-3.5 text-[#DE350B] stroke-[2.5]" />
+      <span className="inline-flex items-center gap-1 text-[11px] text-red-700 font-medium">
+        <ChevronUp className="w-3.5 h-3.5 text-red-600 stroke-[2.5]" />
         <span>Highest</span>
       </span>
     )
   }
   if (p.includes('high')) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] text-[#172B4D] font-medium" title="High priority">
-        <ChevronUp className="w-3.5 h-3.5 text-[#FF5630] stroke-[2.5]" />
+      <span className="inline-flex items-center gap-1 text-[11px] text-orange-700 font-medium">
+        <ChevronUp className="w-3.5 h-3.5 text-orange-600 stroke-[2.5]" />
         <span>High</span>
       </span>
     )
   }
   if (p.includes('low')) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] text-[#172B4D] font-medium" title="Low priority">
-        <ChevronDown className="w-3.5 h-3.5 text-[#006644] stroke-[2.5]" />
+      <span className="inline-flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+        <ChevronDown className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
         <span>Low</span>
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] text-[#172B4D] font-medium" title="Medium priority">
-      <span className="text-[#FFAB00] font-bold text-xs leading-none">＝</span>
+    <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 font-medium">
+      <span className="text-amber-500 font-bold text-xs leading-none">＝</span>
       <span>Medium</span>
     </span>
   )
-}
-
-// Authentic Atlassian Design System lozenges
-const ENGINE_LOZENGES: Record<string, { bg: string; text: string; border: string }> = {
-  Opportunity: { bg: 'bg-[#E6FCFF]', text: 'text-[#0065FF]', border: 'border-[#B3F5FF]' },
-  Identity: { bg: 'bg-[#FFF0B3]', text: 'text-[#172B4D]', border: 'border-[#FFE380]' },
-  Participation: { bg: 'bg-[#EAE6FF]', text: 'text-[#403294]', border: 'border-[#C0B6F2]' },
-  Discovery: { bg: 'bg-[#FFEBE6]', text: 'text-[#BF2600]', border: 'border-[#FFBDAD]' },
-  Contribution: { bg: 'bg-[#DEEBFF]', text: 'text-[#0747A6]', border: 'border-[#B3D4FF]' },
-  Campaign: { bg: 'bg-[#E3FCEF]', text: 'text-[#006644]', border: 'border-[#ABF5D1]' },
-  Narrative: { bg: 'bg-[#EAE6FF]', text: 'text-[#5243AA]', border: 'border-[#DFD8FD]' },
-  Governance: { bg: 'bg-[#E3FCEF]', text: 'text-[#006644]', border: 'border-[#ABF5D1]' },
-}
-
-function getTierLozenge(tier?: string) {
-  const t = (tier || '').toLowerCase()
-  if (t.includes('tier 1') || t.includes('urgent')) {
-    return { bg: 'bg-[#FFEBE6]', text: 'text-[#BF2600]', border: 'border-[#FFBDAD]' }
-  }
-  if (t.includes('tier 2') || t.includes('timely')) {
-    return { bg: 'bg-[#FFF0B3]', text: 'text-[#172B4D]', border: 'border-[#FFE380]' }
-  }
-  return { bg: 'bg-[#E3FCEF]', text: 'text-[#006644]', border: 'border-[#ABF5D1]' }
 }
 
 export const RuleBookTable: React.FC<RuleBookTableProps> = ({
@@ -96,6 +71,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
   const [mappingFilter, setMappingFilter] = useState<'ALL' | 'MAPPED' | 'UNMAPPED'>('ALL')
   const [pageSize, setPageSize] = useState<number>(100)
   const [currentPage, setCurrentPage] = useState<number>(1)
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
 
   // Active inspected rule modal
   const [inspectedRule, setInspectedRule] = useState<{
@@ -112,7 +88,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
       setCopiedId(id)
       copyTimerRef.current = setTimeout(() => setCopiedId(null), 2000)
-      if (onShowToast) onShowToast(`Copied Rule ID "${id}" to clipboard`)
+      if (onShowToast) onShowToast(`Copied Rule ID "${id}"`)
     })
   }
 
@@ -120,15 +96,12 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
   const ruleToScenarioMap = useMemo(() => {
     const map = new Map<string, NotificationScenario>()
     scenarios.forEach((s) => {
-      // 1. Direct ruleId
       if (s.ruleId) {
         map.set(s.ruleId.trim().toUpperCase(), s)
       }
-      // 2. Map table
       if (s.id && SCENARIO_ID_TO_RULE_ID[s.id]) {
         map.set(SCENARIO_ID_TO_RULE_ID[s.id].trim().toUpperCase(), s)
       }
-      // 3. Normalized heuristic lookup
       const resolved = getRuleForScenario(s)
       if (resolved && resolved.ruleId) {
         const key = resolved.ruleId.trim().toUpperCase()
@@ -151,8 +124,17 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
   }, [])
 
   const engineList = useMemo(() => {
-    return Object.keys(engineCounts).sort((a, b) => (engineCounts[b] || 0) - (engineCounts[a] || 0))
-  }, [engineCounts])
+    return [
+      'Opportunity',
+      'Identity',
+      'Participation',
+      'Discovery',
+      'Contribution',
+      'Campaign',
+      'Narrative',
+      'Governance',
+    ]
+  }, [])
 
   // Filtered rules
   const filteredRules = useMemo(() => {
@@ -270,123 +252,67 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
 
   return (
     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white text-[#172B4D] font-sans">
-      {/* Top Banner: Master Rule Book Title & Direct Sheet Link */}
-      <div className="border-b border-[#EBECF0] bg-[#FAFBFC] px-4 py-2.5 shrink-0 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-[3px] bg-[#0747A6] flex items-center justify-center text-white shrink-0 shadow-xs">
-            <BookOpen className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-sm font-bold text-[#172B4D] tracking-tight">
-                Master Notification Rule Book
-              </h1>
-              <span className="text-[11px] font-semibold px-2 py-0.2 rounded-full bg-[#EAE6FF] text-[#403294] border border-[#C0B6F2]">
-                409 Rules Across 8 Engines
-              </span>
-              <span className="text-[11px] font-semibold px-2 py-0.2 rounded-full bg-[#E3FCEF] text-[#006644] border border-[#ABF5D1]">
-                {ruleToScenarioMap.size} Active QA Mappings
-              </span>
-            </div>
-            <p className="text-xs text-[#5E6C84] mt-0.5">
-              Engine rule specification and mapping catalog for all notifications. Rule Book governs logic, channel tiering, triggers, and cooldowns.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={handleExportCsv}
-            className="cursor-pointer h-7.5 px-2.5 rounded-[3px] bg-white hover:bg-[#F4F5F7] border border-[#DFE1E6] text-[#42526E] text-xs font-medium flex items-center gap-1.5 transition"
-            title="Export filtered rules to CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-[#5E6C84]" />
-            <span className="hidden sm:inline">Export CSV</span>
-          </button>
-          <a
-            href={RULE_BOOK_SHEET_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="cursor-pointer h-7.5 px-2.5 rounded-[3px] bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs"
-            title="Open official Google Sheet in new tab"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>Google Sheet</span>
-            <ExternalLink className="w-3 h-3 opacity-80" />
-          </a>
-        </div>
-      </div>
-
-      {/* Engine Category Filter Tabs */}
-      <div className="border-b border-[#EBECF0] bg-white px-4 py-2 shrink-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      {/* 1. Authentic Excel / Google Sheets Workbook Sheet Tabs at the top */}
+      <div className="bg-[#EAECEF] border-b border-[#D1D5DB] px-2 pt-1.5 shrink-0 flex items-center gap-0.5 overflow-x-auto select-none no-scrollbar">
+        {/* All Rules Tab */}
         <button
           type="button"
           onClick={() => setSelectedEngine('ALL')}
-          className={`cursor-pointer px-2.5 py-1 rounded-[3px] text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
+          className={`cursor-pointer px-3 py-1.5 text-xs rounded-t-[3px] border-t border-l border-r transition font-medium flex items-center gap-1.5 shrink-0 ${
             selectedEngine === 'ALL'
-              ? 'bg-[#0052CC] text-white'
-              : 'text-[#42526E] hover:bg-[#F4F5F7] hover:text-[#172B4D]'
+              ? 'bg-white text-[#107C41] font-bold border-[#D1D5DB] border-b-white -mb-[1px] z-10 shadow-xs'
+              : 'bg-[#DFE1E6] hover:bg-[#EBECF0] text-slate-700 border-transparent'
           }`}
         >
-          <span>All Engines</span>
-          <span
-            className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-              selectedEngine === 'ALL' ? 'bg-white/25 text-white' : 'bg-[#DFE1E6] text-[#42526E]'
-            }`}
-          >
-            409
-          </span>
+          <FileSpreadsheet className="w-3.5 h-3.5 text-[#107C41]" />
+          <span>All Rules</span>
+          <span className="text-[10px] text-slate-500 font-mono">409</span>
         </button>
 
+        {/* Engine Tabs */}
         {engineList.map((eng) => {
           const isSelected = selectedEngine === eng
           const count = engineCounts[eng] || 0
-          const style = ENGINE_LOZENGES[eng] || { bg: 'bg-[#EBECF0]', text: 'text-[#42526E]', border: 'border-[#DFE1E6]' }
 
           return (
             <button
               key={eng}
               type="button"
               onClick={() => setSelectedEngine(eng)}
-              className={`cursor-pointer px-2.5 py-1 rounded-[3px] text-xs font-medium shrink-0 transition flex items-center gap-1.5 ${
+              className={`cursor-pointer px-3 py-1.5 text-xs rounded-t-[3px] border-t border-l border-r transition font-medium flex items-center gap-1.5 shrink-0 ${
                 isSelected
-                  ? 'bg-[#0052CC] text-white font-semibold'
-                  : 'text-[#42526E] hover:bg-[#F4F5F7] hover:text-[#172B4D]'
+                  ? 'bg-white text-[#107C41] font-bold border-[#D1D5DB] border-b-white -mb-[1px] z-10 shadow-xs'
+                  : 'bg-[#DFE1E6] hover:bg-[#EBECF0] text-slate-700 border-transparent'
               }`}
             >
               <span>{eng}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                  isSelected ? 'bg-white/25 text-white' : `${style.bg} ${style.text}`
-                }`}
-              >
-                {count}
-              </span>
+              <span className="text-[10px] text-slate-500 font-mono">({count})</span>
             </button>
           )
         })}
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="border-b border-[#EBECF0] bg-[#FAFBFC] px-4 py-2 shrink-0 flex flex-wrap items-center justify-between gap-2.5 text-xs">
-        <div className="flex items-center gap-2 flex-1 max-w-xl min-w-0">
-          <div className="relative flex items-center flex-1 min-w-0">
-            <Search className="w-3.5 h-3.5 text-[#6B778C] absolute left-2.5 pointer-events-none shrink-0" />
+      {/* 2. Excel Ribbon / Toolbar: AutoFilter Controls & Actions */}
+      <div className="bg-[#F8F9FA] border-b border-[#D1D5DB] px-3 py-1.5 shrink-0 flex flex-wrap items-center justify-between gap-2 text-xs">
+        {/* Left Side: Excel Formula / Search & Filters */}
+        <div className="flex items-center gap-2 flex-1 max-w-2xl min-w-0">
+          {/* Search box styled like Excel Find / Cell Search */}
+          <div className="relative flex items-center flex-1 min-w-[200px]">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 pointer-events-none shrink-0" />
             <input
               type="text"
               autoComplete="off"
               spellCheck="false"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter rules by ID, name, trigger, audience, objective, tier..."
-              className="w-full h-7.5 bg-white text-[#172B4D] placeholder:text-[#6B778C] text-xs rounded-[3px] pl-8 pr-7 transition outline-none border border-[#DFE1E6] focus:border-[#4C9AFF] focus:ring-1 focus:ring-[#4C9AFF]"
+              placeholder="Filter rules by ID, trigger, audience, objective..."
+              className="w-full h-7 bg-white text-slate-800 placeholder:text-slate-400 text-xs rounded-[2px] pl-7 pr-6 transition outline-none border border-[#CBD5E1] focus:border-[#107C41] focus:ring-1 focus:ring-[#107C41]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-1.5 p-1 rounded-full text-[#6B778C] hover:text-[#172B4D] hover:bg-slate-100 transition cursor-pointer"
+                className="absolute right-1.5 p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
                 title="Clear search"
               >
                 <X className="w-3 h-3 stroke-[2.5]" />
@@ -394,122 +320,160 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             )}
           </div>
 
-          {/* Tier Filter */}
-          <select
-            value={tierFilter}
-            onChange={(e) => setTierFilter(e.target.value)}
-            className="h-7.5 bg-white border border-[#DFE1E6] rounded-[3px] px-2 text-xs text-[#172B4D] outline-none focus:border-[#4C9AFF] cursor-pointer"
-            title="Filter by Channel Tier"
-          >
-            <option value="ALL">All Tiers</option>
-            <option value="Tier 1">Tier 1 - Urgent / Guaranteed</option>
-            <option value="Tier 2">Tier 2 - Timely</option>
-            <option value="Tier 3">Tier 3 - Ambient / Digest</option>
-          </select>
+          {/* Tier AutoFilter */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[11px] text-slate-500 font-medium">Tier:</span>
+            <select
+              value={tierFilter}
+              onChange={(e) => setTierFilter(e.target.value)}
+              className="h-7 bg-white border border-[#CBD5E1] rounded-[2px] px-2 text-xs text-slate-800 outline-none focus:border-[#107C41] cursor-pointer"
+              title="Filter Channel Tier"
+            >
+              <option value="ALL">All Tiers</option>
+              <option value="Tier 1">Tier 1 - Urgent / Guaranteed</option>
+              <option value="Tier 2">Tier 2 - Timely</option>
+              <option value="Tier 3">Tier 3 - Ambient / Digest</option>
+            </select>
+          </div>
 
-          {/* Mapping Filter */}
-          <select
-            value={mappingFilter}
-            onChange={(e) => setMappingFilter(e.target.value as any)}
-            className="h-7.5 bg-white border border-[#DFE1E6] rounded-[3px] px-2 text-xs text-[#172B4D] outline-none focus:border-[#4C9AFF] cursor-pointer"
-            title="Filter by QA Scenario Mapping"
-          >
-            <option value="ALL">All Rules (409)</option>
-            <option value="MAPPED">Mapped to QA Scenarios ({ruleToScenarioMap.size})</option>
-            <option value="UNMAPPED">Specification Only</option>
-          </select>
+          {/* Mapping AutoFilter */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[11px] text-slate-500 font-medium">Mapping:</span>
+            <select
+              value={mappingFilter}
+              onChange={(e) => setMappingFilter(e.target.value as any)}
+              className="h-7 bg-white border border-[#CBD5E1] rounded-[2px] px-2 text-xs text-slate-800 outline-none focus:border-[#107C41] cursor-pointer"
+              title="Filter QA Scenario Mapping"
+            >
+              <option value="ALL">All Rules (409)</option>
+              <option value="MAPPED">Mapped to QA ({ruleToScenarioMap.size})</option>
+              <option value="UNMAPPED">Specification Only</option>
+            </select>
+          </div>
+
+          {(searchQuery || tierFilter !== 'ALL' || mappingFilter !== 'ALL') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('')
+                setTierFilter('ALL')
+                setMappingFilter('ALL')
+              }}
+              className="cursor-pointer text-[11px] text-[#107C41] hover:underline flex items-center gap-0.5 shrink-0 font-medium"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Clear filters</span>
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-[#5E6C84] shrink-0">
-          <span>
-            Showing <strong className="text-[#172B4D]">{filteredRules.length}</strong> of{' '}
-            <strong className="text-[#172B4D]">{ALL_NOTIFICATION_RULES.length}</strong> rules
+        {/* Right Side: Excel Actions & Summary */}
+        <div className="flex items-center gap-2 text-xs text-slate-600 shrink-0">
+          <span className="text-[11px]">
+            Showing <strong>{filteredRules.length}</strong> of <strong>409</strong> rows
           </span>
+
+          <span className="text-slate-300">|</span>
 
           {/* Page size picker */}
           <select
             value={pageSize}
             onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
-            className="h-7 bg-white border border-[#DFE1E6] rounded-[3px] px-1.5 text-xs text-[#172B4D] outline-none cursor-pointer"
+            className="h-7 bg-white border border-[#CBD5E1] rounded-[2px] px-1.5 text-xs text-slate-800 outline-none cursor-pointer"
             title="Rows per page"
           >
-            <option value={50}>50 per page</option>
-            <option value={100}>100 per page</option>
-            <option value={200}>200 per page</option>
-            <option value={0}>Show all (409)</option>
+            <option value={50}>50 rows</option>
+            <option value={100}>100 rows</option>
+            <option value={200}>200 rows</option>
+            <option value={0}>All 409 rows</option>
           </select>
 
-          {/* Simple pagination controls */}
-          {pageSize > 0 && totalPages > 1 && (
-            <div className="flex items-center gap-1 ml-1">
-              <button
-                type="button"
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="cursor-pointer px-2 py-0.5 rounded-[3px] bg-white border border-[#DFE1E6] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F4F5F7]"
-              >
-                ‹ Prev
-              </button>
-              <span className="text-[11px] font-semibold text-[#172B4D]">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="cursor-pointer px-2 py-0.5 rounded-[3px] bg-white border border-[#DFE1E6] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F4F5F7]"
-              >
-                Next ›
-              </button>
-            </div>
-          )}
+          {/* Export to Excel CSV */}
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            className="cursor-pointer h-7 px-2.5 rounded-[2px] bg-white hover:bg-slate-50 border border-[#CBD5E1] text-[#107C41] font-semibold text-xs flex items-center gap-1.5 transition shadow-2xs"
+            title="Export filtered rules to Excel CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-[#107C41]" />
+            <span>Export .xlsx</span>
+          </button>
+
+          {/* Link to Google Sheet */}
+          <a
+            href={RULE_BOOK_SHEET_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cursor-pointer h-7 px-2 rounded-[2px] bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-1 transition shadow-2xs"
+            title="Open official Google Sheet in new tab"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Google Sheet</span>
+            <ExternalLink className="w-3 h-3 opacity-80" />
+          </a>
         </div>
       </div>
 
-      {/* Main Table Grid */}
+      {/* 3. Main Spreadsheet Table Grid: Classic Microsoft Excel Style */}
       <div className="flex-1 overflow-auto bg-white relative">
-        <table className="w-full border-collapse text-left text-xs min-w-[1300px]">
-          {/* Table Header: Pure Jira Style */}
-          <thead className="sticky top-0 bg-[#F4F5F7] z-20 border-b border-[#DFE1E6] shadow-2xs select-none">
-            <tr className="text-[#5E6C84] font-semibold text-[11px] tracking-wide uppercase">
-              <th className="w-12 px-3 py-2.5 text-center border-r border-[#DFE1E6]">#</th>
-              <th className="w-28 px-3 py-2.5 border-r border-[#DFE1E6]">Rule ID</th>
-              <th className="w-28 px-3 py-2.5 border-r border-[#DFE1E6]">Engine</th>
-              <th className="w-56 px-3 py-2.5 border-r border-[#DFE1E6]">Rule / Message Name</th>
-              <th className="w-36 px-3 py-2.5 border-r border-[#DFE1E6]">Mapped QA Scenario</th>
-              <th className="w-44 px-3 py-2.5 border-r border-[#DFE1E6]">Trigger</th>
-              <th className="w-32 px-3 py-2.5 border-r border-[#DFE1E6]">Audience</th>
-              <th className="w-64 px-3 py-2.5 border-r border-[#DFE1E6]">Communication Objective</th>
-              <th className="w-24 px-3 py-2.5 border-r border-[#DFE1E6]">Priority</th>
-              <th className="w-36 px-3 py-2.5 border-r border-[#DFE1E6]">Channel Tier</th>
-              <th className="w-44 px-3 py-2.5 border-r border-[#DFE1E6]">Delivery Mode</th>
-              <th className="w-28 px-3 py-2.5 border-r border-[#DFE1E6]">Attention</th>
-              <th className="w-18 px-3 py-2.5 text-center border-r border-[#DFE1E6]">Score</th>
-              <th className="w-24 px-3 py-2.5 text-center">Actions</th>
+        <table className="w-full border-collapse text-left text-xs min-w-[1400px]">
+          {/* Classic Excel Dark Forest Green Table Header */}
+          <thead className="sticky top-0 bg-[#107C41] text-white z-20 border-b border-[#0D6535] shadow-xs select-none">
+            <tr className="border-b border-[#0D6535] text-[11px] font-semibold">
+              <th className="w-12 px-2 py-2 text-center border-r border-[#0D6535] bg-[#0E6C38]">
+                #
+              </th>
+              <th className="w-28 px-2.5 py-2 border-r border-[#0D6535]">
+                Rule ID
+              </th>
+              <th className="w-28 px-2.5 py-2 border-r border-[#0D6535]">
+                Engine
+              </th>
+              <th className="w-60 px-2.5 py-2 border-r border-[#0D6535]">
+                Rule / Message Name
+              </th>
+              <th className="w-36 px-2.5 py-2 border-r border-[#0D6535]">
+                Mapped Scenario
+              </th>
+              <th className="w-44 px-2.5 py-2 border-r border-[#0D6535]">
+                Trigger
+              </th>
+              <th className="w-32 px-2.5 py-2 border-r border-[#0D6535]">
+                Audience
+              </th>
+              <th className="w-64 px-2.5 py-2 border-r border-[#0D6535]">
+                Communication Objective
+              </th>
+              <th className="w-24 px-2.5 py-2 border-r border-[#0D6535]">
+                Priority
+              </th>
+              <th className="w-36 px-2.5 py-2 border-r border-[#0D6535]">
+                Channel Tier
+              </th>
+              <th className="w-40 px-2.5 py-2 border-r border-[#0D6535]">
+                Delivery Mode
+              </th>
+              <th className="w-28 px-2.5 py-2 border-r border-[#0D6535]">
+                Attention
+              </th>
+              <th className="w-20 px-2.5 py-2 text-center border-r border-[#0D6535]">
+                Score
+              </th>
+              <th className="w-20 px-2.5 py-2 text-center">
+                Action
+              </th>
             </tr>
           </thead>
 
-          {/* Table Body */}
-          <tbody className="divide-y divide-[#EBECF0]">
+          {/* Spreadsheet Data Rows with Crisp Excel Gridlines */}
+          <tbody className="divide-y divide-[#E5E7EB]">
             {paginatedRules.length === 0 ? (
               <tr>
-                <td colSpan={14} className="text-center py-16 text-[#6B778C]">
-                  <div className="flex flex-col items-center gap-2">
-                    <Info className="w-6 h-6 text-[#A5ADBA]" />
-                    <p className="font-semibold text-[#172B4D]">No notification rules match the current filters.</p>
-                    <p className="text-xs text-[#5E6C84]">Try clearing your search query or selecting a different engine.</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedEngine('ALL')
-                        setSearchQuery('')
-                        setTierFilter('ALL')
-                        setMappingFilter('ALL')
-                      }}
-                      className="cursor-pointer mt-2 px-3 py-1 bg-[#0052CC] text-white rounded-[3px] text-xs font-semibold hover:bg-[#0065FF]"
-                    >
-                      Reset All Filters
-                    </button>
+                <td colSpan={14} className="text-center py-16 text-slate-500 bg-white">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <FileSpreadsheet className="w-8 h-8 text-slate-300" />
+                    <p className="font-semibold text-slate-800 text-sm">No spreadsheet rows match the filter.</p>
+                    <p className="text-xs text-slate-500">Try selecting &ldquo;All Rules&rdquo; or clearing the search text.</p>
                   </div>
                 </td>
               </tr>
@@ -517,33 +481,35 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
               paginatedRules.map((rule, idx) => {
                 const globalIndex = (currentPage - 1) * pageSize + idx + 1
                 const mappedScenario = ruleToScenarioMap.get(rule.ruleId.trim().toUpperCase())
-                const engineStyle = ENGINE_LOZENGES[rule.engine] || {
-                  bg: 'bg-[#EBECF0]',
-                  text: 'text-[#42526E]',
-                  border: 'border-[#DFE1E6]',
-                }
-                const tierStyle = getTierLozenge(rule.channelTier)
+                const isSelected = selectedRowId === rule.ruleId
 
                 return (
                   <tr
                     key={rule.ruleId}
-                    onClick={() => setInspectedRule({ rule, rowNumber: globalIndex })}
-                    className="hover:bg-[#F4F5F7] transition cursor-pointer group border-b border-[#EBECF0]"
+                    onClick={() => setSelectedRowId(rule.ruleId)}
+                    onDoubleClick={() => setInspectedRule({ rule, rowNumber: globalIndex })}
+                    className={`transition-colors cursor-pointer select-none text-[12px] ${
+                      isSelected
+                        ? 'bg-[#E8F5E9]'
+                        : idx % 2 === 0
+                        ? 'bg-white hover:bg-[#F0FDF4]'
+                        : 'bg-[#F9FAFB] hover:bg-[#F0FDF4]'
+                    }`}
                   >
-                    {/* Index */}
-                    <td className="px-3 py-2 text-center text-[#5E6C84] font-mono text-[11px] border-r border-[#EBECF0]">
+                    {/* Row Header (#) - Excel gray gutter */}
+                    <td className="px-2 py-1.5 text-center text-slate-500 font-mono text-[11px] font-medium border-r border-b border-[#E5E7EB] bg-[#F9FAFB] select-none">
                       {globalIndex}
                     </td>
 
-                    {/* Rule ID with copy icon */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0]">
-                      <div className="flex items-center gap-1 font-mono text-[11px] text-[#0052CC] font-semibold">
-                        <span>{rule.ruleId}</span>
+                    {/* Rule ID */}
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] font-mono text-[11px] font-semibold text-slate-900">
+                      <div className="flex items-center justify-between gap-1 group">
+                        <span className="hover:text-[#107C41]">{rule.ruleId}</span>
                         <button
                           type="button"
                           onClick={(e) => handleCopyId(rule.ruleId, e)}
                           title={`Copy ${rule.ruleId}`}
-                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-[#DEEBFF] text-[#6B778C] hover:text-[#0052CC] transition cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition"
                         >
                           {copiedId === rule.ruleId ? (
                             <Check className="w-3 h-3 text-emerald-600 stroke-[2.5]" />
@@ -554,24 +520,20 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
                       </div>
                     </td>
 
-                    {/* Real Engine */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0]">
-                      <span
-                        className={`inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[10px] font-bold uppercase tracking-wide border ${engineStyle.bg} ${engineStyle.text} ${engineStyle.border}`}
-                      >
-                        {rule.engine}
-                      </span>
+                    {/* Engine */}
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] font-medium text-slate-800">
+                      {rule.engine}
                     </td>
 
-                    {/* Rule / Notification Name */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0]">
-                      <span className="font-semibold text-[#172B4D] group-hover:text-[#0052CC] transition line-clamp-2">
+                    {/* Rule / Message Name */}
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] font-medium text-slate-900">
+                      <span className="truncate block" title={rule.ruleName}>
                         {rule.ruleName}
                       </span>
                     </td>
 
                     {/* Mapped QA Scenario */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0]">
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB]">
                       {mappedScenario ? (
                         <button
                           type="button"
@@ -579,86 +541,83 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
                             e.stopPropagation()
                             if (onJumpToScenario) onJumpToScenario(mappedScenario)
                           }}
-                          className="cursor-pointer inline-flex items-center gap-1 px-2 py-0.5 rounded-[3px] text-[11px] font-bold text-[#0052CC] bg-[#DEEBFF] hover:bg-[#B3D4FF] border border-[#B3D4FF] transition"
-                          title={`Mapped to QA test scenario ${mappedScenario.key} (${mappedScenario.engineCategory}). Click to jump to test execution.`}
+                          className="cursor-pointer font-mono font-bold text-[11px] text-[#0052CC] hover:text-[#0747A6] hover:underline flex items-center gap-1 transition"
+                          title={`Mapped to QA test scenario ${mappedScenario.key} (${mappedScenario.engineCategory}). Click to open.`}
                         >
                           <span>{mappedScenario.key}</span>
                           <ArrowRight className="w-3 h-3" />
                         </button>
                       ) : (
-                        <span className="inline-flex items-center text-[11px] text-[#6B778C] px-1.5 py-0.2 rounded bg-[#EBECF0]">
-                          Specification
+                        <span className="text-slate-400 font-mono text-[11px]">
+                          —
                         </span>
                       )}
                     </td>
 
                     {/* Trigger */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0] text-[#172B4D] text-[11px]">
-                      <span className="line-clamp-2" title={rule.trigger}>
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] text-slate-700">
+                      <span className="truncate block" title={rule.trigger}>
                         {rule.trigger || '—'}
                       </span>
                     </td>
 
                     {/* Audience */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0] text-[#42526E] text-[11px]">
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] text-slate-700">
                       <span className="truncate block" title={rule.audience}>
                         {rule.audience || 'All users'}
                       </span>
                     </td>
 
                     {/* Communication Objective */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0] text-[#172B4D] text-[11px]">
-                      <span className="line-clamp-2 leading-relaxed" title={rule.communicationObjective}>
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] text-slate-700">
+                      <span className="truncate block" title={rule.communicationObjective}>
                         {rule.communicationObjective || '—'}
                       </span>
                     </td>
 
                     {/* Priority */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0]">
-                      {renderJiraPriority(rule.priority)}
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB]">
+                      {renderExcelPriority(rule.priority)}
                     </td>
 
                     {/* Channel Tier */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0]">
-                      <span
-                        className={`inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[10px] font-semibold border ${tierStyle.bg} ${tierStyle.text} ${tierStyle.border}`}
-                      >
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] text-slate-700 text-[11px]">
+                      <span className="truncate block" title={rule.channelTier}>
                         {rule.channelTier || 'Tier 1'}
                       </span>
                     </td>
 
                     {/* Delivery Mode */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0] text-[#42526E] text-[11px]">
-                      <span className="line-clamp-2" title={rule.delivery}>
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] text-slate-700 text-[11px]">
+                      <span className="truncate block" title={rule.delivery}>
                         {rule.delivery || 'In-App + Push'}
                       </span>
                     </td>
 
                     {/* Attention Class */}
-                    <td className="px-3 py-2 border-r border-[#EBECF0] text-[#42526E] text-[11px]">
-                      <span className="truncate block font-mono text-[10px]" title={rule.attentionClass}>
+                    <td className="px-2.5 py-1.5 border-r border-b border-[#E5E7EB] text-slate-600 text-[11px]">
+                      <span className="truncate block font-mono" title={rule.attentionClass}>
                         {rule.attentionClass || 'Reflective'}
                       </span>
                     </td>
 
                     {/* Candidate Score */}
-                    <td className="px-3 py-2 text-center border-r border-[#EBECF0] font-mono text-[11px] text-[#172B4D] font-medium">
+                    <td className="px-2.5 py-1.5 text-center border-r border-b border-[#E5E7EB] font-mono text-[11px] text-slate-800 font-medium">
                       {rule.candidateScore || '50'}
                     </td>
 
-                    {/* Action: Open Rule Specification Modal */}
-                    <td className="px-3 py-2 text-center">
+                    {/* Action: Inspect */}
+                    <td className="px-2 py-1 text-center border-b border-[#E5E7EB]">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           setInspectedRule({ rule, rowNumber: globalIndex })
                         }}
-                        className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 rounded-[3px] bg-white hover:bg-[#F4F5F7] border border-[#DFE1E6] text-[#0052CC] hover:text-[#0747A6] text-[11px] font-semibold transition"
-                        title="View all 30 rule parameters & specifications"
+                        className="cursor-pointer px-2 py-0.5 rounded-[2px] bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 hover:text-slate-900 text-[11px] font-medium transition"
+                        title="View complete specifications for this rule"
                       >
-                        <BookOpen className="w-3 h-3" />
-                        <span>Inspect</span>
+                        Inspect
                       </button>
                     </td>
                   </tr>
@@ -669,26 +628,29 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
         </table>
       </div>
 
-      {/* Footer Navigation Bar */}
-      <div className="border-t border-[#EBECF0] bg-[#FAFBFC] px-4 py-2 shrink-0 flex items-center justify-between text-xs text-[#5E6C84]">
-        <div className="flex items-center gap-2">
-          <span>
-            Rule Book: <strong className="text-[#172B4D]">{filteredRules.length}</strong> rules displayed
+      {/* 4. Classic Excel Status Bar at the bottom */}
+      <div className="bg-[#F3F4F6] border-t border-[#D1D5DB] px-3 py-1 shrink-0 flex items-center justify-between text-[11px] text-slate-600 select-none">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 font-medium text-slate-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-600" />
+            <span>Ready</span>
           </span>
-          <span className="text-[#DFE1E6]">|</span>
-          <span>Click any row or &ldquo;Inspect&rdquo; to view complete specifications</span>
+          <span className="text-slate-300">|</span>
+          <span>{filteredRules.length} rows loaded</span>
+          <span className="text-slate-300">|</span>
+          <span className="text-slate-500">Double-click any row to inspect specifications</span>
         </div>
 
         {pageSize > 0 && totalPages > 1 && (
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px]">
+            <span>
               Page {currentPage} of {totalPages}
             </span>
             <button
               type="button"
               disabled={currentPage <= 1}
               onClick={() => setCurrentPage(1)}
-              className="px-2 py-0.5 rounded-[3px] bg-white border border-[#DFE1E6] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-[#F4F5F7]"
+              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100 font-mono"
               title="First Page"
             >
               «
@@ -697,7 +659,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
               type="button"
               disabled={currentPage <= 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-2 py-0.5 rounded-[3px] bg-white border border-[#DFE1E6] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-[#F4F5F7]"
+              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100"
               title="Previous Page"
             >
               ‹
@@ -706,7 +668,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-2 py-0.5 rounded-[3px] bg-white border border-[#DFE1E6] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-[#F4F5F7]"
+              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100"
               title="Next Page"
             >
               ›
@@ -715,7 +677,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage(totalPages)}
-              className="px-2 py-0.5 rounded-[3px] bg-white border border-[#DFE1E6] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-[#F4F5F7]"
+              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100 font-mono"
               title="Last Page"
             >
               »
