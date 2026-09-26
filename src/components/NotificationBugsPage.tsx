@@ -116,9 +116,6 @@ export const NotificationBugsPage: React.FC = () => {
             <li style={{ marginBottom: '5px' }}>
               <strong>Notification:</strong> &ldquo;You&rsquo;ve Been Invited!&rdquo; (Participation Engine &bull; CI-PART-041)
             </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> Clicking the <strong>&ldquo;Respond&rdquo;</strong> CTA button fails to navigate.
-            </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
             <img
@@ -136,9 +133,6 @@ export const NotificationBugsPage: React.FC = () => {
           <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px', color: '#374151' }}>
             <li style={{ marginBottom: '5px' }}>
               <strong>Notification:</strong> &ldquo;Your Invitation Was Accepted!&rdquo; (Participation Engine &bull; CI-PART-042)
-            </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> The invitee&rsquo;s username is missing at the beginning of the sentence (currently displays: <em>&ldquo;has accepted your invitation to co-sponsor...&rdquo;</em>).
             </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
@@ -158,9 +152,6 @@ export const NotificationBugsPage: React.FC = () => {
             <li style={{ marginBottom: '5px' }}>
               <strong>Notification:</strong> &ldquo;New Device Detected&rdquo; (Identity Engine)
             </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> The email does not include industry-standard login verification details, making it impossible for the user to review sign-in activity before clicking &ldquo;Review Activity&rdquo;.
-            </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
             <img
@@ -178,9 +169,6 @@ export const NotificationBugsPage: React.FC = () => {
           <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px', color: '#374151' }}>
             <li style={{ marginBottom: '5px' }}>
               <strong>Notification:</strong> &ldquo;Profile Updated&rdquo; (Identity Engine)
-            </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> Clicking the <strong>&ldquo;View Profile&rdquo;</strong> CTA button does not navigate or redirect to the profile page.
             </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
@@ -206,9 +194,6 @@ export const NotificationBugsPage: React.FC = () => {
             <li style={{ marginBottom: '5px' }}>
               <strong>In-App Copy Target:</strong> <code>&ldquo;Your username has been updated and is now live across Seedling. BOX: View Profile&rdquo;</code>
             </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> The notification delivery and its redirect action are completely failing.
-            </li>
           </ul>
         </div>
 
@@ -226,9 +211,6 @@ export const NotificationBugsPage: React.FC = () => {
             </li>
             <li style={{ marginBottom: '5px' }}>
               <strong>In-App Copy Target:</strong> <code>&ldquo;(Name), who you follow, is now following (nonprofit). Take a look and see what drew them in.  BOX: View Nonprofit&rdquo;</code>
-            </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> The CTA button (&ldquo;View Nonprofit&rdquo;) fails to navigate or deep-link to the nonprofit profile.
             </li>
           </ul>
         </div>
@@ -248,9 +230,6 @@ export const NotificationBugsPage: React.FC = () => {
             <li style={{ marginBottom: '5px' }}>
               <strong>In-App Copy Target:</strong> <code>&ldquo;(Name), who you follow, is now following (Name). Take a look and see what drew them in.  BOX: View Profile&rdquo;</code>
             </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> The CTA button (&ldquo;View Profile&rdquo; / &ldquo;Follow creator&rdquo;) fails to navigate or redirect to the creator profile.
-            </li>
           </ul>
         </div>
 
@@ -268,9 +247,6 @@ export const NotificationBugsPage: React.FC = () => {
             </li>
             <li style={{ marginBottom: '5px' }}>
               <strong>In-App Copy Target:</strong> <code>&ldquo;(Name), who you follow, has donated to (Seedling). See what moved them to give and consider joining in.  BOX: View Seedling&rdquo;</code>
-            </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Bug:</strong> The CTA button (&ldquo;View Seedling&rdquo; / &ldquo;Visit campaign&rdquo;) fails to navigate or redirect directly to the Seedling campaign.
             </li>
           </ul>
         </div>
