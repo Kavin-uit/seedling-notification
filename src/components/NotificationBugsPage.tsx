@@ -212,26 +212,7 @@ export const NotificationBugsPage: React.FC = () => {
           </ul>
         </div>
 
-        <div style={{ marginBottom: '25px', borderTop: '2px solid #e5e7eb', paddingTop: '20px' }}>
-          <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#111827' }}>Summary of Action Items for Dev Team</h3>
-          <ol style={{ margin: 0, paddingLeft: '20px', color: '#374151' }}>
-            <li style={{ marginBottom: '6px' }}>
-              <strong>Fix Template Deep-Link URLs:</strong> Ensure dynamic template variables (<code>&#123;&#123;invite_url&#125;&#125;</code>, <code>&#123;&#123;profile_url&#125;&#125;</code>) are populated in email template href tags.
-            </li>
-            <li style={{ marginBottom: '6px' }}>
-              <strong>Populate Template Variables:</strong> Fix the missing username variable placeholder in the invitation acceptance template.
-            </li>
-            <li style={{ marginBottom: '6px' }}>
-              <strong>Add Security Metadata:</strong> Inject device session attributes (IP, Device, Location, Time) into the New Device Detected email template.
-            </li>
-          </ol>
-        </div>
 
-        <p style={{ margin: '0 0 14px 0', color: '#1f2937' }}>Please let us know once fixes are deployed to staging for re-verification.</p>
-        <p style={{ margin: 0, color: '#1f2937' }}>
-          Thanks,<br />
-          <strong>QA &amp; Product Testing Team</strong>
-        </p>
       </div>
     </div>
   )
