@@ -30,17 +30,7 @@ export interface NotificationRuleModalProps {
   onJumpToScenario?: (scenario: NotificationScenario) => void
 }
 
-// Authentic Atlassian Design System Jira lozenges
-const ENGINE_LOZENGES: Record<string, { bg: string; text: string }> = {
-  Governance: { bg: 'bg-[#E3FCEF]', text: 'text-[#006644]' },
-  Contribution: { bg: 'bg-[#DEEBFF]', text: 'text-[#0747A6]' },
-  Participation: { bg: 'bg-[#EAE6FF]', text: 'text-[#403294]' },
-  Identity: { bg: 'bg-[#FFF0B3]', text: 'text-[#172B4D]' },
-  Opportunity: { bg: 'bg-[#E6FCFF]', text: 'text-[#0065FF]' },
-  Discovery: { bg: 'bg-[#FFEBE6]', text: 'text-[#BF2600]' },
-  Campaign: { bg: 'bg-[#DEEBFF]', text: 'text-[#0052CC]' },
-  Narrative: { bg: 'bg-[#E3FCEF]', text: 'text-[#00875A]' },
-}
+
 
 function renderJiraPriority(priority?: string) {
   const p = (priority || 'Medium').toLowerCase()
@@ -146,10 +136,7 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
   const ruleIdText = rule?.ruleId || scenario?.ruleId || 'CI-RULE'
   const scenarioKey = mappedScenario?.key || scenario?.key
 
-  const engineLozenge = ENGINE_LOZENGES[engineName] || {
-    bg: 'bg-[#EBECF0]',
-    text: 'text-[#42526E]',
-  }
+
 
   return createPortal(
     <div
@@ -167,48 +154,36 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
         <div className="px-5 py-3.5 border-b border-[#EBECF0] bg-white flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="min-w-0 flex-1">
             {/* Breadcrumb row: Engine / Rule ID / Mapped Scenario */}
-            <div className="flex items-center gap-1.5 text-xs text-[#5E6C84]">
-              <Bookmark className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-              <span className="font-semibold text-[#172B4D]">Rule Book</span>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <Bookmark className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="font-medium text-slate-700">Rule Book</span>
               <span>/</span>
-              <span className="text-[#0052CC] font-medium">{engineName} Engine</span>
+              <span className="text-slate-600">{engineName} Engine</span>
               <span>/</span>
-              <span className="font-mono text-[#172B4D] font-bold">{ruleIdText}</span>
+              <span className="font-mono text-slate-900 font-semibold">{ruleIdText}</span>
               {rowNumber && (
                 <>
-                  <span className="text-[#A5ADBA]">•</span>
-                  <span className="text-[#6B778C]">Row #{rowNumber}</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-500">Row #{rowNumber}</span>
                 </>
               )}
               {scenarioKey && (
                 <>
-                  <span className="text-[#A5ADBA]">•</span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0052CC] bg-[#DEEBFF] px-1.5 py-0.2 rounded">
-                    Mapped: {scenarioKey}
-                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="font-mono text-slate-600">Mapped: {scenarioKey}</span>
                 </>
               )}
             </div>
 
-            {/* Issue Title & Lozenges */}
-            <div className="flex items-center gap-2.5 flex-wrap mt-1.5">
+            {/* Issue Title & Action */}
+            <div className="flex items-center gap-3 flex-wrap mt-1.5">
               <h1
                 id="jira-rule-modal-title"
-                className="text-lg font-semibold text-[#172B4D] tracking-tight truncate max-w-full"
+                className="text-base font-semibold text-slate-900 tracking-tight truncate max-w-full"
                 title={ruleTitle}
               >
                 {ruleTitle}
               </h1>
-              <span
-                className={`inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[11px] font-bold uppercase tracking-wide ${engineLozenge.bg} ${engineLozenge.text}`}
-              >
-                {engineName}
-              </span>
-              {rule?.channelTier && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[11px] font-semibold bg-[#E3FCEF] text-[#006644]">
-                  {rule.channelTier}
-                </span>
-              )}
               {mappedScenario && onJumpToScenario && (
                 <button
                   type="button"
@@ -216,11 +191,11 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                     onClose()
                     onJumpToScenario(mappedScenario)
                   }}
-                  className="cursor-pointer inline-flex items-center gap-1 px-2 py-0.5 rounded-[3px] text-[11px] font-medium text-[#0052CC] bg-[#DEEBFF] hover:bg-[#B3D4FF] transition"
+                  className="cursor-pointer inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[3px] text-xs font-normal text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-300 transition"
                   title={`Open QA test scenario ${mappedScenario.key}`}
                 >
                   <span>Open {mappedScenario.key} in QA</span>
-                  <ArrowRight className="w-3 h-3" />
+                  <ArrowRight className="w-3 h-3 text-slate-400" />
                 </button>
               )}
             </div>
