@@ -17,7 +17,6 @@ import {
   ChevronUp,
   ChevronDown,
   ArrowRight,
-  Download,
   RotateCcw,
   AlignJustify,
 } from 'lucide-react'
@@ -129,7 +128,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
   const [selectedEngine, setSelectedEngine] = useState<string>(initialEngineFilter)
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery)
   const [tierFilter, setTierFilter] = useState<string>('ALL')
-  const [mappingFilter, setMappingFilter] = useState<'ALL' | 'MAPPED' | 'UNMAPPED'>('ALL')
   const [pageSize, setPageSize] = useState<number>(100)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
@@ -395,13 +393,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
       list = list.filter((r) => r.channelTier.toLowerCase().includes(tLower))
     }
 
-    // Mapping Filter
-    if (mappingFilter === 'MAPPED') {
-      list = list.filter((r) => ruleToScenarioMap.has(r.ruleId.trim().toUpperCase()))
-    } else if (mappingFilter === 'UNMAPPED') {
-      list = list.filter((r) => !ruleToScenarioMap.has(r.ruleId.trim().toUpperCase()))
-    }
-
     // Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
@@ -422,12 +413,12 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
     }
 
     return list
-  }, [selectedEngine, tierFilter, mappingFilter, searchQuery, ruleToScenarioMap])
+  }, [selectedEngine, tierFilter, searchQuery])
 
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedEngine, tierFilter, mappingFilter, searchQuery, pageSize])
+  }, [selectedEngine, tierFilter, searchQuery, pageSize])
 
   // Paginated slice
   const paginatedRules = useMemo(() => {
@@ -437,61 +428,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
   }, [filteredRules, currentPage, pageSize])
 
   const totalPages = pageSize === 0 ? 1 : Math.ceil(filteredRules.length / pageSize)
-
-  // Export filtered rules to CSV
-  const handleExportCsv = () => {
-    const headers = [
-      'Rule ID',
-      'Engine',
-      'Rule Name',
-      'Mapped Scenario',
-      'Trigger',
-      'Audience',
-      'Communication Objective',
-      'Priority',
-      'Channel Tier',
-      'Delivery Mode',
-      'Cooldown',
-      'Suppression',
-      'Attention Class',
-      'Score',
-      'Template ID',
-    ]
-
-    const rows = filteredRules.map((r) => {
-      const mapped = ruleToScenarioMap.get(r.ruleId.trim().toUpperCase())
-      return [
-        `"${r.ruleId}"`,
-        `"${r.engine}"`,
-        `"${r.ruleName.replace(/"/g, '""')}"`,
-        `"${mapped ? mapped.key : 'Unmapped'}"`,
-        `"${r.trigger.replace(/"/g, '""')}"`,
-        `"${r.audience.replace(/"/g, '""')}"`,
-        `"${r.communicationObjective.replace(/"/g, '""')}"`,
-        `"${r.priority}"`,
-        `"${r.channelTier}"`,
-        `"${r.delivery.replace(/"/g, '""')}"`,
-        `"${r.cooldown}"`,
-        `"${r.suppression.replace(/"/g, '""')}"`,
-        `"${r.attentionClass}"`,
-        `"${r.candidateScore}"`,
-        `"${r.templateId}"`,
-      ].join(',')
-    })
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n')
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
-    link.setAttribute(
-      'download',
-      `Seedling_Master_RuleBook_${selectedEngine === 'ALL' ? 'AllEngines' : selectedEngine}_${filteredRules.length}_rules.csv`
-    )
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    if (onShowToast) onShowToast(`Exported ${filteredRules.length} rules to CSV`)
-  }
 
   // Row height / wrapping class names based on density
   const rowHeightClass =
@@ -592,21 +528,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             </select>
           </div>
 
-          {/* Mapping AutoFilter */}
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[11px] text-slate-500 font-medium">Mapping:</span>
-            <select
-              value={mappingFilter}
-              onChange={(e) => setMappingFilter(e.target.value as any)}
-              className="h-7 bg-white border border-[#CBD5E1] rounded-[2px] px-2 text-xs text-slate-800 outline-none focus:border-[#107C41] cursor-pointer"
-              title="Filter QA Scenario Mapping"
-            >
-              <option value="ALL">All Rules (409)</option>
-              <option value="MAPPED">Mapped to QA ({ruleToScenarioMap.size})</option>
-              <option value="UNMAPPED">Specification Only</option>
-            </select>
-          </div>
-
           {/* Row Height / Density Adjuster */}
           <div className="flex items-center gap-1 shrink-0 bg-white border border-[#CBD5E1] rounded-[2px] p-0.5 shadow-2xs">
             <span className="text-[11px] text-slate-500 pl-1 font-medium flex items-center gap-1">
@@ -664,13 +585,12 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             </button>
           )}
 
-          {(searchQuery || tierFilter !== 'ALL' || mappingFilter !== 'ALL') && (
+          {(searchQuery || tierFilter !== 'ALL') && (
             <button
               type="button"
               onClick={() => {
                 setSearchQuery('')
                 setTierFilter('ALL')
-                setMappingFilter('ALL')
               }}
               className="cursor-pointer text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-0.5 shrink-0"
               title="Clear active search & tier filters"
@@ -681,7 +601,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
           )}
         </div>
 
-        {/* Right Side: Excel Actions & Summary */}
+        {/* Right Side: Summary and Google Sheet Link */}
         <div className="flex items-center gap-2 text-xs text-slate-600 shrink-0">
           <span className="text-[11px]">
             Showing <strong>{filteredRules.length}</strong> of <strong>409</strong> rows
@@ -701,17 +621,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             <option value={200}>200 rows</option>
             <option value={0}>All 409 rows</option>
           </select>
-
-          {/* Export to Excel CSV */}
-          <button
-            type="button"
-            onClick={handleExportCsv}
-            className="cursor-pointer h-7 px-2.5 rounded-[2px] bg-white hover:bg-slate-50 border border-[#CBD5E1] text-[#107C41] font-semibold text-xs flex items-center gap-1.5 transition shadow-2xs"
-            title="Export filtered rules to Excel CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-[#107C41]" />
-            <span>Export .xlsx</span>
-          </button>
 
           {/* Link to Google Sheet */}
           <a
