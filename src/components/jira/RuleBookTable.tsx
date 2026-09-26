@@ -444,50 +444,31 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
 
   return (
     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white text-[#172B4D] font-sans">
-      {/* 1. Authentic Excel / Google Sheets Workbook Sheet Tabs at the top */}
-      <div className="bg-[#EAECEF] border-b border-[#D1D5DB] px-2 pt-1.5 shrink-0 flex items-center gap-0.5 overflow-x-auto select-none no-scrollbar">
-        {/* All Rules Tab */}
-        <button
-          type="button"
-          onClick={() => setSelectedEngine('ALL')}
-          className={`cursor-pointer px-3 py-1.5 text-xs rounded-t-[3px] border-t border-l border-r transition font-medium flex items-center gap-1.5 shrink-0 ${
-            selectedEngine === 'ALL'
-              ? 'bg-white text-[#107C41] font-bold border-[#D1D5DB] border-b-white -mb-[1px] z-10 shadow-xs'
-              : 'bg-[#DFE1E6] hover:bg-[#EBECF0] text-slate-700 border-transparent'
-          }`}
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5 text-[#107C41]" />
-          <span>All Rules</span>
-          <span className="text-[10px] text-slate-500 font-mono">409</span>
-        </button>
-
-        {/* Engine Tabs */}
-        {engineList.map((eng) => {
-          const isSelected = selectedEngine === eng
-          const count = engineCounts[eng] || 0
-
-          return (
-            <button
-              key={eng}
-              type="button"
-              onClick={() => setSelectedEngine(eng)}
-              className={`cursor-pointer px-3 py-1.5 text-xs rounded-t-[3px] border-t border-l border-r transition font-medium flex items-center gap-1.5 shrink-0 ${
-                isSelected
-                  ? 'bg-white text-[#107C41] font-bold border-[#D1D5DB] border-b-white -mb-[1px] z-10 shadow-xs'
-                  : 'bg-[#DFE1E6] hover:bg-[#EBECF0] text-slate-700 border-transparent'
-              }`}
-            >
-              <span>{eng}</span>
-              <span className="text-[10px] text-slate-500 font-mono">({count})</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* 2. Excel Ribbon / Toolbar: AutoFilter Controls, Row Density & Actions */}
+      {/* Excel Ribbon / Toolbar: Engine Filter, Search, Tier, Row Density & Actions */}
       <div className="bg-[#F8F9FA] border-b border-[#D1D5DB] px-3 py-1.5 shrink-0 flex flex-wrap items-center justify-between gap-2 text-xs">
         {/* Left Side: Excel Formula / Search & Filters */}
         <div className="flex items-center gap-2 flex-1 max-w-3xl min-w-0">
+          {/* Engine Filter Dropdown */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+              <FileSpreadsheet className="w-3.5 h-3.5 text-[#107C41]" />
+              <span>Engine:</span>
+            </span>
+            <select
+              value={selectedEngine}
+              onChange={(e) => setSelectedEngine(e.target.value)}
+              className="h-7 bg-white border border-[#CBD5E1] rounded-[2px] px-2 text-xs text-slate-800 font-medium outline-none focus:border-[#107C41] cursor-pointer"
+              title="Filter by Notification Engine"
+            >
+              <option value="ALL">All Rules (409)</option>
+              {engineList.map((eng) => (
+                <option key={eng} value={eng}>
+                  {eng} ({engineCounts[eng] || 0})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Search box styled like Excel Find */}
           <div className="relative flex items-center flex-1 min-w-[180px]">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 pointer-events-none shrink-0" />
@@ -585,15 +566,16 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             </button>
           )}
 
-          {(searchQuery || tierFilter !== 'ALL') && (
+          {(searchQuery || tierFilter !== 'ALL' || selectedEngine !== 'ALL') && (
             <button
               type="button"
               onClick={() => {
+                setSelectedEngine('ALL')
                 setSearchQuery('')
                 setTierFilter('ALL')
               }}
               className="cursor-pointer text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-0.5 shrink-0"
-              title="Clear active search & tier filters"
+              title="Clear active search, engine & tier filters"
             >
               <X className="w-3 h-3" />
               <span>Clear filters</span>
