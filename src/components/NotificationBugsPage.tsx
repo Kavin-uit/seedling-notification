@@ -108,36 +108,7 @@ export const NotificationBugsPage: React.FC = () => {
           lineHeight: '1.6',
         }}
       >
-        <table
-          cellPadding="0"
-          cellSpacing="0"
-          border={0}
-          width="100%"
-          style={{ borderBottom: '2px solid #e5e7eb', paddingBottom: '14px', marginBottom: '20px' }}
-        >
-          <tbody>
-            <tr>
-              <td style={{ fontSize: '14px', color: '#4b5563' }}>
-                <p style={{ margin: '0 0 6px 0' }}>
-                  <strong style={{ color: '#111827' }}>Subject:</strong> [QA Bug Report][High] Notification Deep-Linking &amp; Content Defects: Broken Navigation, Missing Metadata, and Copy Issues
-                </p>
-                <p style={{ margin: '0 0 6px 0' }}>
-                  <strong style={{ color: '#111827' }}>To:</strong> Engineering Team / Mobile &amp; Web Platform Team
-                </p>
-                <p style={{ margin: 0 }}>
-                  <strong style={{ color: '#111827' }}>Priority:</strong> High &nbsp;|&nbsp; <strong>Environment:</strong> Staging / Production
-                </p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <p style={{ margin: '0 0 16px 0', color: '#1f2937' }}>Hi Team,</p>
-        <p style={{ margin: '0 0 24px 0', color: '#1f2937' }}>
-          During notification testing across Identity and Participation flows, we identified critical deep-linking, navigation, and copy bugs in email notifications. Below is the detailed breakdown with screenshots and expected behaviors for each issue.
-        </p>
-
-        <div style={{ marginBottom: '28px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#111827' }}>
             1. Co-Sponsor Invite: &ldquo;Respond&rdquo; Button Navigation Broken
           </h3>
