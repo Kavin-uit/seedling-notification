@@ -128,8 +128,6 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
   const [selectedEngine, setSelectedEngine] = useState<string>(initialEngineFilter)
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery)
   const [tierFilter, setTierFilter] = useState<string>('ALL')
-  const [pageSize, setPageSize] = useState<number>(100)
-  const [currentPage, setCurrentPage] = useState<number>(1)
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
 
   // Row Density State: Compact (28px) | Standard (36px) | Wrap Text (auto)
@@ -415,19 +413,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
     return list
   }, [selectedEngine, tierFilter, searchQuery])
 
-  // Reset pagination when filters change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [selectedEngine, tierFilter, searchQuery, pageSize])
 
-  // Paginated slice
-  const paginatedRules = useMemo(() => {
-    if (pageSize === 0) return filteredRules
-    const start = (currentPage - 1) * pageSize
-    return filteredRules.slice(start, start + pageSize)
-  }, [filteredRules, currentPage, pageSize])
-
-  const totalPages = pageSize === 0 ? 1 : Math.ceil(filteredRules.length / pageSize)
 
   // Row height / wrapping class names based on density
   const rowHeightClass =
@@ -589,20 +575,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
             Showing <strong>{filteredRules.length}</strong> of <strong>409</strong> rows
           </span>
 
-          <span className="text-slate-300">|</span>
 
-          {/* Page size picker */}
-          <select
-            value={pageSize}
-            onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
-            className="h-7 bg-white border border-[#CBD5E1] rounded-[2px] px-1.5 text-xs text-slate-800 outline-none cursor-pointer"
-            title="Rows per page"
-          >
-            <option value={50}>50 rows</option>
-            <option value={100}>100 rows</option>
-            <option value={200}>200 rows</option>
-            <option value={0}>All 409 rows</option>
-          </select>
 
           {/* Link to Google Sheet */}
           <a
@@ -838,7 +811,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
 
           {/* Spreadsheet Data Rows with Crisp Excel Gridlines */}
           <tbody className="divide-y divide-[#E5E7EB]">
-            {paginatedRules.length === 0 ? (
+            {filteredRules.length === 0 ? (
               <tr>
                 <td colSpan={14} className="text-center py-16 text-slate-500 bg-white">
                   <div className="flex flex-col items-center gap-1.5">
@@ -849,8 +822,8 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
                 </td>
               </tr>
             ) : (
-              paginatedRules.map((rule, idx) => {
-                const globalIndex = (currentPage - 1) * pageSize + idx + 1
+              filteredRules.map((rule, idx) => {
+                const globalIndex = idx + 1
                 const mappedScenario = ruleToScenarioMap.get(rule.ruleId.trim().toUpperCase())
                 const isSelected = selectedRowId === rule.ruleId
 
@@ -1095,63 +1068,7 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
         </table>
       </div>
 
-      {/* 4. Classic Excel Status Bar at the bottom */}
-      <div className="bg-[#F3F4F6] border-t border-[#D1D5DB] px-3 py-1 shrink-0 flex items-center justify-between text-[11px] text-slate-600 select-none">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 font-medium text-slate-700">
-            <span className="w-2 h-2 rounded-full bg-emerald-600" />
-            <span>Ready</span>
-          </span>
-          <span className="text-slate-300">|</span>
-          <span>{filteredRules.length} rows</span>
-          <span className="text-slate-300">|</span>
-          <span className="text-slate-500">Drag column edges to resize • Double-click row to inspect</span>
-        </div>
 
-        {pageSize > 0 && totalPages > 1 && (
-          <div className="flex items-center gap-1.5">
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage(1)}
-              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100 font-mono"
-              title="First Page"
-            >
-              «
-            </button>
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100"
-              title="Previous Page"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100"
-              title="Next Page"
-            >
-              ›
-            </button>
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage(totalPages)}
-              className="px-1.5 py-0.5 rounded-[2px] bg-white border border-[#CBD5E1] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed hover:bg-slate-100 font-mono"
-              title="Last Page"
-            >
-              »
-            </button>
-          </div>
-        )}
-      </div>
 
       {/* Specification Modal */}
       {inspectedRule && (
