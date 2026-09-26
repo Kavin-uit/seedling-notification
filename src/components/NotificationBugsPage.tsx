@@ -119,9 +119,6 @@ export const NotificationBugsPage: React.FC = () => {
             <li style={{ marginBottom: '5px' }}>
               <strong>Bug:</strong> Clicking the <strong>&ldquo;Respond&rdquo;</strong> CTA button fails to navigate.
             </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Expected Result:</strong> Must redirect the user directly to the <strong>Invite Accept Page</strong> (<code>/invite/&#123;&#123;inviteToken&#125;&#125;/accept</code> or open the in-app co-sponsorship response screen).
-            </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
             <img
@@ -142,9 +139,6 @@ export const NotificationBugsPage: React.FC = () => {
             </li>
             <li style={{ marginBottom: '5px' }}>
               <strong>Bug:</strong> The invitee&rsquo;s username is missing at the beginning of the sentence (currently displays: <em>&ldquo;has accepted your invitation to co-sponsor...&rdquo;</em>).
-            </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Expected Result:</strong> Must dynamically inject the invitee&rsquo;s display name: <code>&ldquo;[Username] has accepted your invitation to co-sponsor -- welcome them to the team and start growing good together.&rdquo;</code>
             </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
@@ -167,9 +161,6 @@ export const NotificationBugsPage: React.FC = () => {
             <li style={{ marginBottom: '5px' }}>
               <strong>Bug:</strong> The email does not include industry-standard login verification details, making it impossible for the user to review sign-in activity before clicking &ldquo;Review Activity&rdquo;.
             </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Expected Result:</strong> Must display sign-in metadata in the body: <strong>Device Name/Type</strong>, <strong>Browser / OS</strong>, <strong>IP Address</strong>, <strong>Approximate Location</strong>, and <strong>Sign-in Timestamp</strong>.
-            </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
             <img
@@ -190,9 +181,6 @@ export const NotificationBugsPage: React.FC = () => {
             </li>
             <li style={{ marginBottom: '5px' }}>
               <strong>Bug:</strong> Clicking the <strong>&ldquo;View Profile&rdquo;</strong> CTA button does not navigate or redirect to the profile page.
-            </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Expected Result:</strong> Must deep link directly to the user&rsquo;s <strong>Profile Page</strong> (<code>/profile</code> or in-app profile view).
             </li>
           </ul>
           <div style={{ marginTop: '10px' }}>
@@ -217,9 +205,6 @@ export const NotificationBugsPage: React.FC = () => {
             </li>
             <li style={{ marginBottom: '5px' }}>
               <strong>In-App Copy Target:</strong> <code>&ldquo;Your username has been updated and is now live across Seedling. BOX: View Profile&rdquo;</code>
-            </li>
-            <li style={{ marginBottom: '5px' }}>
-              <strong>Expected Action:</strong> Redirect user directly to profile (<em>&ldquo;take user to profile&rdquo;</em>).
             </li>
             <li style={{ marginBottom: '5px' }}>
               <strong>Bug:</strong> The notification delivery and its redirect action are completely failing.
