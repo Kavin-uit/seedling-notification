@@ -582,30 +582,7 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
         </div>
 
         {/* Authentic Jira Modal Footer */}
-        <div className="shrink-0 px-5 py-3 border-t border-[#EBECF0] bg-[#FAFBFC] flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => copyToClipboard(JSON.stringify(rule || scenario, null, 2), 'json')}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[3px] border border-[#DFE1E6] bg-white hover:bg-[#F4F5F7] text-[#42526E] font-medium transition cursor-pointer"
-            >
-              {copiedField === 'json' ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-[#006644]" />
-                  <span className="text-[#006644]">Copied JSON</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5 text-[#5E6C84]" />
-                  <span>Copy Rule JSON</span>
-                </>
-              )}
-            </button>
-            <span className="text-[#5E6C84] text-[11px] hidden sm:inline">
-              Use ← / → arrow keys to navigate rows
-            </span>
-          </div>
-
+        <div className="shrink-0 px-5 py-3 border-t border-[#EBECF0] bg-[#FAFBFC] flex items-center justify-end text-xs">
           <button
             type="button"
             onClick={onClose}
