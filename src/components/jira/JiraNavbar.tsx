@@ -12,12 +12,13 @@ import {
   LayoutGrid,
   Table2,
   BookOpen,
+  AlertTriangle,
 } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
 export type EngineCategoryFilter = 'ALL' | string
-export type ActiveDashboardView = 'scenarios' | 'rulebook'
+export type ActiveDashboardView = 'scenarios' | 'rulebook' | 'bugs'
 
 export interface EngineMenuItem {
   name: string
@@ -253,6 +254,29 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
               }`}
             >
               {ruleBookCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onChangeView?.('bugs')}
+            className={`cursor-pointer h-7.5 px-2 sm:px-2.5 rounded-[3px] text-xs font-semibold flex items-center gap-1.5 transition select-none ${
+              activeView === 'bugs'
+                ? 'bg-white text-[#0747A6] shadow-xs'
+                : 'text-white/80 hover:text-white hover:bg-white/10'
+            }`}
+            title="Notification QA Bug Report for Management (5 issues)"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Bug Report</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                activeView === 'bugs'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-red-500 text-white'
+              }`}
+            >
+              5
             </span>
           </button>
         </div>
