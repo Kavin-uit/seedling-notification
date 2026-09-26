@@ -10,11 +10,14 @@ import {
   Plus,
   PanelLeft,
   LayoutGrid,
+  Table2,
+  BookOpen,
 } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 
 export type EngineCategoryFilter = 'ALL' | string
+export type ActiveDashboardView = 'scenarios' | 'rulebook'
 
 export interface EngineMenuItem {
   name: string
@@ -36,6 +39,9 @@ interface JiraNavbarProps {
   govCount?: number
   contribCount?: number
   totalRows: number
+  ruleBookCount?: number
+  activeView?: ActiveDashboardView
+  onChangeView?: (view: ActiveDashboardView) => void
   verificationSummary?: SheetVerificationSummary | null
   isVerifying?: boolean
   onOpenVerificationModal?: () => void
@@ -58,6 +64,9 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   govCount,
   contribCount,
   totalRows,
+  ruleBookCount = 409,
+  activeView = 'scenarios',
+  onChangeView,
   verificationSummary,
   isVerifying,
   onOpenVerificationModal,
@@ -198,6 +207,55 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             Seedling
           </span>
         </button>
+
+        {/* View Switcher: Test Scenarios vs Master Rule Book */}
+        <div className="flex items-center bg-black/20 p-0.5 rounded-[4px] border border-white/10 shrink-0">
+          <button
+            type="button"
+            onClick={() => onChangeView?.('scenarios')}
+            className={`cursor-pointer h-7.5 px-2 sm:px-2.5 rounded-[3px] text-xs font-semibold flex items-center gap-1.5 transition select-none ${
+              activeView === 'scenarios'
+                ? 'bg-white text-[#0747A6] shadow-xs'
+                : 'text-white/80 hover:text-white hover:bg-white/10'
+            }`}
+            title="Notification QA test scenarios spreadsheet"
+          >
+            <Table2 className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Scenarios</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                activeView === 'scenarios'
+                  ? 'bg-[#DEEBFF] text-[#0747A6]'
+                  : 'bg-white/20 text-white'
+              }`}
+            >
+              {totalRows}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onChangeView?.('rulebook')}
+            className={`cursor-pointer h-7.5 px-2 sm:px-2.5 rounded-[3px] text-xs font-semibold flex items-center gap-1.5 transition select-none ${
+              activeView === 'rulebook'
+                ? 'bg-white text-[#0747A6] shadow-xs'
+                : 'text-white/80 hover:text-white hover:bg-white/10'
+            }`}
+            title="Master Notification Rule Book (409 rules across 8 engines)"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Rule Book</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                activeView === 'rulebook'
+                  ? 'bg-[#DEEBFF] text-[#0747A6]'
+                  : 'bg-white/20 text-white'
+              }`}
+            >
+              {ruleBookCount}
+            </span>
+          </button>
+        </div>
 
         {/* Engine Switcher - Clean Jira App Style */}
         <div className="relative shrink-0" ref={engineMenuRef}>

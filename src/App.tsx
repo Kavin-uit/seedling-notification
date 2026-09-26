@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import type { NotificationScenario, ScenarioStatus } from './types/notification'
 import { JiraNavbar } from './components/jira/JiraNavbar'
-import type { EngineCategoryFilter, EngineMenuItem } from './components/jira/JiraNavbar'
+import type { EngineCategoryFilter, EngineMenuItem, ActiveDashboardView } from './components/jira/JiraNavbar'
 import { JiraTable } from './components/jira/JiraTable'
+import { RuleBookTable } from './components/jira/RuleBookTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
@@ -74,9 +75,30 @@ export default function App() {
   const [scenarios, setScenarios] = useState<NotificationScenario[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [dbEngines, setDbEngines] = useState<string[]>([])
+  // Active view: 'scenarios' (QA test execution) or 'rulebook' (Master Rule Book specification map)
+  const [activeView, setActiveView] = useState<ActiveDashboardView>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const v = params.get('view')
+      if (v === 'rulebook') return 'rulebook'
+      const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.engine === 'RuleBook') return 'rulebook'
+      }
+    } catch {}
+    return 'scenarios'
+  })
 
   // Initialize filters from URL query parameters or localStorage (persists across page refresh)
-  const [initialFilters] = useState(() => loadInitialFilters())
+  const [initialFilters] = useState(() => {
+    const filters = loadInitialFilters()
+    // Clean up any stale RuleBook engine filter
+    if (filters.engine === 'RuleBook') {
+      filters.engine = 'ALL'
+    }
+    return filters
+  })
   const [selectedEngine, setSelectedEngine] = useState<EngineCategoryFilter>(initialFilters.engine)
   const [searchQuery, setSearchQuery] = useState<string>(initialFilters.q)
   const [statusFilter, setStatusFilter] = useState<string>(initialFilters.status)
@@ -93,6 +115,19 @@ export default function App() {
       setToastMessage(null)
     }, 2800)
   }, [])
+
+  // Sync activeView to URL
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href)
+      if (activeView === 'rulebook') {
+        url.searchParams.set('view', 'rulebook')
+      } else {
+        url.searchParams.delete('view')
+      }
+      window.history.replaceState({}, '', url.toString())
+    } catch {}
+  }, [activeView])
 
   // Keep URL search query parameters & localStorage synced with currently active filters
   useEffect(() => {
@@ -128,9 +163,13 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parseFilterUrlParams()
-      setSelectedEngine(parsed.engine)
+      setSelectedEngine(parsed.engine === 'RuleBook' ? 'ALL' : parsed.engine)
       setStatusFilter(parsed.status)
       setSearchQuery(parsed.q)
+      try {
+        const params = new URLSearchParams(window.location.search)
+        setActiveView(params.get('view') === 'rulebook' ? 'rulebook' : 'scenarios')
+      } catch {}
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
@@ -493,7 +532,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen h-[100dvh] w-full min-w-0 overflow-hidden bg-white text-[#172B4D] font-sans antialiased select-none">
-      {/* 1. Jira Navigation Bar with Engine Category Switcher, Live Sheet Status, & Search */}
+      {/* 1. Jira Navigation Bar with Engine Category Switcher, View Switcher, Live Sheet Status, & Search */}
       <JiraNavbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -508,6 +547,9 @@ export default function App() {
         govCount={engineCounts['Governance'] || 0}
         contribCount={engineCounts['Contribution'] || 0}
         totalRows={scenarios.length}
+        ruleBookCount={409}
+        activeView={activeView}
+        onChangeView={setActiveView}
         totalEngines={dynamicEngines.length}
         verificationSummary={verificationSummary}
         isVerifying={isVerifying}
@@ -517,7 +559,7 @@ export default function App() {
         onOpenShareModal={() => setIsShareModalOpen(true)}
       />
 
-      {/* 2. Main Excel-like Spreadsheet Grid */}
+      {/* 2. Main Excel-like Spreadsheet Grid OR Master Rule Book Table */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {isLoading && scenarios.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center bg-white text-[#42526E] gap-3">
@@ -525,6 +567,19 @@ export default function App() {
             <p className="font-semibold text-sm text-[#172B4D]">Loading notification scenarios from production D1...</p>
             <p className="text-xs text-[#6B778C]">Connecting to Cloudflare edge database</p>
           </div>
+        ) : activeView === 'rulebook' ? (
+          <RuleBookTable
+            scenarios={scenarios}
+            initialEngineFilter={selectedEngine}
+            initialSearchQuery={searchQuery}
+            onJumpToScenario={(scen) => {
+              setActiveView('scenarios')
+              setSelectedEngine(scen.engineCategory)
+              setSearchQuery('')
+              showToast(`Jumped to scenario ${scen.key} (${scen.engineCategory})`)
+            }}
+            onShowToast={showToast}
+          />
         ) : (
           <JiraTable
             scenarios={scenarios}

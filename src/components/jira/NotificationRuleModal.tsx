@@ -12,10 +12,14 @@ import {
   ChevronUp,
   ChevronDown,
   FileSpreadsheet,
+  ArrowRight,
+  Bookmark,
 } from 'lucide-react'
 
-interface NotificationRuleModalProps {
-  scenario: NotificationScenario | null
+export interface NotificationRuleModalProps {
+  scenario?: NotificationScenario | null
+  rule?: NotificationRule | null
+  mappedScenario?: NotificationScenario | null
   rowNumber?: number
   isOpen: boolean
   onClose: () => void
@@ -23,6 +27,7 @@ interface NotificationRuleModalProps {
   onNavigateNext?: () => void
   hasPrev?: boolean
   hasNext?: boolean
+  onJumpToScenario?: (scenario: NotificationScenario) => void
 }
 
 // Authentic Atlassian Design System Jira lozenges
@@ -33,7 +38,6 @@ const ENGINE_LOZENGES: Record<string, { bg: string; text: string }> = {
   Identity: { bg: 'bg-[#FFF0B3]', text: 'text-[#172B4D]' },
   Opportunity: { bg: 'bg-[#E6FCFF]', text: 'text-[#0065FF]' },
   Discovery: { bg: 'bg-[#FFEBE6]', text: 'text-[#BF2600]' },
-  RuleBook: { bg: 'bg-[#E3FCEF]', text: 'text-[#006644]' },
   Campaign: { bg: 'bg-[#DEEBFF]', text: 'text-[#0052CC]' },
   Narrative: { bg: 'bg-[#E3FCEF]', text: 'text-[#00875A]' },
 }
@@ -74,6 +78,8 @@ function renderJiraPriority(priority?: string) {
 
 export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
   scenario,
+  rule: directRule,
+  mappedScenario: directMappedScenario,
   rowNumber,
   isOpen,
   onClose,
@@ -81,15 +87,23 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
   onNavigateNext,
   hasPrev = false,
   hasNext = false,
+  onJumpToScenario,
 }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'delivery' | 'audience' | 'decision' | 'specs'>('delivery')
 
   const rule: NotificationRule | undefined = useMemo(() => {
-    if (!scenario) return undefined
-    if (scenario.rule) return scenario.rule
-    return rulesApi.getRuleForScenario(scenario)
-  }, [scenario])
+    if (directRule) return directRule
+    if (scenario?.rule) return scenario.rule
+    if (scenario) return rulesApi.getRuleForScenario(scenario)
+    return undefined
+  }, [directRule, scenario])
+
+  const mappedScenario = useMemo(() => {
+    if (directMappedScenario) return directMappedScenario
+    if (scenario) return scenario
+    return undefined
+  }, [directMappedScenario, scenario])
 
   useEffect(() => {
     if (!isOpen) return
@@ -125,9 +139,14 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
     })
   }
 
-  if (!isOpen || !scenario) return null
+  if (!isOpen || (!scenario && !rule)) return null
 
-  const engineLozenge = ENGINE_LOZENGES[scenario.engineCategory] || {
+  const engineName = rule?.engine || scenario?.engineCategory || 'Identity'
+  const ruleTitle = rule?.ruleName || scenario?.governanceEvent || 'Notification Rule'
+  const ruleIdText = rule?.ruleId || scenario?.ruleId || 'CI-RULE'
+  const scenarioKey = mappedScenario?.key || scenario?.key
+
+  const engineLozenge = ENGINE_LOZENGES[engineName] || {
     bg: 'bg-[#EBECF0]',
     text: 'text-[#42526E]',
   }
@@ -147,45 +166,62 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
         {/* Authentic Jira Issue Header */}
         <div className="px-5 py-3.5 border-b border-[#EBECF0] bg-white flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="min-w-0 flex-1">
-            {/* Breadcrumb row: Project / Key / Rule ID */}
+            {/* Breadcrumb row: Engine / Rule ID / Mapped Scenario */}
             <div className="flex items-center gap-1.5 text-xs text-[#5E6C84]">
-              <svg className="w-3.5 h-3.5 text-[#0052CC] shrink-0" viewBox="0 0 16 16" fill="currentColor">
-                <rect x="2" y="2" width="12" height="12" rx="2" fill="#0052CC" />
-                <path d="M5 8l2 2 4-4" stroke="#FFF" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </svg>
-              <span className="text-[#0052CC] hover:underline cursor-pointer font-medium">
-                {scenario.key}
-              </span>
+              <Bookmark className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+              <span className="font-semibold text-[#172B4D]">Rule Book</span>
               <span>/</span>
-              <span className="font-mono text-[#172B4D]">
-                {rule?.ruleId || 'RULE'}
-              </span>
+              <span className="text-[#0052CC] font-medium">{engineName} Engine</span>
+              <span>/</span>
+              <span className="font-mono text-[#172B4D] font-bold">{ruleIdText}</span>
               {rowNumber && (
                 <>
                   <span className="text-[#A5ADBA]">•</span>
                   <span className="text-[#6B778C]">Row #{rowNumber}</span>
                 </>
               )}
+              {scenarioKey && (
+                <>
+                  <span className="text-[#A5ADBA]">•</span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0052CC] bg-[#DEEBFF] px-1.5 py-0.2 rounded">
+                    Mapped: {scenarioKey}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Issue Title & Lozenges */}
-            <div className="flex items-center gap-2.5 flex-wrap mt-1">
+            <div className="flex items-center gap-2.5 flex-wrap mt-1.5">
               <h1
                 id="jira-rule-modal-title"
                 className="text-lg font-semibold text-[#172B4D] tracking-tight truncate max-w-full"
-                title={scenario.governanceEvent}
+                title={ruleTitle}
               >
-                {scenario.governanceEvent}
+                {ruleTitle}
               </h1>
               <span
                 className={`inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[11px] font-bold uppercase tracking-wide ${engineLozenge.bg} ${engineLozenge.text}`}
               >
-                {scenario.engineCategory}
+                {engineName}
               </span>
               {rule?.channelTier && (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[11px] font-semibold bg-[#E3FCEF] text-[#006644]">
                   {rule.channelTier}
                 </span>
+              )}
+              {mappedScenario && onJumpToScenario && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose()
+                    onJumpToScenario(mappedScenario)
+                  }}
+                  className="cursor-pointer inline-flex items-center gap-1 px-2 py-0.5 rounded-[3px] text-[11px] font-medium text-[#0052CC] bg-[#DEEBFF] hover:bg-[#B3D4FF] transition"
+                  title={`Open QA test scenario ${mappedScenario.key}`}
+                >
+                  <span>Open {mappedScenario.key} in QA</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
               )}
             </div>
           </div>
@@ -197,7 +233,7 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#42526E] hover:text-[#172B4D] bg-white hover:bg-[#F4F5F7] border border-[#DFE1E6] rounded-[3px] transition-colors"
-              title="Open Rule Book in Google Sheets"
+              title="Open Master Rule Book in Google Sheets"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-[#0052CC]" />
               <span className="hidden sm:inline">Google Sheet</span>
@@ -210,8 +246,8 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                 onClick={onNavigatePrev}
                 disabled={!hasPrev}
                 className="w-7 h-7 rounded-[3px] border border-[#DFE1E6] bg-white flex items-center justify-center text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] disabled:opacity-30 disabled:hover:bg-white transition cursor-pointer disabled:cursor-not-allowed"
-                title="Previous scenario (← Arrow)"
-                aria-label="Previous scenario"
+                title="Previous rule (← Arrow)"
+                aria-label="Previous rule"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -222,8 +258,8 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                 onClick={onNavigateNext}
                 disabled={!hasNext}
                 className="w-7 h-7 rounded-[3px] border border-[#DFE1E6] bg-white flex items-center justify-center text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] disabled:opacity-30 disabled:hover:bg-white transition cursor-pointer disabled:cursor-not-allowed"
-                title="Next scenario (→ Arrow)"
-                aria-label="Next scenario"
+                title="Next rule (→ Arrow)"
+                aria-label="Next rule"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -333,35 +369,43 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Notification Message Copy */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#172B4D] mb-1.5">
-                      Notification message copy
-                    </h3>
-                    <div className="bg-white border border-[#DFE1E6] rounded-[3px] p-3 space-y-3">
-                      {scenario.pushSubject && (
-                        <div>
-                          <span className="text-[#6B778C] block text-[11px] mb-1 font-medium">Push notification</span>
-                          <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-[3px] p-2.5 text-xs text-[#172B4D]">
-                            <div className="font-medium text-[#172B4D]">{scenario.pushSubject}</div>
-                            {scenario.pushBody && <div className="text-[#5E6C84] mt-1">{scenario.pushBody}</div>}
+                  {/* Notification Message Copy (From Mapped Scenario if available) */}
+                  {mappedScenario && (mappedScenario.pushSubject || mappedScenario.emailSubject) ? (
+                    <div>
+                      <h3 className="text-xs font-semibold text-[#172B4D] mb-1.5">
+                        Active QA scenario copy ({mappedScenario.key})
+                      </h3>
+                      <div className="bg-white border border-[#DFE1E6] rounded-[3px] p-3 space-y-3">
+                        {mappedScenario.pushSubject && (
+                          <div>
+                            <span className="text-[#6B778C] block text-[11px] mb-1 font-medium">Push notification</span>
+                            <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-[3px] p-2.5 text-xs text-[#172B4D]">
+                              <div className="font-medium text-[#172B4D]">{mappedScenario.pushSubject}</div>
+                              {mappedScenario.pushBody && <div className="text-[#5E6C84] mt-1">{mappedScenario.pushBody}</div>}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {scenario.emailSubject && (
-                        <div>
-                          <span className="text-[#6B778C] block text-[11px] mb-1 font-medium">Email notification</span>
-                          <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-[3px] p-2.5 text-xs text-[#172B4D]">
-                            <div className="font-medium text-[#172B4D]">{scenario.emailSubject}</div>
-                            {scenario.emailBody && <div className="text-[#5E6C84] mt-1">{scenario.emailBody}</div>}
+                        )}
+                        {mappedScenario.emailSubject && (
+                          <div>
+                            <span className="text-[#6B778C] block text-[11px] mb-1 font-medium">Email notification</span>
+                            <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-[3px] p-2.5 text-xs text-[#172B4D]">
+                              <div className="font-medium text-[#172B4D]">{mappedScenario.emailSubject}</div>
+                              {mappedScenario.emailBody && <div className="text-[#5E6C84] mt-1">{mappedScenario.emailBody}</div>}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {!scenario.pushSubject && !scenario.emailSubject && (
-                        <div className="text-xs text-[#6B778C]">No notification copy available for this rule.</div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-xs font-semibold text-[#172B4D] mb-1.5">
+                        Notification template mapping
+                      </h3>
+                      <div className="bg-white border border-[#DFE1E6] rounded-[3px] p-3 text-xs text-[#5E6C84] leading-relaxed">
+                        Template specification is registered under <span className="font-mono text-[#0052CC] font-medium">{rule?.templateId || `TPL-${ruleIdText}`}</span>. This rule governs messaging triggers, frequency caps, and channel routing for {engineName} engine.
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -375,13 +419,13 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                       <div>
                         <span className="text-[#6B778C] block text-[11px] mb-0.5">Trigger event</span>
                         <div className="text-[#172B4D] font-normal">
-                          {rule?.trigger || scenario.trigger || 'Event-triggered'}
+                          {rule?.trigger || scenario?.trigger || 'Event-triggered'}
                         </div>
                       </div>
                       <div>
                         <span className="text-[#6B778C] block text-[11px] mb-0.5">Target audience</span>
                         <div className="text-[#172B4D] font-normal">
-                          {rule?.audience || scenario.audience || 'All users'}
+                          {rule?.audience || scenario?.audience || 'All users'}
                         </div>
                       </div>
                       {rule?.candidateAudiences && (
@@ -403,15 +447,17 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                       <div>
                         <span className="text-[#6B778C] block text-[11px] mb-0.5">Objective</span>
                         <p className="text-[#172B4D] leading-relaxed font-normal">
-                          {rule?.communicationObjective || scenario.communicationObjective || 'Inform user'}
+                          {rule?.communicationObjective || scenario?.communicationObjective || 'Inform user'}
                         </p>
                       </div>
-                      <div>
-                        <span className="text-[#6B778C] block text-[11px] mb-0.5">Desired outcome</span>
-                        <p className="text-[#172B4D] leading-relaxed font-normal">
-                          {scenario.desiredOutcome || 'User engagement'}
-                        </p>
-                      </div>
+                      {scenario?.desiredOutcome && (
+                        <div>
+                          <span className="text-[#6B778C] block text-[11px] mb-0.5">Desired outcome</span>
+                          <p className="text-[#172B4D] leading-relaxed font-normal">
+                            {scenario.desiredOutcome}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -503,7 +549,7 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                         </div>
                         <div>
                           <span className="text-[#6B778C] block text-[11px] mb-0.5">Template ID</span>
-                          <span className="font-mono text-[11px] text-[#0052CC]">{rule?.templateId || 'TPL-' + (rule?.ruleId || scenario.key)}</span>
+                          <span className="font-mono text-[11px] text-[#0052CC]">{rule?.templateId || `TPL-${ruleIdText}`}</span>
                         </div>
                         <div>
                           <span className="text-[#6B778C] block text-[11px] mb-0.5">Source workbook</span>
@@ -539,32 +585,30 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
                 <div className="flex items-center justify-between gap-2 py-0.5">
                   <span className="text-[#6B778C] font-normal">Rule ID</span>
                   <div className="flex items-center gap-1 font-mono text-[#172B4D]">
-                    <span>{rule?.ruleId || 'N/A'}</span>
-                    {rule?.ruleId && (
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(rule.ruleId, 'ruleId')}
-                        className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded cursor-pointer"
-                        title="Copy Rule ID"
-                      >
-                        {copiedField === 'ruleId' ? (
-                          <Check className="w-3.5 h-3.5 text-[#006644]" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-                    )}
+                    <span className="font-bold">{ruleIdText}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(ruleIdText, 'ruleId')}
+                      className="text-[#6B778C] hover:text-[#0052CC] p-0.5 rounded cursor-pointer"
+                      title="Copy Rule ID"
+                    >
+                      {copiedField === 'ruleId' ? (
+                        <Check className="w-3.5 h-3.5 text-[#006644]" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between gap-2 py-0.5">
                   <span className="text-[#6B778C] font-normal">Engine</span>
-                  <span className="text-[#172B4D] font-normal">{scenario.engineCategory}</span>
+                  <span className="text-[#172B4D] font-medium">{engineName}</span>
                 </div>
 
                 <div className="flex items-center justify-between gap-2 py-0.5">
                   <span className="text-[#6B778C] font-normal">Priority</span>
-                  <div>{renderJiraPriority(rule?.priority || scenario.priority)}</div>
+                  <div>{renderJiraPriority(rule?.priority || scenario?.priority)}</div>
                 </div>
 
                 <div className="flex items-center justify-between gap-2 py-0.5">
@@ -603,8 +647,15 @@ export const NotificationRuleModal: React.FC<NotificationRuleModalProps> = ({
 
                 <div className="flex items-center justify-between gap-2 py-0.5">
                   <span className="text-[#6B778C] font-normal">Template ID</span>
-                  <span className="font-mono text-[11px] text-[#0052CC]">{rule?.templateId || 'N/A'}</span>
+                  <span className="font-mono text-[11px] text-[#0052CC]">{rule?.templateId || `TPL-${ruleIdText}`}</span>
                 </div>
+
+                {scenarioKey && (
+                  <div className="flex items-center justify-between gap-2 py-0.5">
+                    <span className="text-[#6B778C] font-normal">Mapped scenario</span>
+                    <span className="font-mono text-[11px] text-[#0052CC] font-bold">{scenarioKey}</span>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between gap-2 border-t border-[#EBECF0] pt-2 mt-1">
                   <span className="text-[#6B778C] font-normal">Source sheet</span>

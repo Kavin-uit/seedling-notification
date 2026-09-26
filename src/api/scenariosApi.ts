@@ -1,5 +1,4 @@
 import type { NotificationScenario } from '../types/notification'
-import { RULEBOOK_SCENARIOS } from '../data/rulebookScenarios'
 
 const LOCAL_STORAGE_KEY = 'seedling_scenarios_v1'
 
@@ -36,17 +35,14 @@ class ScenariosApi {
       if (stored) {
         const parsed = JSON.parse(stored)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const hasRuleBook = parsed.some((s) => s.engineCategory === 'RuleBook')
-          if (!hasRuleBook) {
-            return [...parsed, ...RULEBOOK_SCENARIOS]
-          }
-          return parsed
+          // Filter out any fake RuleBook scenarios from earlier
+          return parsed.filter((s) => s.engineCategory !== 'RuleBook')
         }
       }
     } catch {
       // ignore
     }
-    return RULEBOOK_SCENARIOS
+    return []
   }
 
   // Helper: Write local fallback cache
