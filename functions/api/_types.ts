@@ -74,8 +74,83 @@ export interface ScenarioDbRow {
   status: string
   priority: string
   environment: string
+  rule_id?: string
   created_at: string
   updated_at: string
+}
+
+export interface NotificationRuleDbRow {
+  rule_id: string
+  engine: string
+  rule_name: string
+  trigger?: string
+  audience?: string
+  communication_objective?: string
+  priority?: string
+  delivery?: string
+  channel_tier?: string
+  email_delivery_policy?: string
+  cooldown?: string
+  suppression?: string
+  source_workbook?: string
+  attention_class?: string
+  candidate_score?: string
+  guaranteed_experience?: string
+  batch_eligible?: string
+  runtime_memory_dependency?: string
+  attention_queue_group?: string
+  rotation_group?: string
+  timing?: string
+  merge_policy?: string
+  default_decision_reason?: string
+  experience_type?: string
+  memory_keys?: string
+  decision_reason_template?: string
+  candidate_audiences?: string
+  candidate_experiences?: string
+  template_id?: string
+  change_notes?: string
+  scenario_id?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export function mapDbRowToRule(row: NotificationRuleDbRow) {
+  return {
+    ruleId: row.rule_id,
+    engine: row.engine,
+    ruleName: row.rule_name,
+    trigger: row.trigger || '',
+    audience: row.audience || '',
+    communicationObjective: row.communication_objective || '',
+    priority: row.priority || 'Medium',
+    delivery: row.delivery || '',
+    channelTier: row.channel_tier || '',
+    emailDeliveryPolicy: row.email_delivery_policy || '',
+    cooldown: row.cooldown || '',
+    suppression: row.suppression || '',
+    sourceWorkbook: row.source_workbook || '',
+    attentionClass: row.attention_class || '',
+    candidateScore: row.candidate_score || '',
+    guaranteedExperience: row.guaranteed_experience || '',
+    batchEligible: row.batch_eligible || '',
+    runtimeMemoryDependency: row.runtime_memory_dependency || '',
+    attentionQueueGroup: row.attention_queue_group || '',
+    rotationGroup: row.rotation_group || '',
+    timing: row.timing || '',
+    mergePolicy: row.merge_policy || '',
+    defaultDecisionReason: row.default_decision_reason || '',
+    experienceType: row.experience_type || '',
+    memoryKeys: row.memory_keys || '',
+    decisionReasonTemplate: row.decision_reason_template || '',
+    candidateAudiences: row.candidate_audiences || '',
+    candidateExperiences: row.candidate_experiences || '',
+    templateId: row.template_id || '',
+    changeNotes: row.change_notes || '',
+    scenarioId: row.scenario_id || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
 }
 
 export interface EngineSheetDbRow {
@@ -101,7 +176,8 @@ export function jsonResponse(data: unknown, status = 200, headers: HeadersInit =
   })
 }
 
-export function mapDbRowToScenario(row: ScenarioDbRow) {
+export function mapDbRowToScenario(row: ScenarioDbRow, rule?: any) {
+  const validRule = rule && typeof rule === 'object' && 'ruleId' in rule ? rule : undefined
   return {
     id: row.id,
     key: row.key,
@@ -122,6 +198,8 @@ export function mapDbRowToScenario(row: ScenarioDbRow) {
     status: row.status || 'TO DO',
     priority: row.priority || 'Medium',
     environment: row.environment || 'STAGING',
+    ruleId: row.rule_id || '',
+    rule: validRule,
     assignee: {
       name: 'QA Tester',
       email: 'tester@seedling.org',

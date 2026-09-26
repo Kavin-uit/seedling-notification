@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type { NotificationScenario } from '../../types/notification'
-import { polishTextWithGemini } from '../../services/commentAiService'
+import { polishTextWithGemini, prefetchPolish } from '../../services/commentAiService'
 import { GeminiSparkleIcon } from './JiraTable'
 import {
   X,
@@ -29,13 +30,26 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
   const [polishedSuccess, setPolishedSuccess] = useState(false)
   const [saveToast, setSaveToast] = useState<string | null>(null)
 
-  // Sync draftNotes whenever scenario changes
+  // Sync draftNotes whenever scenario changes & prefetch polish in background
   useEffect(() => {
     if (!scenario) return
-    setDraftNotes(scenario.notes || '')
-    setIsEditing(!scenario.notes?.trim())
+    const notes = scenario.notes || ''
+    setDraftNotes(notes)
+    setIsEditing(!notes.trim())
     setPolishedSuccess(false)
-  }, [scenario?.id, scenario?.notes])
+    if (notes.trim().length >= 5) {
+      prefetchPolish(notes, 'event description')
+    }
+  }, [scenario])
+
+  // Smart background pre-fetch while typing (debounced) so clicking AI is instant (0ms)
+  useEffect(() => {
+    if (!isEditing || !draftNotes.trim() || draftNotes.trim().length < 5) return
+    const timer = setTimeout(() => {
+      prefetchPolish(draftNotes, 'event description')
+    }, 900)
+    return () => clearTimeout(timer)
+  }, [draftNotes, isEditing])
 
   // Close on Escape key
   useEffect(() => {
@@ -91,63 +105,73 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
     onClose()
   }
 
-  // Calculate popover positioning if anchorRect is provided
-  const popoverWidth = 300
-  const isNearTop = anchorRect ? anchorRect.top < 240 : false
+  // Calculate tooltip-style popover positioning
+  const popoverWidth = 320
+  const estimatedHeight = 220
+  const padding = 12
+
+  const isBelow = anchorRect
+    ? anchorRect.bottom + estimatedHeight + 16 <= window.innerHeight
+    : true
+
+  const top = anchorRect
+    ? isBelow
+      ? anchorRect.bottom + 8
+      : Math.max(padding, anchorRect.top - estimatedHeight - 8)
+    : undefined
+
   const left = anchorRect
     ? Math.max(
-        12,
+        padding,
         Math.min(
-          window.innerWidth - popoverWidth - 12,
+          window.innerWidth - popoverWidth - padding,
           anchorRect.left + anchorRect.width / 2 - popoverWidth / 2
         )
       )
     : undefined
+
   const arrowOffset =
     anchorRect && left !== undefined
       ? Math.max(
-          14,
+          16,
           Math.min(popoverWidth - 24, anchorRect.left + anchorRect.width / 2 - left - 5)
         )
       : popoverWidth / 2 - 5
 
-  return (
+  return createPortal(
     <>
-      {/* Transparent Click-Outside Overlay (No dark screen takeover) */}
+      {/* Transparent Click-Outside Overlay */}
       <div
-        className="fixed inset-0 z-40 bg-transparent select-none"
+        className="fixed inset-0 z-[99998] bg-transparent select-none"
         onClick={onClose}
       />
 
       {/* Tooltip-Style Popover */}
       <div
-        className={`fixed z-50 flex flex-col transition-all duration-150 animate-in fade-in zoom-in-95 ${
+        className={`fixed z-[99999] flex flex-col transition-all duration-150 animate-in fade-in zoom-in-95 ease-out ${
           !anchorRect ? 'inset-0 items-center justify-center p-4 pointer-events-none' : ''
         }`}
         style={
           anchorRect
             ? {
-                top: isNearTop ? `${anchorRect.bottom + 8}px` : undefined,
-                bottom: !isNearTop
-                  ? `${window.innerHeight - anchorRect.top + 8}px`
-                  : undefined,
+                top: `${top}px`,
                 left: `${left}px`,
                 width: `${popoverWidth}px`,
               }
             : undefined
         }
       >
-        {/* Caret pointing up if near top */}
-        {anchorRect && isNearTop && (
+        {/* Caret pointing up if placed below anchor */}
+        {anchorRect && isBelow && (
           <div
-            className="w-2.5 h-2.5 bg-white rotate-45 border-l border-t border-slate-200/80 -mb-1.5 shrink-0 z-10"
+            className="w-2.5 h-2.5 bg-white rotate-45 border-l border-t border-slate-200/90 -mb-1.5 shrink-0 z-10"
             style={{ marginLeft: `${arrowOffset}px` }}
           />
         )}
 
         <div
-          className={`w-full max-w-[320px] bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden text-[#1C1C1E] font-sans ${
-            !anchorRect ? 'pointer-events-auto shadow-2xl' : ''
+          className={`w-full bg-white rounded-xl shadow-2xl border border-slate-200/90 overflow-hidden text-[#1C1C1E] font-sans ${
+            !anchorRect ? 'pointer-events-auto max-w-[320px]' : ''
           }`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -274,14 +298,15 @@ export const EventBriefModal: React.FC<EventBriefModalProps> = ({
           </div>
         </div>
 
-        {/* Caret pointing down if not near top */}
-        {anchorRect && !isNearTop && (
+        {/* Caret pointing down if placed above anchor */}
+        {anchorRect && !isBelow && (
           <div
-            className="w-2.5 h-2.5 bg-white rotate-45 border-r border-b border-slate-200/80 -mt-1.5 shrink-0 z-10"
+            className="w-2.5 h-2.5 bg-white rotate-45 border-r border-b border-slate-200/90 -mt-1.5 shrink-0 z-10"
             style={{ marginLeft: `${arrowOffset}px` }}
           />
         )}
       </div>
-    </>
+    </>,
+    document.body
   )
 }

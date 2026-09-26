@@ -47,6 +47,7 @@ export interface SheetScenarioRow {
   inAppExperience: string
   cta: string
   rowIndex: number
+  ruleId?: string
 }
 
 export interface SheetVerificationSummary {
@@ -132,6 +133,15 @@ export const DEFAULT_ENGINE_SHEETS: Record<string, EngineSheetConfig> = {
       'https://docs.google.com/spreadsheets/d/1a6VS21ynlS1lAM9PQVxqUoQGneI_3-pF/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
     csvExportUrl:
       'https://docs.google.com/spreadsheets/d/1a6VS21ynlS1lAM9PQVxqUoQGneI_3-pF/export?format=csv',
+    enabled: true,
+  },
+  RuleBook: {
+    engineCategory: 'RuleBook',
+    sheetName: 'RuleBook Engine Sheet',
+    sheetUrl:
+      'https://docs.google.com/spreadsheets/d/1dEysC4h1eFZ9p71n0Dmna-as8S53RKol/edit?gid=1579082867#gid=1579082867',
+    csvExportUrl:
+      'https://docs.google.com/spreadsheets/d/1dEysC4h1eFZ9p71n0Dmna-as8S53RKol/export?format=csv&gid=1579082867',
     enabled: true,
   },
 }
@@ -400,6 +410,40 @@ export async function fetchSheetData(config: EngineSheetConfig, forceRefresh = f
 
     // Skip header row
     const dataRows = parsedRows.slice(1)
+    const isRuleBook =
+      config.engineCategory === 'RuleBook' ||
+      (parsedRows[0] && (parsedRows[0][0]?.toLowerCase().includes('rule id') || parsedRows[0][2]?.toLowerCase().includes('rule')))
+
+    if (isRuleBook) {
+      const rows = dataRows
+        .filter((r) => r.some((c) => c.trim().length > 0))
+        .map((cols, idx) => {
+          const ruleId = cols[0]?.trim() || ''
+          const engine = cols[1]?.trim() || ''
+          const event = cols[2]?.trim() || ''
+          const channelTier = cols[8]?.trim() || ''
+          const cooldown = cols[10]?.trim() || 'None'
+          const suppression = cols[11]?.trim() || 'None'
+          return {
+            governanceEvent: event,
+            trigger: cols[3]?.trim() || '',
+            audience: cols[4]?.trim() || '',
+            communicationObjective: cols[5]?.trim() || '',
+            desiredOutcome: channelTier,
+            pushSubject: engine ? `[${engine}] ${event}` : event,
+            pushBody: cols[7]?.trim() || '',
+            emailSubject: channelTier ? `${event} (${channelTier})` : event,
+            emailBody: cols[9]?.trim() || '',
+            inAppExperience: cols[22]?.trim() || '',
+            cta: `Cooldown: ${cooldown} • Suppression: ${suppression}`,
+            rowIndex: idx + 1,
+            ruleId,
+          }
+        })
+      sheetMemoryCache.set(cacheKey, { data: rows, timestamp: Date.now() })
+      return rows
+    }
+
     const rows = dataRows
       .filter((r) => r.some((c) => c.trim().length > 0))
       .map((cols, idx) => ({
@@ -484,13 +528,18 @@ export async function verifyEngineScenarios(
   summary.totalScenariosChecked = targetScenarios.length
 
   // Build lookup index from sheet rows
-  // 1. By composite key: "event:::audience"
-  // 2. By event name: "event"
-  // 3. By rowIndex: GOV-1 -> sheetRow[0], CONTRIB-1 -> sheetRow[0], etc.
+  // 1. By Rule ID if RuleBook
+  // 2. By composite key: "event:::audience"
+  // 3. By event name: "event"
+  // 4. By rowIndex: GOV-1 -> sheetRow[0], CONTRIB-1 -> sheetRow[0], etc.
   const compositeMap = new Map<string, SheetScenarioRow>()
+  const ruleIdMap = new Map<string, SheetScenarioRow>()
   const usedSheetRowIndices = new Set<number>()
 
   sheetRows.forEach((sr) => {
+    if (sr.ruleId) {
+      ruleIdMap.set(sr.ruleId.trim().toLowerCase(), sr)
+    }
     const key = `${normalizeText(sr.governanceEvent)}:::${normalizeText(sr.audience)}`
     compositeMap.set(key, sr)
   })
@@ -498,10 +547,20 @@ export async function verifyEngineScenarios(
   targetScenarios.forEach((scen) => {
     let matchedSheetRow: SheetScenarioRow | undefined
 
+    // For RuleBook, match directly by Rule ID / key (e.g. CI-ID-001)
+    if (engineCategory === 'RuleBook' || scen.ruleId) {
+      const targetRuleKey = (scen.ruleId || scen.key || '').trim().toLowerCase()
+      if (ruleIdMap.has(targetRuleKey)) {
+        matchedSheetRow = ruleIdMap.get(targetRuleKey)
+      }
+    }
+
     // Try composite match first
-    const compKey = `${normalizeText(scen.governanceEvent)}:::${normalizeText(scen.audience)}`
-    if (compositeMap.has(compKey)) {
-      matchedSheetRow = compositeMap.get(compKey)
+    if (!matchedSheetRow) {
+      const compKey = `${normalizeText(scen.governanceEvent)}:::${normalizeText(scen.audience)}`
+      if (compositeMap.has(compKey)) {
+        matchedSheetRow = compositeMap.get(compKey)
+      }
     }
 
     // Try by event name only if composite key didn't match

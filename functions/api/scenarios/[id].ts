@@ -79,6 +79,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
       status: validStatus ?? current.status,
       priority: safeStr(data.priority, current.priority),
       environment: safeStr(data.environment, current.environment),
+      rule_id: data.ruleId !== undefined ? String(data.ruleId).trim() : (current.rule_id ?? ''),
       updated_at: now,
     }
 
@@ -101,6 +102,7 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
         status = ?,
         priority = ?,
         environment = ?,
+        rule_id = ?,
         updated_at = ?
       WHERE id = ?
     `)
@@ -122,14 +124,93 @@ export const onRequestPut: PagesFunction<Env> = async ({ params, request, env })
         updated.status,
         updated.priority,
         updated.environment,
+        updated.rule_id,
         updated.updated_at,
         id
       )
       .run()
 
-    const result = await env.DB.prepare('SELECT * FROM scenarios WHERE id = ?').bind(id).first<ScenarioDbRow>()
+    const result = await env.DB.prepare(`
+      SELECT 
+        s.*,
+        r.rule_id as r_rule_id,
+        r.engine as r_engine,
+        r.rule_name as r_rule_name,
+        r.trigger as r_trigger,
+        r.audience as r_audience,
+        r.communication_objective as r_communication_objective,
+        r.priority as r_priority,
+        r.delivery as r_delivery,
+        r.channel_tier as r_channel_tier,
+        r.email_delivery_policy as r_email_delivery_policy,
+        r.cooldown as r_cooldown,
+        r.suppression as r_suppression,
+        r.source_workbook as r_source_workbook,
+        r.attention_class as r_attention_class,
+        r.candidate_score as r_candidate_score,
+        r.guaranteed_experience as r_guaranteed_experience,
+        r.batch_eligible as r_batch_eligible,
+        r.runtime_memory_dependency as r_runtime_memory_dependency,
+        r.attention_queue_group as r_attention_queue_group,
+        r.rotation_group as r_rotation_group,
+        r.timing as r_timing,
+        r.merge_policy as r_merge_policy,
+        r.default_decision_reason as r_default_decision_reason,
+        r.experience_type as r_experience_type,
+        r.memory_keys as r_memory_keys,
+        r.decision_reason_template as r_decision_reason_template,
+        r.candidate_audiences as r_candidate_audiences,
+        r.candidate_experiences as r_candidate_experiences,
+        r.template_id as r_template_id,
+        r.change_notes as r_change_notes
+      FROM scenarios s
+      LEFT JOIN notification_rules r ON s.rule_id = r.rule_id
+      WHERE s.id = ?
+    `).bind(id).first<any>()
 
-    return jsonResponse({ scenario: result ? mapDbRowToScenario(result) : null }, 200)
+    let mappedScenario = null
+    if (result) {
+      const rule = result.r_rule_id
+        ? {
+            ruleId: result.r_rule_id,
+            engine: result.r_engine,
+            ruleName: result.r_rule_name,
+            trigger: result.r_trigger || '',
+            audience: result.r_audience || '',
+            communicationObjective: result.r_communication_objective || '',
+            priority: result.r_priority || 'Medium',
+            delivery: result.r_delivery || '',
+            channelTier: result.r_channel_tier || '',
+            emailDeliveryPolicy: result.r_email_delivery_policy || '',
+            cooldown: result.r_cooldown || '',
+            suppression: result.r_suppression || '',
+            sourceWorkbook: result.r_source_workbook || '',
+            attentionClass: result.r_attention_class || '',
+            candidateScore: result.r_candidate_score || '',
+            guaranteedExperience: result.r_guaranteed_experience || '',
+            batchEligible: result.r_batch_eligible || '',
+            runtimeMemoryDependency: result.r_runtime_memory_dependency || '',
+            attentionQueueGroup: result.r_attention_queue_group || '',
+            rotationGroup: result.r_rotation_group || '',
+            timing: result.r_timing || '',
+            mergePolicy: result.r_merge_policy || '',
+            defaultDecisionReason: result.r_default_decision_reason || '',
+            experienceType: result.r_experience_type || '',
+            memoryKeys: result.r_memory_keys || '',
+            decisionReasonTemplate: result.r_decision_reason_template || '',
+            candidateAudiences: result.r_candidate_audiences || '',
+            candidateExperiences: result.r_candidate_experiences || '',
+            templateId: result.r_template_id || '',
+            changeNotes: result.r_change_notes || '',
+            scenarioId: result.scenario_id || '',
+            createdAt: result.created_at,
+            updatedAt: result.updated_at,
+          }
+        : null
+      mappedScenario = mapDbRowToScenario(result, rule)
+    }
+
+    return jsonResponse({ scenario: mappedScenario }, 200)
   } catch (error: any) {
     return jsonResponse({ error: error.message || 'Failed to update scenario in D1' }, 500)
   }

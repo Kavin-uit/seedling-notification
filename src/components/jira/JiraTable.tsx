@@ -7,8 +7,10 @@ import { EngineBadge } from './EngineBadge'
 import { JiraDefectModal } from './JiraDefectModal'
 import { VersionHistoryModal } from './VersionHistoryModal'
 import { EventBriefModal } from './EventBriefModal'
+import { CommentBriefModal } from './CommentBriefModal'
 import { IosMismatchTooltip } from './IosMismatchTooltip'
 import { JiraDetailModal } from './JiraDetailModal'
+import { NotificationRuleModal } from './NotificationRuleModal'
 import type { SheetVerificationSummary, FieldMismatch } from '../../services/sheetVerificationService'
 import {
   Filter,
@@ -24,15 +26,15 @@ import {
   Trash2,
   Pencil,
   MessageSquare,
-  Loader2,
   RotateCcw,
   Share,
   Eye,
+  BookOpen,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
-import { polishCommentWithGemini } from '../../services/commentAiService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
+import { getRuleForScenario } from '../../data/notificationRules'
 
 // Google Gemini Multi-Color Gradient Sparkle Logo
 export const GeminiSparkleIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
@@ -482,9 +484,18 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     scenario: NotificationScenario
     rect: DOMRect
   } | null>(null)
+  const [selectedCommentBrief, setSelectedCommentBrief] = useState<{
+    scenario: NotificationScenario
+    rect: DOMRect | null
+    initialEditing?: boolean
+  } | null>(null)
   const [detailScenario, setDetailScenario] = useState<{
     scenario: NotificationScenario
     rowNumber: number
+  } | null>(null)
+  const [selectedRuleScenario, setSelectedRuleScenario] = useState<{
+    scenario: NotificationScenario
+    rowNumber?: number
   } | null>(null)
   const [activeMismatchTooltip, setActiveMismatchTooltip] = useState<{
     scenario: NotificationScenario
@@ -782,54 +793,6 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     setDeletingScenario(scenario)
   }
 
-  // Comment editing state & handlers
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
-  const [commentDraft, setCommentDraft] = useState<string>('')
-  const [isPolishingComment, setIsPolishingComment] = useState<boolean>(false)
-  const [aiPolishedSuccess, setAiPolishedSuccess] = useState<boolean>(false)
-
-  const startEditingComment = (scenario: NotificationScenario) => {
-    setEditingCommentId(scenario.id)
-    setCommentDraft(scenario.comments || '')
-    setAiPolishedSuccess(false)
-  }
-
-  const handlePolishComment = async () => {
-    if (!commentDraft.trim() || isPolishingComment) return
-    setIsPolishingComment(true)
-    try {
-      const polished = await polishCommentWithGemini(commentDraft)
-      if (polished) {
-        setCommentDraft(polished)
-        setAiPolishedSuccess(true)
-        setTimeout(() => setAiPolishedSuccess(false), 2500)
-      }
-    } catch (err) {
-      console.error('Failed to polish comment with Gemini AI:', err)
-    } finally {
-      setIsPolishingComment(false)
-    }
-  }
-
-  const saveComment = (scenario: NotificationScenario) => {
-    if (editingCommentId !== scenario.id) return
-    const trimmed = commentDraft.trim()
-    if (trimmed !== (scenario.comments || '').trim()) {
-      onUpdateScenario({
-        ...scenario,
-        comments: trimmed,
-        updatedAt: new Date().toISOString(),
-      })
-      setCopiedToast(trimmed ? `Saved comment for ${scenario.key}` : `Cleared comment for ${scenario.key}`)
-      setTimeout(() => setCopiedToast(null), 2000)
-    }
-    setEditingCommentId(null)
-  }
-
-  const cancelEditingComment = () => {
-    setEditingCommentId(null)
-  }
-
   // Toggle row selection on row number click (DBeaver style: click to select, click again to unselect)
   const handleRowNumberClick = (e: React.MouseEvent, rowId: string) => {
     e.stopPropagation()
@@ -858,7 +821,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       if (e.key === 'Escape') {
         setContextMenu(null)
         setDeletingScenario(null)
-        setEditingCommentId(null)
+        setSelectedCommentBrief(null)
         setSelectedRowIds(new Set())
       }
     }
@@ -1908,6 +1871,20 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           >
                             <Info className="w-3.5 h-3.5" />
                           </button>
+                          {/* Notification Rule Book Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const rule = row.rule || getRuleForScenario(row)
+                              setSelectedRuleScenario({ scenario: { ...row, rule }, rowNumber })
+                            }}
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 opacity-70 hover:opacity-100 group-hover/event:opacity-100 transition cursor-pointer shrink-0 active:scale-90"
+                            title={`View Notification Rules (${row.rule?.ruleId || row.ruleId || 'Rule Book'})`}
+                            aria-label="View notification rules"
+                          >
+                            <BookOpen className="w-3.5 h-3.5 stroke-[1.8]" />
+                          </button>
                         </div>
                       </div>
                     </td>
@@ -1962,11 +1939,21 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                       {renderCell('cta', row.cta)}
                     </td>
 
-                    {/* Manual Comments */}
+                    {/* Manual Comments (Notes-like UI popover to view and type, with text always visible in the cell) */}
                     <td
-                      className="px-2 py-1.5 border-r border-[#E1E4E8] overflow-hidden relative"
+                      className="px-2 py-1.5 border-r border-[#E1E4E8] overflow-hidden relative cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setHoveredComment(null)
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setSelectedCommentBrief({
+                          scenario: row,
+                          rect,
+                          initialEditing: true,
+                        })
+                      }}
                       onMouseEnter={(e) => {
-                        if (editingCommentId !== row.id && row.comments && row.comments.trim().length > 0) {
+                        if (!selectedCommentBrief && row.comments && row.comments.trim().length > 0) {
                           const rect = e.currentTarget.getBoundingClientRect()
                           setHoveredComment({
                             scenario: row,
@@ -1976,120 +1963,23 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                         }
                       }}
                       onMouseLeave={() => setHoveredComment(null)}
+                      title={row.comments?.trim() ? 'Click to view or edit comment' : 'Click to add comment'}
                     >
-                      {editingCommentId === row.id ? (
-                        <div
-                          className="flex items-center gap-1 w-full"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="relative flex-1 flex items-center min-w-0">
-                            <input
-                              type="text"
-                              autoFocus
-                              value={commentDraft}
-                              onChange={(e) => setCommentDraft(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault()
-                                  saveComment(row)
-                                } else if (e.key === 'Escape') {
-                                  e.preventDefault()
-                                  cancelEditingComment()
-                                }
-                              }}
-                              onBlur={() => {
-                                if (!isPolishingComment) {
-                                  saveComment(row)
-                                }
-                              }}
-                              placeholder="Add comment & press Enter..."
-                              className={`w-full text-xs pl-2 ${
-                                commentDraft.trim().length > 0 ? 'pr-7' : 'pr-2'
-                              } py-1 rounded bg-white text-[#172B4D] border ${
-                                aiPolishedSuccess
-                                    ? 'border-emerald-500 ring-2 ring-emerald-200'
-                                  : 'border-[#0052CC] ring-2 ring-blue-100'
-                              } outline-none shadow-xs font-medium placeholder:text-slate-400 transition-all`}
-                            />
-
-                            {/* Gemini AI Auto-Frame & Spelling Correction Logo Button */}
-                            {commentDraft.trim().length > 0 && (
-                              <button
-                                type="button"
-                                disabled={isPolishingComment}
-                                onMouseDown={(e) => {
-                                  e.preventDefault()
-                                  handlePolishComment()
-                                }}
-                                className="absolute right-1 p-1 rounded-full hover:bg-purple-100 text-purple-600 transition cursor-pointer flex items-center justify-center shrink-0 disabled:opacity-60"
-                                title="Gemini AI: Click to auto-correct spelling & frame into proper English"
-                              >
-                                {isPolishingComment ? (
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
-                                ) : (
-                                  <GeminiSparkleIcon className="w-3.5 h-3.5 hover:scale-125 transition-transform" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              saveComment(row)
-                            }}
-                            onMouseDown={(e) => {
-                              e.preventDefault()
-                            }}
-                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition cursor-pointer shrink-0"
-                            title="Save comment (Enter)"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              cancelEditingComment()
-                            }}
-                            onMouseDown={(e) => {
-                              e.preventDefault()
-                            }}
-                            className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition cursor-pointer shrink-0"
-                            title="Cancel (Esc)"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                      <div className="flex items-center justify-between gap-1 group/comment w-full min-w-0 px-1 py-0.5 rounded hover:bg-blue-50/60 transition">
+                        <div className="truncate flex-1 min-w-0">
+                          {row.comments && row.comments.trim().length > 0 ? (
+                            <span className="text-xs text-[#172B4D] font-medium leading-relaxed select-text">
+                              {highlightMatches(row.comments, searchQuery, matchedTerms, hasSearchMatch)}
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-[11px] font-normal text-slate-400 group-hover/comment:text-[#0052CC]">
+                              <Pencil className="w-3 h-3 opacity-60 group-hover/comment:opacity-100" />
+                              <span>Add comment...</span>
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <div
-                          onClick={() => {
-                            setHoveredComment(null)
-                            startEditingComment(row)
-                          }}
-                          className="flex items-center justify-between gap-1 group-hover/comment:bg-blue-50/60 px-1 py-0.5 rounded transition cursor-pointer group/comment"
-                        >
-                          <div
-                            className={`truncate text-xs ${
-                              row.comments
-                                ? 'text-[#172B4D] font-medium'
-                                : 'text-slate-400 italic group-hover/comment:text-[#0052CC]'
-                            }`}
-                            title={row.comments ? undefined : 'Click to add comment'}
-                          >
-                            {row.comments ? (
-                              highlightMatches(row.comments, searchQuery, matchedTerms, hasSearchMatch)
-                            ) : (
-                              <span className="flex items-center gap-1 text-[11px] font-normal text-slate-400 group-hover/comment:text-[#0052CC]">
-                                <Pencil className="w-3 h-3 opacity-60 group-hover/comment:opacity-100" />
-                                <span>Add comment...</span>
-                              </span>
-                            )}
-                          </div>
-                          <Pencil className="w-3 h-3 text-[#0052CC] opacity-0 group-hover/comment:opacity-100 shrink-0 transition" />
-                        </div>
-                      )}
+                        <Pencil className="w-3 h-3 text-[#0052CC] opacity-0 group-hover/comment:opacity-100 shrink-0 transition" />
+                      </div>
                     </td>
 
                     {/* Status (Jira dropdown with down arrow) */}
@@ -2117,6 +2007,18 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           aria-label="View details"
                         >
                           <Eye className="w-3.5 h-3.5 stroke-[1.8]" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const rule = row.rule || getRuleForScenario(row)
+                            setSelectedRuleScenario({ scenario: { ...row, rule }, rowNumber })
+                          }}
+                          className="p-1 text-slate-400 hover:text-[#0052CC] hover:bg-blue-50 rounded transition cursor-pointer"
+                          title={`View notification rules & governance (${row.rule?.ruleId || row.ruleId || 'Rule Book'})`}
+                          aria-label="View notification rules"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 stroke-[1.8]" />
                         </button>
                         <button
                           type="button"
@@ -2294,7 +2196,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   onClick={() => {
                     const target = contextMenu.scenario
                     setContextMenu(null)
-                    startEditingComment(target)
+                    setSelectedCommentBrief({
+                      scenario: target,
+                      rect: null,
+                      initialEditing: true,
+                    })
                   }}
                   className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 text-[#0052CC] cursor-pointer transition text-left text-xs font-semibold"
                 >
@@ -2327,6 +2233,26 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                 >
                   <History className="w-3.5 h-3.5 text-[#0052CC]" />
                   <span>Change History & Log ({contextMenu.scenario.versionHistory?.length || 0}/10)</span>
+                </button>
+              </div>
+
+              {/* View Notification Rule Book */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const rule = contextMenu.scenario.rule || getRuleForScenario(contextMenu.scenario)
+                    const idx = scenarios.findIndex((s) => s.id === contextMenu.scenario.id)
+                    setSelectedRuleScenario({
+                      scenario: { ...contextMenu.scenario, rule },
+                      rowNumber: idx >= 0 ? idx + 1 : undefined,
+                    })
+                    setContextMenu(null)
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 text-[#0052CC] cursor-pointer transition text-left text-xs font-semibold"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-[#0052CC]" />
+                  <span>View Notification Rules ({contextMenu.scenario.rule?.ruleId || contextMenu.scenario.ruleId || 'Rule Book'})</span>
                 </button>
               </div>
 
@@ -2569,6 +2495,25 @@ export const JiraTable: React.FC<JiraTableProps> = ({
         />
       )}
 
+      {/* Comment Brief Popover anchored to Comment cell (Notes-like UI) */}
+      {selectedCommentBrief && (
+        <CommentBriefModal
+          scenario={
+            scenarios.find((s) => s.id === selectedCommentBrief.scenario.id) ||
+            selectedCommentBrief.scenario
+          }
+          anchorRect={selectedCommentBrief.rect}
+          initialEditing={selectedCommentBrief.initialEditing}
+          onClose={() => setSelectedCommentBrief(null)}
+          onUpdateScenario={(updated) => {
+            onUpdateScenario(updated)
+            setSelectedCommentBrief((prev) =>
+              prev ? { ...prev, scenario: updated } : null
+            )
+          }}
+        />
+      )}
+
       {/* Jira Issue Detail View Modal */}
       {detailScenario && (
         <JiraDetailModal
@@ -2625,6 +2570,13 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               })
             }
           }}
+          onOpenRuleBook={(scen) => {
+            const rule = scen.rule || getRuleForScenario(scen)
+            setSelectedRuleScenario({
+              scenario: { ...scen, rule },
+              rowNumber: detailScenario.rowNumber,
+            })
+          }}
           hasPrev={
             filteredScenarios.findIndex(
               (s) => s.id === detailScenario.scenario.id
@@ -2634,6 +2586,68 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             (() => {
               const idx = filteredScenarios.findIndex(
                 (s) => s.id === detailScenario.scenario.id
+              )
+              return idx >= 0 && idx < filteredScenarios.length - 1
+            })()
+          }
+        />
+      )}
+
+      {/* Notification Rule Book Modal */}
+      {selectedRuleScenario && (
+        <NotificationRuleModal
+          scenario={
+            scenarios.find((s) => s.id === selectedRuleScenario.scenario.id) ||
+            selectedRuleScenario.scenario
+          }
+          rowNumber={selectedRuleScenario.rowNumber}
+          isOpen={Boolean(selectedRuleScenario)}
+          onClose={() => setSelectedRuleScenario(null)}
+          onNavigatePrev={() => {
+            const currentIndex = filteredScenarios.findIndex(
+              (s) => s.id === selectedRuleScenario.scenario.id
+            )
+            if (currentIndex > 0) {
+              const prev = filteredScenarios[currentIndex - 1]
+              const rule = prev.rule || getRuleForScenario(prev)
+              const engineList =
+                selectedEngine === 'ALL'
+                  ? scenarios
+                  : scenarios.filter((s) => s.engineCategory === prev.engineCategory)
+              const prevRowNumber = engineList.findIndex((s) => s.id === prev.id) + 1
+              setSelectedRuleScenario({
+                scenario: { ...prev, rule },
+                rowNumber: prevRowNumber > 0 ? prevRowNumber : currentIndex,
+              })
+            }
+          }}
+          onNavigateNext={() => {
+            const currentIndex = filteredScenarios.findIndex(
+              (s) => s.id === selectedRuleScenario.scenario.id
+            )
+            if (currentIndex >= 0 && currentIndex < filteredScenarios.length - 1) {
+              const next = filteredScenarios[currentIndex + 1]
+              const rule = next.rule || getRuleForScenario(next)
+              const engineList =
+                selectedEngine === 'ALL'
+                  ? scenarios
+                  : scenarios.filter((s) => s.engineCategory === next.engineCategory)
+              const nextRowNumber = engineList.findIndex((s) => s.id === next.id) + 1
+              setSelectedRuleScenario({
+                scenario: { ...next, rule },
+                rowNumber: nextRowNumber > 0 ? nextRowNumber : currentIndex + 2,
+              })
+            }
+          }}
+          hasPrev={
+            filteredScenarios.findIndex(
+              (s) => s.id === selectedRuleScenario.scenario.id
+            ) > 0
+          }
+          hasNext={
+            (() => {
+              const idx = filteredScenarios.findIndex(
+                (s) => s.id === selectedRuleScenario.scenario.id
               )
               return idx >= 0 && idx < filteredScenarios.length - 1
             })()

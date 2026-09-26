@@ -25,7 +25,7 @@ export function serializeStatuses(statuses: ScenarioStatus[]): string {
   return Array.from(new Set(statuses)).join(', ')
 }
 
-export type PriorityLevel = 'Highest' | 'High' | 'Medium' | 'Low'
+export type PriorityLevel = 'Highest' | 'High' | 'Medium' | 'Low' | 'Medium-Low' | 'User initiated' | (string & {})
 
 export type Environment = 'DEV' | 'STAGING' | 'PROD'
 
@@ -110,6 +110,44 @@ export interface NotificationScenario {
   versionHistory?: ScenarioVersion[]
   fieldHistory?: Record<string, FieldVersionRecord[]>
   attachmentsCount?: number
+  ruleId?: string
+  rule?: NotificationRule
+}
+
+export interface NotificationRule {
+  ruleId: string
+  engine: string
+  ruleName: string
+  trigger: string
+  audience: string
+  communicationObjective: string
+  priority: string
+  delivery: string
+  channelTier: string
+  emailDeliveryPolicy: string
+  cooldown: string
+  suppression: string
+  sourceWorkbook: string
+  attentionClass: string
+  candidateScore: string
+  guaranteedExperience: string
+  batchEligible: string
+  runtimeMemoryDependency: string
+  attentionQueueGroup: string
+  rotationGroup: string
+  timing: string
+  mergePolicy: string
+  defaultDecisionReason: string
+  experienceType: string
+  memoryKeys: string
+  decisionReasonTemplate: string
+  candidateAudiences: string
+  candidateExperiences: string
+  templateId: string
+  changeNotes: string
+  scenarioId?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type AttachmentTag = 'screenshot' | 'push' | 'email' | 'in_app' | 'defect' | 'general'

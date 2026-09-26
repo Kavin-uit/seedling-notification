@@ -40,31 +40,40 @@ const SYNONYM_MAP: Record<string, string[]> = {
   todo: ['to do', 'pending', 'open'],
 }
 
-// Levenshtein distance for typo tolerance
-function levenshteinDistance(s1: string, s2: string): number {
+// Levenshtein distance for typo tolerance with early threshold cutoff & memory reuse
+function levenshteinDistance(s1: string, s2: string, maxAllowed = 2): number {
   if (s1 === s2) return 0
-  if (s1.length === 0) return s2.length
-  if (s2.length === 0) return s1.length
+  const l1 = s1.length
+  const l2 = s2.length
+  if (Math.abs(l1 - l2) > maxAllowed) return maxAllowed + 1
+  if (l1 === 0) return l2
+  if (l2 === 0) return l1
 
-  const d: number[][] = []
-  for (let i = 0; i <= s1.length; i++) {
-    d[i] = [i]
-  }
-  for (let j = 0; j <= s2.length; j++) {
-    d[0][j] = j
-  }
+  let prev = new Int32Array(l2 + 1)
+  let curr = new Int32Array(l2 + 1)
 
-  for (let i = 1; i <= s1.length; i++) {
-    for (let j = 1; j <= s2.length; j++) {
-      const cost = s1[i - 1] === s2[j - 1] ? 0 : 1
-      d[i][j] = Math.min(
-        d[i - 1][j] + 1, // deletion
-        d[i][j - 1] + 1, // insertion
-        d[i - 1][j - 1] + cost // substitution
+  for (let j = 0; j <= l2; j++) prev[j] = j
+
+  for (let i = 1; i <= l1; i++) {
+    curr[0] = i
+    let minInRow = i
+    const ch1 = s1.charCodeAt(i - 1)
+    for (let j = 1; j <= l2; j++) {
+      const cost = ch1 === s2.charCodeAt(j - 1) ? 0 : 1
+      const val = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + cost
       )
+      curr[j] = val
+      if (val < minInRow) minInRow = val
     }
+    if (minInRow > maxAllowed) return maxAllowed + 1
+    const tmp = prev
+    prev = curr
+    curr = tmp
   }
-  return d[s1.length][s2.length]
+  return prev[l2]
 }
 
 // Check if two words are fuzzy match (typo tolerant within 1-2 edits depending on word length)
@@ -74,28 +83,45 @@ function isFuzzyMatch(w1: string, w2: string): boolean {
   const maxLen = Math.max(w1.length, w2.length)
   if (maxLen <= 3) return false
   const allowedDist = maxLen >= 7 ? 2 : 1
-  return levenshteinDistance(w1, w2) <= allowedDist
+  if (Math.abs(w1.length - w2.length) > allowedDist) return false
+  return levenshteinDistance(w1, w2, allowedDist) <= allowedDist
 }
 
-// Get all searchable fields concatenated & structured
-function getScenarioTextMap(s: NotificationScenario): Record<string, string> {
-  return {
-    key: s.key.toLowerCase(),
-    engine: (s.engineCategory || '').toLowerCase(),
-    event: (s.governanceEvent || '').toLowerCase(),
-    trigger: (s.trigger || '').toLowerCase(),
-    audience: (s.audience || '').toLowerCase(),
-    objective: (s.communicationObjective || '').toLowerCase(),
-    outcome: (s.desiredOutcome || '').toLowerCase(),
-    pushSubject: (s.pushSubject || '').toLowerCase(),
-    pushBody: (s.pushBody || '').toLowerCase(),
-    emailSubject: (s.emailSubject || '').toLowerCase(),
-    emailBody: (s.emailBody || '').toLowerCase(),
-    inApp: (s.inAppExperience || '').toLowerCase(),
-    cta: (s.cta || '').toLowerCase(),
-    comments: (s.comments || '').toLowerCase(),
-    status: (s.status || '').toLowerCase(),
+// WeakMap cache for structured scenario text representations
+interface ScenarioTextData {
+  map: Record<string, string>
+  fullText: string
+  words: string[]
+}
+
+const scenarioTextCache = new WeakMap<NotificationScenario, ScenarioTextData>()
+
+function getScenarioTextData(s: NotificationScenario): ScenarioTextData {
+  let cached = scenarioTextCache.get(s)
+  if (!cached) {
+    const map = {
+      key: s.key.toLowerCase(),
+      engine: (s.engineCategory || '').toLowerCase(),
+      event: (s.governanceEvent || '').toLowerCase(),
+      trigger: (s.trigger || '').toLowerCase(),
+      audience: (s.audience || '').toLowerCase(),
+      objective: (s.communicationObjective || '').toLowerCase(),
+      outcome: (s.desiredOutcome || '').toLowerCase(),
+      pushSubject: (s.pushSubject || '').toLowerCase(),
+      pushBody: (s.pushBody || '').toLowerCase(),
+      emailSubject: (s.emailSubject || '').toLowerCase(),
+      emailBody: (s.emailBody || '').toLowerCase(),
+      inApp: (s.inAppExperience || '').toLowerCase(),
+      cta: (s.cta || '').toLowerCase(),
+      comments: (s.comments || '').toLowerCase(),
+      status: (s.status || '').toLowerCase(),
+    }
+    const fullText = Object.values(map).join(' ')
+    const words = fullText.split(/\W+/).filter(Boolean)
+    cached = { map, fullText, words }
+    scenarioTextCache.set(s, cached)
   }
+  return cached
 }
 
 export interface AiSearchResult {
@@ -130,8 +156,7 @@ export function executeSearch(
     matchedTerms.add(trimmed.toLowerCase())
 
     const filtered = scenarios.filter((s) => {
-      const textMap = getScenarioTextMap(s)
-      const fullText = Object.values(textMap).join(' ')
+      const { fullText } = getScenarioTextData(s)
       // Match if exact query phrase is found or every typed token is found across fields
       return (
         fullText.includes(trimmed.toLowerCase()) ||
@@ -186,9 +211,7 @@ export function executeSearch(
   const scored: AiSearchResult[] = []
 
   for (const scenario of scenarios) {
-    const textMap = getScenarioTextMap(scenario)
-    const fullText = Object.values(textMap).join(' ')
-    const wordsInRow = fullText.split(/\W+/).filter(Boolean)
+    const { map: textMap, fullText, words: wordsInRow } = getScenarioTextData(scenario)
 
     let score = 0
     const matchedForThisRow = new Set<string>()

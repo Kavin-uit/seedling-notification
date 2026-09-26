@@ -9,6 +9,7 @@ import {
   ExternalLink,
   MessageSquare,
   FileText,
+  BookOpen,
 } from 'lucide-react'
 import { ScenarioAttachmentsSection } from './ScenarioAttachmentsSection'
 
@@ -24,6 +25,7 @@ interface JiraDetailModalProps {
   hasPrev?: boolean
   hasNext?: boolean
   onAttachmentCountChange?: (scenarioId: string, count: number) => void
+  onOpenRuleBook?: (scenario: NotificationScenario) => void
 }
 
 function parseEmailTemplate(scenario: NotificationScenario) {
@@ -66,6 +68,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
   hasPrev = false,
   hasNext = false,
   onAttachmentCountChange,
+  onOpenRuleBook,
 }) => {
   const [isSpecsExpanded, setIsSpecsExpanded] = useState<boolean>(false)
 
@@ -134,7 +137,18 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
           </div>
 
           {/* Quick Actions & Navigation */}
-          <div className="flex items-center gap-1 shrink-0 ml-auto">
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            {onOpenRuleBook && (
+              <button
+                type="button"
+                onClick={() => onOpenRuleBook(scenario)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-[#0052CC] bg-[#F4F5F7] hover:bg-[#EBECF0] border border-[#DFE1E6] rounded-[3px] transition-colors shadow-2xs cursor-pointer mr-1"
+                title={`View Notification Rule Book (${scenario.rule?.ruleId || scenario.ruleId || 'Rules'})`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#0052CC]" />
+                <span>Rule Book</span>
+              </button>
+            )}
             {onNavigatePrev && (
               <button
                 type="button"

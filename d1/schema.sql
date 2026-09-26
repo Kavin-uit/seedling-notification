@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS scenarios (
   status TEXT NOT NULL DEFAULT 'TO DO',
   priority TEXT NOT NULL DEFAULT 'Medium',
   environment TEXT NOT NULL DEFAULT 'STAGING',
+  rule_id TEXT DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -149,3 +150,10033 @@ INSERT INTO scenarios (id, key, engine_category, governance_event, trigger, audi
 INSERT INTO scenarios (id, key, engine_category, governance_event, trigger, audience, communication_objective, desired_outcome, push_subject, push_body, email_subject, email_body, in_app_experience, cta, status, priority, environment, created_at, updated_at) VALUES ('disc-9', 'DISC-9', 'Discovery', 'Friend Follows Grower', 'Friend activity', 'User', 'Encourage social discovery', 'Follow creator', '(Name) found a new Grower', '(Name), who you follow, is now following (Name)', '(Name) Found a New Grower', '(Name), who you follow, is now following (Name). Take a look and see what drew them in.  BOX: View Profile', '', 'take user to creator profile', 'TO DO', 'Medium', 'STAGING', datetime('now'), datetime('now'));
 INSERT INTO scenarios (id, key, engine_category, governance_event, trigger, audience, communication_objective, desired_outcome, push_subject, push_body, email_subject, email_body, in_app_experience, cta, status, priority, environment, created_at, updated_at) VALUES ('disc-10', 'DISC-10', 'Discovery', 'Friend Supports Seedling', 'Friend donation or engagement', 'User', 'Leverage social proof', 'Visit campaign', '(Name) just gave', '(Name), who you follow, has donated to (Seedling)', '(Name) Just Gave', '(Name), who you follow, has donated to (Seedling). See what moved them to give and consider joining in.  BOX: View Seedling', '', 'take user directly to Seedling', 'TO DO', 'Medium', 'STAGING', datetime('now'), datetime('now'));
 
+
+
+-- Notification Rules Table
+
+CREATE TABLE IF NOT EXISTS notification_rules (
+  rule_id TEXT PRIMARY KEY,
+  engine TEXT NOT NULL,
+  rule_name TEXT NOT NULL,
+  trigger TEXT DEFAULT '',
+  audience TEXT DEFAULT '',
+  communication_objective TEXT DEFAULT '',
+  priority TEXT DEFAULT 'Medium',
+  delivery TEXT DEFAULT '',
+  channel_tier TEXT DEFAULT '',
+  email_delivery_policy TEXT DEFAULT '',
+  cooldown TEXT DEFAULT '',
+  suppression TEXT DEFAULT '',
+  source_workbook TEXT DEFAULT '',
+  attention_class TEXT DEFAULT '',
+  candidate_score TEXT DEFAULT '',
+  guaranteed_experience TEXT DEFAULT '',
+  batch_eligible TEXT DEFAULT '',
+  runtime_memory_dependency TEXT DEFAULT '',
+  attention_queue_group TEXT DEFAULT '',
+  rotation_group TEXT DEFAULT '',
+  timing TEXT DEFAULT '',
+  merge_policy TEXT DEFAULT '',
+  default_decision_reason TEXT DEFAULT '',
+  experience_type TEXT DEFAULT '',
+  memory_keys TEXT DEFAULT '',
+  decision_reason_template TEXT DEFAULT '',
+  candidate_audiences TEXT DEFAULT '',
+  candidate_experiences TEXT DEFAULT '',
+  template_id TEXT DEFAULT '',
+  change_notes TEXT DEFAULT '',
+  scenario_id TEXT DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_rules_engine ON notification_rules(engine);
+
+CREATE INDEX IF NOT EXISTS idx_rules_scenario_id ON notification_rules(scenario_id);
+
+INSERT OR REPLACE INTO engine_sheets VALUES
+('RuleBook', 'Master Notification Rule Book', 'https://docs.google.com/spreadsheets/d/1dEysC4h1eFZ9p71n0Dmna-as8S53RKol/edit?gid=1579082867#gid=1579082867', 'https://docs.google.com/spreadsheets/d/1dEysC4h1eFZ9p71n0Dmna-as8S53RKol/export?format=csv&gid=1579082867', 1, datetime('now'), datetime('now'));
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-001', 'Identity', 'Account Created',
+  'User registers', 'User', 'Welcome and establish belonging',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-001', '',
+  'id-1', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-002', 'Identity', 'Email Verification Required',
+  'Account created', 'User', 'Verify identity',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-002', '',
+  'id-2', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-003', 'Identity', 'Email Verified',
+  'Verification complete', 'User', 'Reinforce progress',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-003', '',
+  'id-3', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-004', 'Identity', 'Phone Verification Required',
+  'Phone added', 'User', 'Secure account',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-004', '',
+  'id-4', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-005', 'Identity', 'Phone Verified',
+  'Verification complete', 'User', 'Confirm security',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-005', '',
+  'id-5', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-006', 'Identity', 'Profile Incomplete',
+  'Required fields missing', 'User', 'Encourage profile completion',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-006', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-007', 'Identity', 'Profile Completed',
+  'Profile reaches 100%', 'User', 'Celebrate progress',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-007', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-008', 'Identity', 'Profile Updated',
+  'User edits profile', 'User', 'Confirm changes',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-008', '',
+  'id-8', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-009', 'Identity', 'Profile Photo Missing',
+  'No avatar', 'User', 'Personalize identity',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-009', '',
+  'id-9', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-010', 'Identity', 'Profile Photo Added',
+  'Photo uploaded', 'User', 'Reinforce authenticity',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-010', '',
+  'id-10', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-011', 'Identity', 'Interests Not Selected',
+  'No interests chosen', 'User', 'Improve recommendations',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-011', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-012', 'Identity', 'Interests Updated',
+  'Interests changed', 'User', 'Acknowledge personalization',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-012', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-013', 'Identity', 'Location Added',
+  'Location saved', 'User', 'Improve local relevance',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-013', '',
+  'id-13', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-014', 'Identity', 'First Login',
+  'Initial login', 'User', 'Begin journey',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-014', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-015', 'Identity', 'Returning Login',
+  'Returning after absence', 'User', 'Re-engage',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-015', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-016', 'Identity', 'Inactive 7 Days',
+  'No activity', 'User', 'Reconnect',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-016', '',
+  'id-16', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-017', 'Identity', 'Inactive 30 Days',
+  'Extended inactivity', 'User', 'Reignite interest',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-017', '',
+  'id-17', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-018', 'Identity', 'Notification Permission Not Granted',
+  'Permission declined', 'User', 'Explain value',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-018', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-019', 'Identity', 'Notifications Enabled',
+  'Permission granted', 'User', 'Confirm success',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-019', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-020', 'Identity', 'Contacts Connected',
+  'Address book linked', 'User', 'Expand network',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-020', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-021', 'Identity', 'Social Account Connected',
+  'OAuth completed', 'User', 'Simplify access',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-021', '',
+  'id-21', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-022', 'Identity', 'First Organization Followed',
+  'First nonprofit followed', 'User', 'Reinforce discovery',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-022', '',
+  'id-22', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-023', 'Identity', 'First Creator Followed',
+  'First Grower followed', 'User', 'Build community',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-023', '',
+  'id-23', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-024', 'Identity', 'First Favorite Saved',
+  'First bookmark', 'User', 'Encourage return visits',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-024', '',
+  'id-24', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-025', 'Identity', 'Username Changed',
+  'Username updated', 'User', 'Confirm identity change',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-025', '',
+  'id-25', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-026', 'Identity', 'Password Changed',
+  'Password updated', 'User', 'Security confirmation',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-026', '',
+  'id-26', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-027', 'Identity', 'Password Reset Requested',
+  'Reset initiated', 'User', 'Protect account',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-027', '',
+  'id-27', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-028', 'Identity', 'Password Reset Completed',
+  'Reset successful', 'User', 'Confirm security',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-028', '',
+  'id-28', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-029', 'Identity', 'New Device Login',
+  'New device detected', 'User', 'Security awareness',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-029', '',
+  'id-29', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-030', 'Identity', 'Suspicious Login Detected',
+  'Risk detected', 'User', 'Protect account',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-030', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-031', 'Identity', 'Account Locked',
+  'Security threshold reached', 'User', 'Explain next steps',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-031', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-032', 'Identity', 'Account Restored',
+  'Access reinstated', 'User', 'Welcome back',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-032', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-033', 'Identity', 'Terms Updated',
+  'Terms accepted', 'User', 'Confirm compliance',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-033', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-034', 'Identity', 'Privacy Preferences Updated',
+  'Settings changed', 'User', 'Confirm changes',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-034', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-035', 'Identity', 'Anniversary',
+  'One year since joining', 'User', 'Celebrate membership',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-035', '',
+  'id-35', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-036', 'Identity', 'Birthday',
+  'User birthday', 'User', 'Strengthen relationship',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-036', '',
+  'id-36', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-037', 'Identity', 'Referral Invitation Sent',
+  'User invites friend', 'User', 'Reinforce advocacy',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-037', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-038', 'Identity', 'Referral Joined',
+  'Friend creates account', 'User', 'Celebrate success',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-038', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-039', 'Identity', 'Referral Activated',
+  'Friend becomes active', 'User', 'Reinforce network growth',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-039', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-040', 'Identity', 'Identity Verification Requested',
+  'Enhanced verification required', 'User', 'Establish trust',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-040', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-041', 'Identity', 'Identity Verification Approved',
+  'Verification completed', 'User', 'Confirm trusted status',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-041', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-042', 'Identity', 'Identity Verification Declined',
+  'Verification failed', 'User', 'Provide guidance',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-042', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-043', 'Identity', 'Account Deactivated',
+  'User deactivates account', 'User', 'Confirm action',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-043', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-044', 'Identity', 'Account Reactivated',
+  'User returns', 'User', 'Welcome back',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-044', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-045', 'Identity', 'Welcome Tour Started',
+  'First successful login', 'User', 'Introduce core concepts',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-045', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-046', 'Identity', 'Welcome Tour Completed',
+  'Guided tour finished', 'User', 'Celebrate readiness',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-046', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-047', 'Identity', 'Skip Onboarding',
+  'User skips onboarding', 'User', 'Leave door open to return',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-047', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-048', 'Identity', 'Resume Onboarding',
+  'Incomplete onboarding detected', 'User', 'Continue onboarding',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-048', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-049', 'Identity', 'Preferred Language Selected',
+  'Language chosen', 'User', 'Personalize experience',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-049', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-050', 'Identity', 'Accessibility Preferences Updated',
+  'Accessibility settings changed', 'User', 'Confirm accessibility',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-050', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-051', 'Identity', 'Dark Mode Enabled',
+  'Appearance changed', 'User', 'Confirm preference',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-051', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-052', 'Identity', 'Communication Preferences Updated',
+  'Notification/email settings changed', 'User', 'Confirm preferences',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-052', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-053', 'Identity', 'Welcome Back After 90 Days',
+  'Long inactivity', 'User', 'Reconnect emotionally',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-053', '',
+  'id-53', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-054', 'Identity', 'First Session Completed',
+  'User exits first session', 'User', 'Encourage second visit',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-054', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-055', 'Identity', 'Second Session Completed',
+  'Second visit', 'User', 'Reinforce habit',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-055', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-056', 'Identity', 'First Week Anniversary',
+  '7 days after signup', 'User', 'Celebrate early journey',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-056', '',
+  'id-56', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-057', 'Identity', 'First Month Anniversary',
+  '30 days after signup', 'User', 'Reflect on progress',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-057', '',
+  'id-57', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-058', 'Identity', 'Organization Account Created',
+  'Nonprofit registers', 'Organization', 'Welcome organization',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'Organization', '',
+  'TPL-CI-ID-058', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-059', 'Identity', 'Organization Verified',
+  'Verification approved', 'Organization', 'Confirm trusted status',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'Organization', '',
+  'TPL-CI-ID-059', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-060', 'Identity', 'Corporate Account Created',
+  'Corporate registers', 'Corporate Admin', 'Welcome corporate partner',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'Corporate Admin', '',
+  'TPL-CI-ID-060', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-061', 'Identity', 'Creator Account Enabled',
+  'Creator capabilities granted', 'User', 'Encourage storytelling',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-061', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-062', 'Identity', 'Account Merge Completed',
+  'Duplicate accounts merged', 'User', 'Confirm successful merge',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-062', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-063', 'Identity', 'Consent Granted',
+  'Marketing/privacy consent accepted', 'User', 'Acknowledge preferences',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-063', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-064', 'Identity', 'Consent Withdrawn',
+  'Consent revoked', 'User', 'Respect preferences',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-064', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-065', 'Identity', 'Data Export Requested',
+  'Privacy request', 'User', 'Confirm request',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-065', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-066', 'Identity', 'Data Export Ready',
+  'Export generated', 'User', 'Deliver requested data',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-066', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-067', 'Identity', 'Account Scheduled for Deletion',
+  'Deletion requested', 'User', 'Allow reconsideration',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-067', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-068', 'Identity', 'Account Permanently Deleted',
+  'Retention period expired', 'User', 'Confirm deletion',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-068', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-069', 'Identity', 'Username Available',
+  'Desired username becomes available', 'User', 'Encourage personalization',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-069', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-ID-070', 'Identity', 'Verified Badge Awarded',
+  'Trust criteria met', 'User', 'Recognize authenticity',
+  'Medium', 'In-App; rare milestone Push', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Usually accumulate until meaningful milestone',
+  'Seedling_Identity_Engine_Messaging.xlsx', 'Reflective', '50',
+  'No', 'Yes',
+  'Identity milestones accumulated but not yet delivered; recent high-priority experience', 'Identity Reflection',
+  '', 'Milestones and reflection', 'Yes',
+  'Identity accumulates far more often than it interrupts.', 'Reflection',
+  'IdentityMilestones, RecentHighPriority', 'Usually accumulate until a meaningful milestone.',
+  'User', '',
+  'TPL-CI-ID-070', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-001', 'Discovery', 'Personalized Feed Available',
+  'User opens app', 'User', 'Present relevant stories',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-001', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-002', 'Discovery', 'New Seedling Matches Interests',
+  'Campaign published', 'User', 'Inspire exploration',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-002', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-003', 'Discovery', 'New Nonprofit Matches Interests',
+  'Organization joins', 'User', 'Expand discovery',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-003', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-004', 'Discovery', 'New Grower Matches Interests',
+  'Creator joins', 'User', 'Build community',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-004', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-005', 'Discovery', 'Trending Seedling',
+  'Engagement threshold reached', 'User', 'Surface momentum',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-005', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-006', 'Discovery', 'Trending Nonprofit',
+  'Organization trending', 'User', 'Highlight impact',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-006', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-007', 'Discovery', 'Trending Topic',
+  'Topic gains activity', 'User', 'Increase awareness',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-007', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-008', 'Discovery', 'Friend Follows Nonprofit',
+  'Friend activity', 'User', 'Encourage social discovery',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-008', '',
+  'disc-8', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-009', 'Discovery', 'Friend Follows Grower',
+  'Friend activity', 'User', 'Encourage social discovery',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-009', '',
+  'disc-9', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-010', 'Discovery', 'Friend Supports Seedling',
+  'Friend donation or engagement', 'User', 'Leverage social proof',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', 'Donation confirmation / reinforcement',
+  'TPL-CI-DISC-010', '',
+  'disc-10', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-011', 'Discovery', 'Friend Comments',
+  'Friend participates', 'User', 'Encourage conversation',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-011', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-012', 'Discovery', 'Friend Shares Story',
+  'Story published', 'User', 'Promote authentic discovery',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-012', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-013', 'Discovery', 'Nearby Seedling',
+  'Location match', 'User', 'Promote local impact',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-013', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-014', 'Discovery', 'Nearby Nonprofit',
+  'Location match', 'User', 'Increase local engagement',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-014', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-015', 'Discovery', 'Local Emergency',
+  'External event', 'User', 'Highlight urgent need',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-015', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-016', 'Discovery', 'Disaster Response Available',
+  'External feed', 'User', 'Encourage immediate action',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-016', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-017', 'Discovery', 'New Category Available',
+  'Platform expansion', 'User', 'Encourage exploration',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-017', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-018', 'Discovery', 'Continue Watching',
+  'Previous session', 'User', 'Resume discovery',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-018', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-019', 'Discovery', 'Recommended Because You Follow',
+  'Recommendation generated', 'User', 'Increase relevance',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-019', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-020', 'Discovery', 'Recommended Because Friends Support',
+  'Social recommendation', 'User', 'Increase trust',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-020', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-021', 'Discovery', 'Recommended Because You Donated',
+  'Behavioral recommendation', 'User', 'Deepen engagement',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-021', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-022', 'Discovery', 'Recommended Because You Watched',
+  'Behavioral recommendation', 'User', 'Continue exploration',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-022', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-023', 'Discovery', 'Hidden Gem Discovered',
+  'Equity algorithm', 'User', 'Increase equitable exposure',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-023', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-024', 'Discovery', 'New Campaign from Followed Nonprofit',
+  'Campaign created', 'User', 'Maintain relationship',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-024', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-025', 'Discovery', 'New Campaign from Followed Grower',
+  'Campaign created', 'User', 'Strengthen creator connection',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-025', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-026', 'Discovery', 'Organization Near Fundraising Goal',
+  'Milestone reached', 'User', 'Increase urgency',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-026', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-027', 'Discovery', 'Because You Haven''t Explored',
+  'Diversity algorithm', 'User', 'Broaden perspective',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-027', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-028', 'Discovery', 'Your Feed Has Changed',
+  'Significant updates', 'User', 'Encourage return',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-028', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-029', 'Discovery', 'New Search Trend',
+  'Popular search emerging', 'User', 'Promote discovery',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-029', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-030', 'Discovery', 'First Search Performed',
+  'Initial search', 'User', 'Reinforce exploration',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-030', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-031', 'Discovery', 'Friend Joins Seedling',
+  'Contact registers', 'User', 'Strengthen social graph',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-031', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-032', 'Discovery', 'People You May Know',
+  'Mutual connections', 'User', 'Grow network',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-032', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-033', 'Discovery', 'Organization Recommended by Friend',
+  'Social signal', 'User', 'Increase trust',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-033', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-034', 'Discovery', 'Cause You Haven''t Supported',
+  'Behavior analysis', 'User', 'Broaden giving',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-034', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-035', 'Discovery', 'New Organization Near You',
+  'Location', 'User', 'Build local community',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-035', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-036', 'Discovery', 'Campaign Shared Near You',
+  'Local sharing', 'User', 'Promote local engagement',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-036', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-037', 'Discovery', 'Breaking News Related Cause',
+  'News integration', 'User', 'Provide context',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-037', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-038', 'Discovery', 'Creator Goes Live',
+  'Live event', 'User', 'Drive participation',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'Sponsor; Co-Sponsors', 'Seedling live notification',
+  'TPL-CI-DISC-038', 'New rule split/renamed from CI-DISC-067 (Creator Goes Live (Future)); metadata inherited from that rule.',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-DISC-039', 'Discovery', 'Limited-Time Feature',
+  'Platform promotion', 'User', 'Increase feature adoption',
+  'Low', 'In-App only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'N/A', 'Never initiate an interruption',
+  'Seedling_Discovery_Engine_Messaging.xlsx', 'Passive', '20',
+  'No', 'N/A',
+  'Current app/session activity; recent cause affinity', 'In-App Guidance',
+  '', 'During browsing', 'N/A',
+  'Discovery guides attention after the app is open; it does not create a push interruption.', 'Guidance',
+  'ActiveSession, AffinityProfile', 'Display in-app only after attention has already been earned.',
+  'User', '',
+  'TPL-CI-DISC-039', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-001', 'Opportunity', '1 day before Seedling closes',
+  'Number of days before Seedling closes', 'Sponsor - Co-Sponsor(s)', 'Let Grower know when Seedling is about to close so they can do one final push to get final donations',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Creator', '',
+  'TPL-CI-OPP-001', '',
+  'opp-1', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-002', 'Opportunity', '1 day before Seedling closes',
+  'Number of days before Seedling closes', 'Donor', 'Let potential donors know when Seedling is about to close so they can make donations',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Donor', '',
+  'TPL-CI-OPP-002', '',
+  'opp-2', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-003', 'Opportunity', '100th Donation Milestone',
+  'Donation milestone', 'Followers', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Followers', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-003', '',
+  'opp-3', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-004', 'Opportunity', '7 days before Seedling closes',
+  'Number of days before Seedling closes', 'Sponsor - Co-Sponsor(s)', 'Let Grower know when Seedling is about to close so they can do one final push to get final donations',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Creator', '',
+  'TPL-CI-OPP-004', '',
+  'opp-4', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-005', 'Opportunity', '7 days before Seedling closes',
+  'Number of days before Seedling closes', 'Donor', 'Let potential donors know when Seedling is about to close so they can make donations',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Donor', '',
+  'TPL-CI-OPP-005', '',
+  'opp-5', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-006', 'Opportunity', 'A Cause That Matches Your Giving',
+  'Behavioral model', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-006', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-007', 'Opportunity', 'A Cause You May Also Like',
+  'Donation completed', 'Donor', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Donor', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-007', '',
+  'opp-7', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-008', 'Opportunity', 'A New Matching Opportunity',
+  'Matching pool exhausted', 'Interested users', 'A matching gift is active for this campaign.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Interested users', '',
+  'TPL-CI-OPP-008', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-009', 'Opportunity', 'A Nonprofit You Follow Needs You',
+  'Organization update', 'Follower', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Follower', '',
+  'TPL-CI-OPP-009', '',
+  'opp-9', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-010', 'Opportunity', 'Adopt a Shelter Pet Day',
+  'Adopt a Shelter Pet Day', 'Pet adoption', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Pet adoption', '',
+  'TPL-CI-OPP-010', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-011', 'Opportunity', 'American Heart Month',
+  'American Heart Month', 'Heart health', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Heart health', '',
+  'TPL-CI-OPP-011', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-012', 'Opportunity', 'Anonymous Angel Opportunity',
+  'Season', 'Qualified users', 'Complete campaign anonymously',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Qualified users', '',
+  'TPL-CI-OPP-012', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-013', 'Opportunity', 'Arbor Day',
+  'Arbor Day', 'Tree planting', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Tree planting', '',
+  'TPL-CI-OPP-013', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-014', 'Opportunity', 'Autism Acceptance Month',
+  'April', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-014', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-015', 'Opportunity', 'Back-to-College',
+  'August', 'Education supporters', 'Academic cycle',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Education supporters', '',
+  'TPL-CI-OPP-015', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-016', 'Opportunity', 'Back-to-School Giving ',
+  'Late July / August', 'All users', 'Support education',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-016', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-017', 'Opportunity', 'Be the 100th Donor',
+  'Season', 'Qualified users', 'Milestone',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Qualified users', '',
+  'TPL-CI-OPP-017', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-018', 'Opportunity', 'No donation to Seedling after 4 hours',
+  'Season', 'Qualified users', 'Start momentum',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Qualified users', '',
+  'TPL-CI-OPP-018', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-019', 'Opportunity', 'Birthday - 30 Days',
+  'Recommendation generated', 'User', 'Birthday is approaching and enough time remains to launch.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-019', '',
+  'opp-19', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-020', 'Opportunity', 'Birthday - 60 Days',
+  'Need published', 'Eligible User', 'User''s birthday is 60 days away.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Eligible User', '',
+  'TPL-CI-OPP-020', '',
+  'opp-20', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-021', 'Opportunity', 'Birthday Giving Opportunity',
+  'Birthday upcoming', 'User', 'User''s birthday is approaching.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-021', '',
+  'opp-21', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-022', 'Opportunity', 'Black History Month',
+  'February', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-022', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-023', 'Opportunity', 'Breast Cancer Awareness Month',
+  'October', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-023', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-024', 'Opportunity', 'Childhood Cancer Awareness Month',
+  'September', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-024', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-025', 'Opportunity', 'Childhood Immunization Week',
+  'Childhood Immunization Week', 'Public health', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Public health', '',
+  'TPL-CI-OPP-025', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-026', 'Opportunity', 'City Day of Service',
+  'City Day of Service', 'Municipal volunteer event', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Municipal volunteer event', '',
+  'TPL-CI-OPP-026', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-027', 'Opportunity', 'Cold Weather Shelter Need',
+  'Severe cold', 'Local users', 'Weather-aware',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Local users', '',
+  'TPL-CI-OPP-027', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-028', 'Opportunity', 'Create Your First Seasonal Seedling',
+  'Nov 15-Dec 31', 'Eligible creators', 'Encourage participation',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Eligible creators', '',
+  'TPL-CI-OPP-028', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-029', 'Opportunity', 'Cyber Monday Matching',
+  'Cyber Monday', 'Online donors', 'Digital shopping tie-in',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Online donors', '',
+  'TPL-CI-OPP-029', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-030', 'Opportunity', 'Discover Another Cause',
+  'Eligibility changed', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-030', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-031', 'Opportunity', 'Diwali Giving',
+  'Diwali Giving', 'Festival of Lights generosity', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Festival of Lights generosity', '',
+  'TPL-CI-OPP-031', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-032', 'Opportunity', 'Donation Anniversary',
+  '1 year after donation', 'Previous donor', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Previous donor', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-032', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-033', 'Opportunity', 'Dormant Passion Reawakening',
+  'Dormant Passion Reawakening', 'Reconnect with past interests', 'Recognition',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Reconnect with past interests', '',
+  'TPL-CI-OPP-033', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-034', 'Opportunity', 'Earth Day ',
+  'Earth Day approaching', 'All users', 'Support environmental causes',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-034', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-035', 'Opportunity', 'Earth Day Countdown',
+  '30 days before Earth Day', 'Environmental supporters', 'Planning window',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Environmental supporters', '',
+  'TPL-CI-OPP-035', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-036', 'Opportunity', 'Easter Outreach',
+  'Easter Outreach', 'Seasonal outreach and service', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Seasonal outreach and service', '',
+  'TPL-CI-OPP-036', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-037', 'Opportunity', 'Emergency Relief Appeal',
+  'Major breaking disaster', 'Relevant audience', 'Time-sensitive',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant audience', '',
+  'TPL-CI-OPP-037', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-038', 'Opportunity', 'Employee Giving Campaign',
+  'Employee Giving Campaign', 'Company campaign', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Company campaign', '',
+  'TPL-CI-OPP-038', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-039', 'Opportunity', 'Employer Giving Week',
+  'Corporate calendar', 'Employees', '',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Employees', '',
+  'TPL-CI-OPP-039', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-040', 'Opportunity', 'Employer Match',
+  'Goal nearly reached', 'User', 'User''s employer matches donations.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-040', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-041', 'Opportunity', 'Employer Match Available',
+  'Employer identified', 'User', 'A matching gift is active for this campaign.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-041', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-042', 'Opportunity', 'Extreme Heat Response',
+  'Heat emergency', 'Regional users', 'Urgency',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Regional users', '',
+  'TPL-CI-OPP-042', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-043', 'Opportunity', 'Father''s Day Tribute Seedling',
+  'Father''s Day', 'All users', 'Honor loved ones',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-043', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-044', 'Opportunity', 'Final Week Countdown',
+  'Last week', 'All Users', 'Urgency',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All Users', '',
+  'TPL-CI-OPP-044', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-045', 'Opportunity', 'Find a New Cause',
+  'Week 2', 'Returning donors', 'Discovery',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Returning donors', '',
+  'TPL-CI-OPP-045', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-046', 'Opportunity', 'Finish Someone''s Campaign',
+  'Season', 'Qualified users', 'Complete campaigns',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Qualified users', '',
+  'TPL-CI-OPP-046', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-047', 'Opportunity', 'First Day of Spring',
+  'Season begins', 'All users', 'Seasonal optimism',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-047', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-048', 'Opportunity', 'First Donation Needed',
+  'No donations after 24 hours', 'Eligible users', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Eligible users', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-048', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-049', 'Opportunity', 'First Snow',
+  'First Snow', 'Winter preparedness', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Winter preparedness', '',
+  'TPL-CI-OPP-049', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-050', 'Opportunity', 'Follower Created Seedling',
+  'Follower/Followed', 'User', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-050', '',
+  'opp-51', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-051', 'Opportunity', 'Followed Created Seedling',
+  'Follower/Followed', 'User', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-051', '',
+  'opp-52', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-052', 'Opportunity', 'Follower Made First Donation',
+  'Follower/Followed', 'User', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Friends', '',
+  'TPL-CI-OPP-052', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-053', 'Opportunity', 'Followed Made First Donation',
+  'Follower/Followed', 'User', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Friends', '',
+  'TPL-CI-OPP-053', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-054', 'Opportunity', 'Follower Reached Giving Milestone',
+  'Follower/Followed', 'User', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Friends', '',
+  'TPL-CI-OPP-054', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-055', 'Opportunity', 'Followed Reached Giving Milestone',
+  'Follower/Followed', 'User', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Friends', '',
+  'TPL-CI-OPP-055', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-056', 'Opportunity', 'Giving Season Kickoff',
+  'December 1', 'All users', 'Launch year-end generosity',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-056', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-057', 'Opportunity', 'Giving Tuesday',
+  'Friend activity', 'User', 'User has participated in year-end giving.',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-057', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-058', 'Opportunity', 'Goal 25% Complete',
+  'Campaign near goal', 'Interested users', 'Real-time',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Interested users', '',
+  'TPL-CI-OPP-058', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-059', 'Opportunity', 'Goal 50% Complete',
+  'Campaign near goal', 'Interested users', 'Real-time',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Interested users', '',
+  'TPL-CI-OPP-059', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-060', 'Opportunity', 'Goal 75% Complete',
+  'Campaign near goal', 'Interested users', 'Real-time',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Interested users', '',
+  'TPL-CI-OPP-060', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-061', 'Opportunity', 'Goal 90% Complete',
+  'Campaign near goal', 'Interested users', 'Real-time',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Interested users', '',
+  'TPL-CI-OPP-061', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-062', 'Opportunity', 'Graduation Season',
+  'May/June', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-062', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-063', 'Opportunity', 'Grammys Week',
+  'Grammys Week', 'Music education', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Music education', '',
+  'TPL-CI-OPP-063', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-064', 'Opportunity', 'GreenHouse Auto-Funding Reminder',
+  'Low GreenHouse balance', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-064', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-065', 'Opportunity', 'GreenHouse Funds Available',
+  'GreenHouse balance available', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-065', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-066', 'Opportunity', 'Seedling''s Grow Good Week',
+  'Grow Good Week', 'Annual Seedling campaign', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Annual Seedling campaign', '',
+  'TPL-CI-OPP-066', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-067', 'Opportunity', 'Hanukkah Giving',
+  'Hanukkah Giving', 'Holiday giving opportunities', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Holiday giving opportunities', '',
+  'TPL-CI-OPP-067', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-068', 'Opportunity', 'Heatwave Animal Rescue',
+  'Extreme heat', 'Animal supporters', 'Weather-aware',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Animal supporters', '',
+  'TPL-CI-OPP-068', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-069', 'Opportunity', 'Holiday Giving Challenge',
+  'December', 'All users', 'Drive year-end generosity',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-069', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-070', 'Opportunity', 'Human Rights Day',
+  'December 10', 'Human rights supporters', 'UN day',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Human rights supporters', '',
+  'TPL-CI-OPP-070', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-071', 'Opportunity', 'Hurricane Season',
+  'Season begins', 'Regional users', '',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Regional users', '',
+  'TPL-CI-OPP-071', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-072', 'Opportunity', 'Independence Day ',
+  'July 4 week', 'All users', 'Channel celebration into giving',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-072', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-073', 'Opportunity', 'Inspired? Here''s Another Story',
+  'Story completed', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-073', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-074', 'Opportunity', 'International Day of Charity',
+  'Sept 5', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-074', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-075', 'Opportunity', 'International Literacy Day',
+  'September 8', 'Education supporters', 'UN day',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Education supporters', '',
+  'TPL-CI-OPP-075', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-076', 'Opportunity', 'International Volunteer Day',
+  'December 5', 'Volunteers', 'UN day',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Volunteers', '',
+  'TPL-CI-OPP-076', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-077', 'Opportunity', 'International Women''s Day',
+  'March 8', 'Women''s causes supporters', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Women''s causes supporters', '',
+  'TPL-CI-OPP-077', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-078', 'Opportunity', 'Invite Friends Opportunity',
+  'Low momentum detected', 'Supporter', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Supporter', '',
+  'TPL-CI-OPP-078', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-079', 'Opportunity', 'Join the Conversation',
+  'Season', 'Supporters', 'Increase comments',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Supporters', '',
+  'TPL-CI-OPP-079', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-080', 'Opportunity', 'Juneteenth ',
+  'June 19', 'All users', 'Promote equality-related causes',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-080', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-081', 'Opportunity', 'Labor Day',
+  'Week before', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-081', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-082', 'Opportunity', 'LGBTQ+ Pride Month',
+  'June', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-082', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-083', 'Opportunity', 'Local Breaking Need',
+  'Local Breaking Need', 'Urgent nearby opportunity', '',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Urgent nearby opportunity', '',
+  'TPL-CI-OPP-083', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-084', 'Opportunity', 'Local Disaster Near User',
+  'Disaster within radius', 'Nearby users', 'Geo-aware',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Nearby users', '',
+  'TPL-CI-OPP-084', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-085', 'Opportunity', 'Low Participation Seedling',
+  'Campaign stagnating', 'Relevant users', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-085', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-086', 'Opportunity', 'Magic Moment: Anonymous Angel',
+  'CI detects user can fully fund remaining balance', 'Qualified donor', 'Present a high-impact completion opportunity',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Qualified donor', '',
+  'TPL-CI-OPP-086', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-087', 'Opportunity', 'Magic Moment: Be the First Donor',
+  'New Seedling has no donations', 'Likely supporters', 'Encourage early momentum',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Likely supporters', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-087', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-088', 'Opportunity', 'Creator Posted an Update',
+  'New video update', 'Existing supporters', 'Re-engage supporters',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Existing supporters', '',
+  'TPL-CI-OPP-088', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-089', 'Opportunity', 'Magic Moment: Donation #100',
+  'Next donation reaches milestone', 'Any supporter', 'Celebrate milestone',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Any supporter', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-089', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-090', 'Opportunity', 'Magic Moment: Finish This Seedling',
+  'Campaign is within 10% of goal', 'Interested supporters', 'Drive completion',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Interested supporters', '',
+  'TPL-CI-OPP-090', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-091', 'Opportunity', 'Follower Donated',
+  'Friend activity detected', 'Connected users', 'Leverage social proof',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Connected users', '',
+  'TPL-CI-OPP-091', '',
+  'opp-92', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-092', 'Opportunity', 'Followed Donated',
+  'Friend activity detected', 'Connected users', 'Leverage social proof',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Connected users', '',
+  'TPL-CI-OPP-092', '',
+  'opp-93', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-093', 'Opportunity', 'Follower Commented',
+  'New comments on supported Seedling', 'Your Followers', 'Increase community interaction',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-OPP-093', '',
+  'opp-94', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-094', 'Opportunity', 'Follower Commented',
+  'New comments on supported Seedling', 'Followed Creators', 'Increase community interaction',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-OPP-094', '',
+  'opp-95', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-095', 'Opportunity', 'Magic Moment: Last Chance to Finish',
+  'Campaign ends within hours', 'Interested supporters', 'Create urgency',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Interested supporters', '',
+  'TPL-CI-OPP-095', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-096', 'Opportunity', 'Magic Moment: Trending Seedling',
+  'Rapid engagement growth', 'Relevant audience', 'Surface momentum',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant audience', '',
+  'TPL-CI-OPP-096', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-097', 'Opportunity', 'Magic Moment: Your Gift Inspired Others',
+  'Subsequent donations attributed after user''s gift', 'Recent donor', 'Reinforce giving',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Recent donor', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-097', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-098', 'Opportunity', 'Make Your First Gift of the Season',
+  'Nov 15-Dec 31', 'All Users', 'First donation',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All Users', '',
+  'TPL-CI-OPP-098', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-099', 'Opportunity', 'Martin Luther King Jr. Day ',
+  'MLK Day approaching', 'All users', 'Promote service',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-099', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-100', 'Opportunity', 'Memorial Day ',
+  'Memorial Day approaching', 'All users', 'Honor fallen service members',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-100', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-101', 'Opportunity', 'Mental Health Awareness Month',
+  'May', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-101', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-102', 'Opportunity', 'Seedling Milestone ',
+  'Campaign milestone', 'Eligible User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Eligible User', '',
+  'TPL-CI-OPP-102', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-103', 'Opportunity', 'Military Appreciation Month',
+  'May', 'Veteran supporters', 'Awareness month',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Veteran supporters', '',
+  'TPL-CI-OPP-103', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-104', 'Opportunity', '1 Million Dollar Platform Milestone',
+  'Platform milestone', 'All users', 'Seedling milestone',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-104', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-105', 'Opportunity', 'X Million Dollar Platform Milestone',
+  'Platform milestone', 'All users', 'Seedling milestone',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-105', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-106', 'Opportunity', 'Mother''s Day',
+  '2 weeks prior', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-106', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-107', 'Opportunity', 'Mother''s Day Tribute Seedling',
+  'Mother''s Day', 'All users', 'Honor loved ones',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-107', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-108', 'Opportunity', 'National Cat Day',
+  'National Cat Day', 'Cat rescue and adoption', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Cat rescue and adoption', '',
+  'TPL-CI-OPP-108', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-109', 'Opportunity', 'National Dog Day',
+  'National Dog Day', 'Dog rescue and adoption', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Dog rescue and adoption', '',
+  'TPL-CI-OPP-109', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-110', 'Opportunity', 'National Hunger Action Month',
+  'September', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-110', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-111', 'Opportunity', 'National Parks Week',
+  'National Parks Week', 'Park conservation', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Park conservation', '',
+  'TPL-CI-OPP-111', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-112', 'Opportunity', 'National Philanthropy Day',
+  'November 15', 'All users', 'Philanthropy awareness',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-112', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-113', 'Opportunity', 'National Volunteer Month',
+  'April', 'Volunteers', 'Volunteerism',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Volunteers', '',
+  'TPL-CI-OPP-113', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-114', 'Opportunity', 'National Volunteer Week',
+  'April', 'Volunteers', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Volunteers', '',
+  'TPL-CI-OPP-114', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-115', 'Opportunity', 'New Seedling Posted',
+  'Organization onboarded', 'Relevant users', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-115', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-116', 'Opportunity', 'New Seedling Update Posted ',
+  'New campaign update', 'Followers', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Followers', '',
+  'TPL-CI-OPP-116', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-117', 'Opportunity', 'New Year''s Resolution',
+  'January 1', 'Relevant Users', 'Annual fresh-start moment.',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant Users', '',
+  'TPL-CI-OPP-117', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-118', 'Opportunity', 'Older Americans Month',
+  'May', 'Senior causes supporters', 'Awareness month',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Senior causes supporters', '',
+  'TPL-CI-OPP-118', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-119', 'Opportunity', 'One Final Gift',
+  'Dec 30', 'All Users', 'Year-end gift',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All Users', '',
+  'TPL-CI-OPP-119', 'New rule split/renamed from CI-OPP-120 (One Final Gift); metadata inherited from that rule.',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-120', 'Opportunity', 'One Final Gift',
+  'Dec 31', 'All Users', 'Year-end gift',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All Users', '',
+  'TPL-CI-OPP-120', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-121', 'Opportunity', 'Seedling Posted Nearby',
+  'Geo/time match', 'User', 'Alert user to local cause',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-121', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-122', 'Opportunity', 'Seedling Viewed Multiple Times',
+  'Repeat visits', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-122', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-123', 'Opportunity', 'Organ Donation Month',
+  'Organ Donation Month', 'Organ donor awareness', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Organ donor awareness', 'Donation confirmation / reinforcement',
+  'TPL-CI-OPP-123', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-124', 'Opportunity', 'Oscars Week',
+  'Oscars Week', 'Arts education campaigns', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Arts education campaigns', '',
+  'TPL-CI-OPP-124', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-125', 'Opportunity', 'Park Restoration Weekend',
+  'Park Restoration Weekend', 'Community restoration', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Community restoration', '',
+  'TPL-CI-OPP-125', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-126', 'Opportunity', 'Passover Service',
+  'Passover Service', 'Community support opportunities', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Community support opportunities', '',
+  'TPL-CI-OPP-126', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-127', 'Opportunity', 'Pet Adoption Day Opportunity',
+  'National Adopt a Pet Day', 'Animal lovers', 'Support rescues',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Animal lovers', '',
+  'TPL-CI-OPP-127', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-128', 'Opportunity', 'Pet Adoption Month',
+  'May', 'Animal supporters', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Animal supporters', '',
+  'TPL-CI-OPP-128', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-129', 'Opportunity', 'Picked Just For You',
+  'Recommendation engine', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-129', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-130', 'Opportunity', 'Plant a Seedling in Someone''s Honor',
+  'Thanksgiving-Dec 31', 'Creators', 'Honor someone',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Creators', '',
+  'TPL-CI-OPP-130', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-131', 'Opportunity', 'Presidents'' Day ',
+  'Federal holiday approaching', 'All users', 'Inspire civic/community giving',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-131', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-132', 'Opportunity', 'Ramadan Giving',
+  'Ramadan Giving', 'Charitable giving during Ramadan', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Charitable giving during Ramadan', '',
+  'TPL-CI-OPP-132', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-133', 'Opportunity', 'Random Act of Kindness Day',
+  'Feb 17', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-133', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-134', 'Opportunity', 'Read Across America',
+  'Read Across America', 'Literacy', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Literacy', '',
+  'TPL-CI-OPP-134', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-135', 'Opportunity', 'Ready to Revisit This Cause?',
+  'User bookmarks', 'User', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-135', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-136', 'Opportunity', 'Retirement Legacy Seedling',
+  'Retirement detected', 'Retirees', 'Celebrate legacy',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Retirees', '',
+  'TPL-CI-OPP-136', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-137', 'Opportunity', 'School Supply Drive',
+  'July', 'Education supporters', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Education supporters', '',
+  'TPL-CI-OPP-137', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-138', 'Opportunity', 'Seedling Season of Generosity',
+  'Annual Nov-Dec campaign', 'All users', 'Seedling-owned annual giving season',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-138', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-139', 'Opportunity', 'Seedling Season of Generosity Begins',
+  'Nov 15', 'All Users', 'Kick off annual giving season',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All Users', '',
+  'TPL-CI-OPP-139', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-140', 'Opportunity', 'Share One More Time',
+  'Final week', 'Creators', 'Increase sharing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Creators', '',
+  'TPL-CI-OPP-140', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-141', 'Opportunity', 'Share Opportunity',
+  'Campaign ready to share', 'Supporter', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Supporter', '',
+  'TPL-CI-OPP-141', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-142', 'Opportunity', 'Share Your Story',
+  'Nov 15-Dec 31', 'Creators', 'Record video',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Creators', '',
+  'TPL-CI-OPP-142', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-143', 'Opportunity', 'Small Business Saturday Partnerships',
+  'Saturday after Thanksgiving', 'Local supporters', 'Community focus',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Local supporters', '',
+  'TPL-CI-OPP-143', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-144', 'Opportunity', 'Tax Refund Season',
+  'Tax Refund Season', 'Give from refund', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Give from refund', '',
+  'TPL-CI-OPP-144', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-145', 'Opportunity', 'Teacher Appreciation Week',
+  'Teacher Appreciation Week', 'Support educators', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Support educators', '',
+  'TPL-CI-OPP-145', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-146', 'Opportunity', 'Thanksgiving',
+  'Week before', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-146', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-147', 'Opportunity', 'Thanksgiving Gratitude Gift',
+  'Thanksgiving', 'All Users', 'Holiday giving',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All Users', '',
+  'TPL-CI-OPP-147', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-148', 'Opportunity', 'Thanksgiving Gratitude Opportunity',
+  'Week before Thanksgiving', 'All users', 'Connect gratitude with generosity',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'All users', '',
+  'TPL-CI-OPP-148', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-149', 'Opportunity', 'This Week''s 5 Picks to Click',
+  'Weekly digest', 'User', 'Curated list of Seedlings',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-149', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-150', 'Opportunity', 'This Month''s 5 Picks to Click',
+  'Weekly digest', 'User', 'Curated list of Seedlings',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'User', '',
+  'TPL-CI-OPP-150', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-151', 'Opportunity', 'Today''s Featured Seedling',
+  'Editorial selection', 'Users', 'This opportunity aligns with the user''s interests or relationships.',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-151', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-152', 'Opportunity', 'Top Grower Recognition',
+  'Top Grower Recognition', 'Recognize leading Growers', 'Recognition',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Recognize leading Growers', '',
+  'TPL-CI-OPP-152', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-153', 'Opportunity', 'Trending Cause',
+  'Trending Cause', 'AI detects emerging cause', 'Timing',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'AI detects emerging cause', '',
+  'TPL-CI-OPP-153', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-154', 'Opportunity', 'Valentine''s Day',
+  'Feb 14 approaching', 'Users', 'Seasonal',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-154', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-155', 'Opportunity', 'Veterans Day',
+  'Week before', 'Veteran supporters', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Veteran supporters', '',
+  'TPL-CI-OPP-155', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-156', 'Opportunity', 'Volunteer Appreciation Week',
+  'April', 'Volunteers', 'Volunteer retention',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Volunteers', '',
+  'TPL-CI-OPP-156', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-157', 'Opportunity', 'Wedding Celebration Seedling',
+  'Wedding planning', 'Couples', 'Replace gifts with impact',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Couples', '',
+  'TPL-CI-OPP-157', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-158', 'Opportunity', 'Wildfire Season',
+  'Season begins', 'Regional users', '',
+  'Medium', 'One best Push today + In-App', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Regional users', '',
+  'TPL-CI-OPP-158', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-159', 'Opportunity', 'Women''s History Month',
+  'March', 'Relevant users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Relevant users', '',
+  'TPL-CI-OPP-159', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-160', 'Opportunity', 'World Animal Day',
+  'October 4', 'Animal supporters', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Animal supporters', '',
+  'TPL-CI-OPP-160', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-161', 'Opportunity', 'World Blood Donor Day',
+  'World Blood Donor Day', 'Blood donation awareness', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Blood donation awareness', '',
+  'TPL-CI-OPP-161', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-162', 'Opportunity', 'World Cleanup Day',
+  'World Cleanup Day', 'Community cleanups', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Community cleanups', '',
+  'TPL-CI-OPP-162', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-163', 'Opportunity', 'World Food Day',
+  'October 16', 'Food insecurity supporters', 'UN observance',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Food insecurity supporters', '',
+  'TPL-CI-OPP-163', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-164', 'Opportunity', 'World Kindness Day',
+  'Nov 13', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-164', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-165', 'Opportunity', 'World Oceans Day',
+  'June 8', 'Environmental supporters', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Environmental supporters', '',
+  'TPL-CI-OPP-165', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-166', 'Opportunity', 'World Refugee Day',
+  'June 20', 'Humanitarian supporters', 'UN day',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Humanitarian supporters', '',
+  'TPL-CI-OPP-166', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-167', 'Opportunity', 'World Water Day',
+  'March 22', 'Water supporters', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Water supporters', '',
+  'TPL-CI-OPP-167', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-168', 'Opportunity', 'World Wildlife Day',
+  'World Wildlife Day', 'Wildlife conservation', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Wildlife conservation', '',
+  'TPL-CI-OPP-168', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-169', 'Opportunity', 'Year-End Bonus',
+  'Year-End Bonus', 'Share year-end bonus', '',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Share year-end bonus', '',
+  'TPL-CI-OPP-169', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-OPP-170', 'Opportunity', 'Year-End Tax Giving',
+  'December', 'Users', 'Annual',
+  'Medium', 'One best Push today + In-App', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', '24 hours', 'Suppress competing opportunity pushes',
+  'Seedling_Opportunity_Engine_Messaging.xlsx', 'Interruptive', '70',
+  'No', 'Yes',
+  'Opportunity push already used today; last push timestamp', 'Return Opportunity',
+  '', 'Best moment today', 'Yes',
+  'Select the strongest eligible reason to return today.', 'Opportunity',
+  'OpportunityToday, LastPush', 'Deliver only if strongest opportunity available today.',
+  'Users', '',
+  'TPL-CI-OPP-170', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-001', 'Participation', 'First App Session',
+  'First app open', 'User', 'Welcome active participation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-001', '',
+  'part-1', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-002', 'Participation', 'First Seedling Viewed',
+  'Campaign viewed', 'User', 'Encourage deeper engagement',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-002', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-003', 'Participation', 'Like Added',
+  'Creator Liked comment', 'Person who liked the comment', 'Confirm participation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-PART-003', '',
+  'part-3', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-004', 'Participation', 'Like Added',
+  'Follower of (Name) liked comment', 'Follower of Commenter', 'Confirm participation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '15-minute batching window; summary push fires at window close', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise -- achieved by batching into one summary-with-count push per 15-minute window, not by silently reusing the first event''s own message for the whole window.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Never report each like/comment individually. Collect activity for this recipient in a 15-minute window; when the window closes, send ONE summary push with a count (e.g. "5 people commented on your Seedling in the past 15 minutes"). Tapping the notification takes the user directly to the comments/Seedling. If the window closes with zero events, no push is sent.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-PART-004', '',
+  'part-4', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-005', 'Participation', 'Like Added',
+  'Donor to (Seedling) liked comment', 'Donor', 'Confirm participation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '15-minute batching window; summary push fires at window close', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise -- achieved by batching into one summary-with-count push per 15-minute window, not by silently reusing the first event''s own message for the whole window.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Never report each like/comment individually. Collect activity for this recipient in a 15-minute window; when the window closes, send ONE summary push with a count (e.g. "5 people commented on your Seedling in the past 15 minutes"). Tapping the notification takes the user directly to the comments/Seedling. If the window closes with zero events, no push is sent.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-PART-005', '',
+  'part-5', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-006', 'Participation', 'Comment Posted',
+  'Comment submitted', 'Comment author', 'Grow conversation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-PART-006', '',
+  'part-6', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-007', 'Participation', 'Comment Posted',
+  'Comment submitted', 'Follower of Commenter', 'Grow conversation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '15-minute batching window; summary push fires at window close', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise -- achieved by batching into one summary-with-count push per 15-minute window, not by silently reusing the first event''s own message for the whole window.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Never report each like/comment individually. Collect activity for this recipient in a 15-minute window; when the window closes, send ONE summary push with a count (e.g. "5 people commented on your Seedling in the past 15 minutes"). Tapping the notification takes the user directly to the comments/Seedling. If the window closes with zero events, no push is sent.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-PART-007', '',
+  'part-7', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-008', 'Participation', 'Comment Posted',
+  'Comment submitted', 'Donor of Seedling', 'Grow conversation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '15-minute batching window; summary push fires at window close', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise -- achieved by batching into one summary-with-count push per 15-minute window, not by silently reusing the first event''s own message for the whole window.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Never report each like/comment individually. Collect activity for this recipient in a 15-minute window; when the window closes, send ONE summary push with a count (e.g. "5 people commented on your Seedling in the past 15 minutes"). Tapping the notification takes the user directly to the comments/Seedling. If the window closes with zero events, no push is sent.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-PART-008', '',
+  'part-8', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-009', 'Participation', 'Comment Posted',
+  'Comment submitted', 'Creator of Seedling', 'Grow conversation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '15-minute batching window; summary push fires at window close', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise -- achieved by batching into one summary-with-count push per 15-minute window, not by silently reusing the first event''s own message for the whole window.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Never report each like/comment individually. Collect activity for this recipient in a 15-minute window; when the window closes, send ONE summary push with a count (e.g. "5 people commented on your Seedling in the past 15 minutes"). Tapping the notification takes the user directly to the comments/Seedling. If the window closes with zero events, no push is sent.',
+  '', 'Owner comment notification',
+  'TPL-CI-PART-009', '',
+  'part-9', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-010', 'Participation', 'Comment Replied To',
+  'Reply posted', 'Original commenter', 'Continue discussion',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Original commenter', '',
+  'TPL-CI-PART-010', '',
+  'part-10', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-011', 'Participation', 'Comment Liked',
+  'Reaction received', 'Comment author', 'Recognize contribution',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Comment author', '',
+  'TPL-CI-PART-011', '',
+  'part-11', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-012', 'Participation', 'Post Shared',
+  'Content shared', 'User', 'Celebrate advocacy',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-012', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-013', 'Participation', 'Share Opened',
+  'Recipient opens shared content', 'Sharer', 'Reinforce impact',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Sharer', '',
+  'TPL-CI-PART-013', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-014', 'Participation', 'Organization Followed',
+  'Follow created', 'User', 'Build long-term relationship',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-014', '',
+  'part-14', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-015', 'Participation', 'Grower Followed',
+  'Follow created', 'User', 'Strengthen creator connection',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-015', '',
+  'part-15', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-016', 'Participation', 'Participation Streak',
+  'Daily activity', 'User', 'Reinforce habit',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-016', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-017', 'Participation', 'Participation Streak Lost',
+  'Streak broken', 'User', 'Re-engage',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-017', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-018', 'Participation', 'Daily Check-in',
+  'Daily visit', 'User', 'Build habit',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-018', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-019', 'Participation', 'Weekly Recap Ready',
+  'Week complete', 'User', 'Reflect participation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-019', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-020', 'Participation', 'Monthly Recap Ready',
+  'Month complete', 'User', 'Celebrate activity',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-020', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-021', 'Participation', 'Challenge Joined',
+  'User joins challenge', 'User', 'Confirm participation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-021', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-022', 'Participation', 'Challenge Completed',
+  'Challenge finished', 'User', 'Celebrate achievement',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-022', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-023', 'Participation', 'Live Event Started',
+  'Event begins', 'Registered users', 'Drive attendance',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Registered users', '',
+  'TPL-CI-PART-023', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-024', 'Participation', 'Live Event Ended',
+  'Event completed', 'Attendees', 'Capture feedback',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Attendees', '',
+  'TPL-CI-PART-024', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-025', 'Participation', 'Content Reported',
+  'Report submitted', 'Reporter', 'Review content',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Moderators', '',
+  'TPL-CI-PART-025', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-026', 'Participation', 'Report Resolved',
+  'Moderation completed', 'Reporter', 'Close loop',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Reporter', '',
+  'TPL-CI-PART-026', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-027', 'Participation', 'Milestone Participation',
+  '100th interaction', 'User', 'Celebrate commitment',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-027', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-028', 'Participation', 'Dormant Participant',
+  'No activity 14 days', 'User', 'Re-engage',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-028', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-029', 'Participation', 'Highly Active Participant',
+  'High engagement', 'User', 'Recognize loyalty',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-029', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-030', 'Participation', 'First Meaningful Interaction',
+  'First like/comment/share', 'User', 'Celebrate engagement',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Owner; Followers of Commenter; Followers of Seedling; Moderators (if applicable)', 'Owner comment notification; Social activity; Discovery signal',
+  'TPL-CI-PART-030', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-031', 'Participation', 'Seedling Goal Reached',
+  'Collective participation milestone', 'Participants', 'Celebrate community',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participants', '',
+  'TPL-CI-PART-031', '',
+  'part-31', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-032', 'Participation', 'Campaign Goal Reached',
+  'Collective participation milestone', 'Participants', 'Celebrate community',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participants', '',
+  'TPL-CI-PART-032', '',
+  'part-32', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-033', 'Participation', 'Feedback Requested',
+  'Session ends', 'User', 'Improve experience',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-033', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-034', 'Participation', 'Participation Anniversary',
+  'One year active', 'User', 'Celebrate journey',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-034', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-035', 'Participation', 'Comment Thread Trending',
+  'Thread accelerates', 'Participants', 'Rejoin conversation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participants', '',
+  'TPL-CI-PART-035', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-036', 'Participation', 'Unread Activity Waiting',
+  'Pending notifications', 'User', 'Prompt return',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-036', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-037', 'Participation', 'Like Received',
+  'Someone reacts to your post', 'Content author', 'Recognize engagement',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '15-minute batching window; summary push fires at window close', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise -- achieved by batching into one summary-with-count push per 15-minute window, not by silently reusing the first event''s own message for the whole window.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Never report each like/comment individually. Collect activity for this recipient in a 15-minute window; when the window closes, send ONE summary push with a count (e.g. "5 people commented on your Seedling in the past 15 minutes"). Tapping the notification takes the user directly to the comments/Seedling. If the window closes with zero events, no push is sent.',
+  'Content author', '',
+  'TPL-CI-PART-037', '',
+  'part-37', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-038', 'Participation', 'Multiple Likes Received',
+  'Reaction threshold reached', 'Content author', 'Highlight momentum',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Content author', '',
+  'TPL-CI-PART-038', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-039', 'Participation', 'New Follower Milestone',
+  'Follower milestone reached', 'User', 'Celebrate influence',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-039', '',
+  'part-39', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-040', 'Participation', 'Sponsor Responded',
+  'Co-Sponsor responds to invite', 'Participant', 'Deepen relationship',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participant', '',
+  'TPL-CI-PART-040', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-041', 'Participation', 'Co-Sponsor Invited',
+  'Sponsor invites a Co-Sponsor', 'Participant', 'Invitation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participant', '',
+  'TPL-CI-PART-041', '',
+  'part-41', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-042', 'Participation', 'Co-Sponsor Invitation Responded to',
+  'Co-Sponsor accepts invite', 'Participant', 'Deepen relationship',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participant', '',
+  'TPL-CI-PART-042', '',
+  'part-42', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-043', 'Participation', 'Organization Responded',
+  'Organization replies', 'Participant', 'Build trust',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participant', '',
+  'TPL-CI-PART-043', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-044', 'Participation', 'Donation Celebrated in Feed',
+  'Donation shared', 'Donor', 'Celebrate participation',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Donor', 'Donation confirmation / reinforcement',
+  'TPL-CI-PART-044', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-045', 'Participation', 'Followed Started Following Cause',
+  'Friend action', 'User', 'Promote discovery',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-045', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-046', 'Participation', 'Followed Commented on Followed Cause',
+  'Friend activity', 'User', 'Join discussion',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-046', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-047', 'Participation', 'Milestone Badge Earned',
+  'Participation badge', 'User', 'Reward engagement',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-047', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-048', 'Participation', 'Badge Level Increased',
+  'Badge upgraded', 'User', 'Celebrate progress',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-048', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-049', 'Participation', 'Top Participant This Week',
+  'Leaderboard', 'User', 'Recognize involvement',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-049', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-050', 'Participation', 'Quiet Week Reminder',
+  'Low weekly activity', 'User', 'Re-engage',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-050', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-051', 'Participation', 'Challenge Reminder',
+  'Challenge incomplete', 'Participant', 'Prompt completion',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Participant', '',
+  'TPL-CI-PART-051', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-052', 'Participation', 'Challenge Success Shared',
+  'Challenge completed', 'Community', 'Celebrate success',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Community', '',
+  'TPL-CI-PART-052', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-053', 'Participation', 'LiveStream Check-In',
+  'User arrives', 'Organizer', 'Track attendance',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Organizer', '',
+  'TPL-CI-PART-053', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-054', 'Participation', 'LiveStream Follow-Up',
+  'Event completed', 'Attendee', 'Continue engagement',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'Attendee', '',
+  'TPL-CI-PART-054', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-055', 'Participation', 'Participation Preferences Updated',
+  'Settings changed', 'User', 'Confirm changes',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-055', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-056', 'Participation', 'Participation Summary Ready',
+  'Quarterly summary', 'User', 'Reflect impact',
+  'Medium', 'In-App always; conditional Push', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', '15 minutes', 'Merge similar social events',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Social', '65',
+  'No', 'Yes',
+  'Open Participation batching window; last push timestamp and engine', 'Social Reinforcement',
+  '', '5–10 minute batching window', 'Yes',
+  'Reinforce social behavior without creating unnecessary notification noise.', 'Reinforcement',
+  'ParticipationBatch, LastPush', 'Merge if similar participation exists; otherwise reinforce social behavior.',
+  'User', '',
+  'TPL-CI-PART-056', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-057', 'Participation', 'Donation Received on Your Seedling',
+  'Donation', 'Seedling Sponsor, Co-Sponsors', 'Show the Sponsor and Co-Sponsors that others are joining the cause.',
+  'High', 'Immediate Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Guaranteed', '98',
+  'Yes', 'No',
+  'Sponsor donation rotation position only', 'Guaranteed Creator Reinforcement',
+  'SponsorDonationCelebration', 'Immediate', 'No',
+  'Every verified donation is a guaranteed creator/organization celebration; rotate approved messages.', 'Celebration',
+  'SponsorRotationPosition', 'Deliver because creator celebration is guaranteed; rotate approved message.',
+  'Seedling creator', 'Donation confirmation / reinforcement',
+  'TPL-CI-PART-057', '',
+  'part-57', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-PART-058', 'Participation', 'Donation Received for Your Organization',
+  'Donation', 'Supported organization', 'Show the organization that a community is forming around its mission.',
+  'High', 'Immediate Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Participation_Engine_Messaging.xlsx', 'Guaranteed', '98',
+  'Yes', 'No',
+  'Sponsor donation rotation position only', 'Guaranteed Creator Reinforcement',
+  'SponsorDonationCelebration', 'Immediate', 'No',
+  'Every verified donation is a guaranteed creator/organization celebration; rotate approved messages.', 'Celebration',
+  'SponsorRotationPosition', 'Deliver because creator celebration is guaranteed; rotate approved message.',
+  'Supported organization', 'Donation confirmation / reinforcement',
+  'TPL-CI-PART-058', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-001', 'Contribution', 'Donation Made via Credit/Debit Card',
+  'Donor makes donation', 'Donor', 'Thank donor',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', 'Donation confirmation / reinforcement',
+  'TPL-CI-CONTR-001', '',
+  'ce-1', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-002', 'Contribution', 'Annual Giving Summary Ready',
+  'Year-end generated', 'Donor', 'Support tax reporting',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-002', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-003', 'Contribution', 'ACH Donation Confirmed',
+  'Funds settled', 'Donor', 'Build trust',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-003', '',
+  'ce-2', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-004', 'Contribution', 'ACH Donation Failed',
+  'Payment declined', 'Donor', 'Resolve issue',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-004', '',
+  'ce-3', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-005', 'Contribution', 'ACH Donation Pending',
+  'ACH or delayed payment', 'Donor', 'Set expectations',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-005', '',
+  'ce-4', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-006', 'Contribution', 'Donation Receipt Available',
+  'Receipt generated', 'Donor', 'Provide documentation',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-006', '',
+  'ce-5', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-007', 'Contribution', 'GreenHouse Auto-Reload',
+  'Automatic funding', 'User', 'Maintain balance',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'User', '',
+  'TPL-CI-CONTR-007', '',
+  'ce-6', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-008', 'Contribution', 'GreenHouse Auto-Reload Failed',
+  'Auto reload unsuccessful', 'User', 'Resolve payment',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'User', '',
+  'TPL-CI-CONTR-008', '',
+  'ce-7', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-009', 'Contribution', 'GreenHouse Balance Low',
+  'Threshold reached', 'User', 'Encourage refill',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'User', '',
+  'TPL-CI-CONTR-009', '',
+  'ce-8', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-010', 'Contribution', 'GreenHouse Balance Low Auto Reload',
+  'Threshold reached', 'User', 'Encourage refill',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'User', '',
+  'TPL-CI-CONTR-010', '',
+  'ce-9', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-011', 'Contribution', 'GreenHouse Deposit Added',
+  'Funds deposited', 'User', 'Confirm balance',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'User', '',
+  'TPL-CI-CONTR-011', '',
+  'ce-10', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-012', 'Contribution', 'GreenHouse Donation Made',
+  'Donation from balance', 'User', 'Confirm transaction',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'User', 'Donation confirmation / reinforcement',
+  'TPL-CI-CONTR-012', '',
+  'ce-11', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-013', 'Contribution', 'Offline Donation Recorded',
+  'Manual entry', 'Organization', 'Confirm accounting',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Organization', '',
+  'TPL-CI-CONTR-013', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-014', 'Contribution', 'Payment Method Added',
+  'New payment method', 'User', 'Confirm setup',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'User', '',
+  'TPL-CI-CONTR-014', '',
+  'ce-12', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-015', 'Contribution', 'Payment Method Expiring',
+  'Card nearing expiration', 'Donor', 'Prevent failed payments',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-015', '',
+  'ce-13', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-016', 'Contribution', 'Payment Method Preferences Updated',
+  'Giving settings changed', 'Donor', 'Confirm preferences',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-016', '',
+  'ce-14', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-017', 'Contribution', 'Payment Method Updated',
+  'Payment details changed', 'Donor', 'Confirm update',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-017', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-018', 'Contribution', 'Receipt Downloaded',
+  'Receipt accessed', 'Donor', 'Confirm access',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-018', '',
+  'ce-16', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-019', 'Contribution', 'Recurring Donation Cancelled',
+  'Subscription cancelled', 'Donor', 'Acknowledge preference',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-019', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-020', 'Contribution', 'Recurring Donation Created',
+  'Monthly gift established', 'Donor', 'Celebrate commitment',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-020', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-021', 'Contribution', 'Recurring Donation Failed',
+  'Recurring payment fails', 'Donor', 'Resolve payment',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-021', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-022', 'Contribution', 'Recurring Donation Paused',
+  'Subscription paused', 'Donor', 'Confirm change',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-022', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-023', 'Contribution', 'Recurring Donation Processed',
+  'Scheduled payment succeeds', 'Donor', 'Confirm contribution',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-023', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-024', 'Contribution', 'Recurring Donation Resumed',
+  'Subscription resumed', 'Donor', 'Welcome back',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-024', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-025', 'Contribution', 'Recurring Donation Upcoming',
+  'Scheduled payment approaching', 'Donor', 'Prepare donor',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-025', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-026', 'Contribution', 'Refund Issued',
+  'Donation refunded', 'Donor', 'Explain transaction',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', 'Donation confirmation / reinforcement',
+  'TPL-CI-CONTR-026', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-027', 'Contribution', 'Tax Acknowledgement Ready',
+  'IRS acknowledgment prepared', 'Donor', 'Provide compliance',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-027', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CONTR-028', 'Contribution', 'Tax Season Reminder',
+  'Annual statement available', 'Donor', 'Support tax filing',
+  'High', 'In-App always; Push if user left app', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Never',
+  'Seedling_Contribution_Engine_Messaging.xlsx', 'Guaranteed', '95',
+  'Yes', 'No',
+  'Current app/session activity; last in-app experience', 'Donation Confirmation',
+  '', 'Immediate', 'No',
+  'Verified generosity must be acknowledged; avoid only a redundant push while the donor is active.', 'Recognition',
+  'CurrentSession, LastInApp, DonorState', 'Deliver because verified generosity deserves immediate recognition.',
+  'Donor', '',
+  'TPL-CI-CONTR-028', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-001', 'Campaign', 'Campaign Launched',
+  'Campaign goes live', 'Followers', 'Announce launch',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Sponsor; Co-Sponsors', 'Seedling live notification',
+  'TPL-CI-CAMP-001', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-002', 'Campaign', 'Campaign Featured',
+  'Editorial selection', 'Users', 'Increase visibility',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Users', '',
+  'TPL-CI-CAMP-002', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-003', 'Campaign', 'Campaign Trending',
+  'Engagement threshold reached', 'Users', 'Highlight momentum',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Users', '',
+  'TPL-CI-CAMP-003', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-004', 'Campaign', 'Goal 25% Complete',
+  'Dynamic', 'Campaign near goal', 'Interested users',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-004', 'New rule split/renamed from CI-CAMP-004 (Funding Milestone Reached); metadata inherited from that rule.',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-005', 'Campaign', 'Goal 50% Complete',
+  'Dynamic', 'Campaign near goal', 'Interested users',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-005', 'New rule split/renamed from CI-CAMP-004 (Funding Milestone Reached); metadata inherited from that rule.',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-006', 'Campaign', 'Goal 75% Complete',
+  'Dynamic', 'Campaign near goal', 'Interested users',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-006', 'New rule split/renamed from CI-CAMP-004 (Funding Milestone Reached); metadata inherited from that rule.',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-007', 'Campaign', 'Goal 90% Complete',
+  'Dynamic', 'Campaign near goal', 'Interested users',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-007', 'New rule split/renamed from CI-CAMP-004 (Funding Milestone Reached); metadata inherited from that rule.',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-008', 'Campaign', 'Funding Goal Achieved',
+  'Goal reached', 'Supporters', 'Celebrate success',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-008', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-009', 'Campaign', 'Campaign Extended',
+  'End date changed', 'Supporters', 'Communicate opportunity',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-009', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-010', 'Campaign', 'Campaign Near Deadline',
+  '48/24 hours remaining', 'Interested Users', 'Create urgency',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Interested Users', '',
+  'TPL-CI-CAMP-010', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-011', 'Campaign', 'Campaign Ended',
+  'Campaign closes', 'Supporters', 'Thank participants',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-011', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-012', 'Campaign', 'Campaign Updated',
+  'Content changed', 'Followers', 'Share latest news',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Followers', '',
+  'TPL-CI-CAMP-012', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-013', 'Campaign', 'Campaign Viewed Milestone',
+  'View threshold reached', 'Organization', 'Celebrate awareness',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Organization', '',
+  'TPL-CI-CAMP-013', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-014', 'Campaign', 'Campaign Share Milestone',
+  'Share threshold reached', 'Organization', 'Recognize advocacy',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Organization', '',
+  'TPL-CI-CAMP-014', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-015', 'Campaign', 'Campaign Anniversary',
+  'One year since launch', 'Organization', 'Celebrate legacy',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Organization', '',
+  'TPL-CI-CAMP-015', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-016', 'Campaign', 'Campaign Performance Summary',
+  'Weekly/monthly analytics', 'Organization', 'Improve effectiveness',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Organization', '',
+  'TPL-CI-CAMP-016', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-017', 'Campaign', 'Campaign Goal Increased',
+  'Funding goal raised', 'Supporters', 'Explain expansion',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-017', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-018', 'Campaign', 'Campaign Goal Reduced',
+  'Funding goal lowered', 'Supporters', 'Maintain transparency',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-018', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-019', 'Campaign', 'Campaign Milestone Celebration',
+  'Major milestone achieved', 'Supporters', 'Celebrate together',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Supporters', '',
+  'TPL-CI-CAMP-019', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-020', 'Campaign', 'Campaign Search Milestone',
+  'Search impressions threshold', 'Organization', 'Show discoverability',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 3 - Ambient/Digest',
+  'In-App is the primary home for this content; Push fires only per the engine’s normal frequency cap. No 1:1 Email -- eligible for a periodic digest only, to avoid overloading users with low-value pings.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Organization', '',
+  'TPL-CI-CAMP-020', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-CAMP-021', 'Campaign', 'Campaign Completion Report',
+  'Final analytics available', 'Organization', 'Review results',
+  'Medium-Low', 'In-App; Push for meaningful milestones only', 'Tier 2 - Event-Driven',
+  'Push + In-App to recipients who have the app; Email also sent as the reach channel for recipients who have not downloaded the app, so the moment still reaches everyone once without double-touching engaged app users.', 'Long', 'Suppress routine progress noise',
+  'Seedling_Campaign_Engine_Messaging.xlsx', 'Milestone', '60',
+  'No', 'Yes',
+  'Recent campaign milestone; last push timestamp', 'Collective Progress',
+  '', 'Meaningful milestones', 'Yes',
+  'Communicate collective progress only when the milestone deserves attention.', 'Celebration',
+  'CampaignState', 'Deliver only for meaningful collective milestones.',
+  'Organization', '',
+  'TPL-CI-CAMP-021', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-001', 'Governance', 'Seedling Submitted for Review',
+  'Seedling Submitted ', 'Sponsor, Co-Sponsors', 'Acknowledge submission',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Sponsor, Co-Sponsors', '',
+  'TPL-CI-GOV-001', '',
+  'gov-1', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-002', 'Governance', 'Seedling Approved',
+  'Seedling Approved', 'Sponsor, Co-Sponsors', 'Acknowledge Acceptance',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Sponsor, Co-Sponsors', '',
+  'TPL-CI-GOV-002', '',
+  'gov-2', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-003', 'Governance', 'Seedling Rejected',
+  'Seedling Rejected', 'Sponsor, Co-Sponsors', 'Explain decision',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Sponsor, Co-Sponsors', '',
+  'TPL-CI-GOV-003', '',
+  'gov-3', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-004', 'Governance', 'Comment Reported',
+  'Comment Flagged by user', 'Reporter', 'Acknowledge report',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Reporter, Commenter', '',
+  'TPL-CI-GOV-004', '',
+  'gov-4', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-005', 'Governance', 'Comment Removed',
+  'Comment Removed', 'Commenter', 'Notify author',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Reporter, Commenter', '',
+  'TPL-CI-GOV-005', '',
+  'gov-5', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-006', 'Governance', 'Comment Removed',
+  'Comment Removed', 'Reporter', 'Close the loop on report',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  '', '',
+  'TPL-CI-GOV-006', '',
+  'gov-6', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-007', 'Governance', 'Account Warning',
+  'Offending activity', 'Commenter', 'Policy warning',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Commenter', '',
+  'TPL-CI-GOV-007', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-008', 'Governance', 'Temporary Account Restriction',
+  'Offending issue', 'Commenter', 'Notify restriction',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Commenter', '',
+  'TPL-CI-GOV-008', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-GOV-009', 'Governance', 'Account Restored',
+  'Account reinstated', 'Commenter', 'Notify restoration',
+  'High', 'Push + In-App', 'Tier 1 - Guaranteed',
+  'Push + In-App + Email, always -- sent to every recipient regardless of app-download status. Reserved for compliance, account-status, and financial confirmations, plus guaranteed high-value moments (e.g., a donation landing on your Seedling).', 'None', 'Exact duplicates only',
+  'Seedling_Governance_Engine_Messaging.xlsx', 'Critical', '100',
+  'Yes', 'No',
+  'Recent exact-duplicate event IDs; recent governance experience', 'Trust & Safety',
+  '', 'Immediate', 'No',
+  'High-trust communication; deliver immediately unless it is an exact duplicate.', 'Governance',
+  'RecentGovernance, DuplicateEvents', 'Always deliver unless exact duplicate.',
+  'Commenter', '',
+  'TPL-CI-GOV-009', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-001', 'Narrative', 'Generate Seedling title',
+  'Generate Seedling title requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 Optional Titles for ''Generate Seedling title''. ', '',
+  'TPL-CI-NARR-001', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-002', 'Narrative', 'Generate Seedling description',
+  'Generate Seedling description requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 optional Descriptions for ''Generate Seedling description''. ', '',
+  'TPL-CI-NARR-002', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-003', 'Narrative', 'Generate campaign title',
+  'Generate campaign title requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'if Campaign box is selected, generate 3 Optional Titles for ''Generate Campaign title''. ', '',
+  'TPL-CI-NARR-003', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-004', 'Narrative', 'Generate campaign description',
+  'Generate campaign description requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'if Campaign box is selected, generate 3 optional Descriptions for ''Generate Campaign description''. ', '',
+  'TPL-CI-NARR-004', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-005', 'Narrative', 'Seedling Birthday Challenge - Generate Seedling title',
+  'Generate Seedling title requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 Optional Titles for ''Generate Seedling title''. ', '',
+  'TPL-CI-NARR-005', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-006', 'Narrative', 'Seedling Birthday Challenge - Generate Seedling description',
+  'Generate Seedling description requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 optional Descriptions for ''Generate Seedling description''. ', '',
+  'TPL-CI-NARR-006', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-007', 'Narrative', 'Seedling Birthday Challenge - Generate campaign title',
+  'Generate campaign title requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'if Campaign box is selected, generate 3 Optional Titles for ''Generate Campaign title''. ', '',
+  'TPL-CI-NARR-007', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-008', 'Narrative', 'Seedling Birthday Challenge - Generate campaign description',
+  'Generate campaign description requested or context detected', 'User', '',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'if Campaign box is selected, generate 3 optional Descriptions for ''Generate Campaign description''. ', '',
+  'TPL-CI-NARR-008', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-009', 'Narrative', 'Sharing - Facebook sharing text',
+  'Facebook sharing text requested or context detected', 'User', 'Need help sharing your story? We''ve got a few ideas.',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 Facebook sharing text options that match the Seedling, nonprofit, and creator''s voice. Keep the creator in control and never post automatically.', '',
+  'TPL-CI-NARR-009', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-010', 'Narrative', 'Sharing - Instagram caption',
+  'Instagram caption requested or context detected', 'User', 'Need help sharing your story? We''ve got a few ideas.',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 Instagram caption options that match the Seedling, nonprofit, and creator''s voice. Keep the creator in control and never post automatically.', '',
+  'TPL-CI-NARR-010', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-011', 'Narrative', 'Sharing - X post',
+  'X caption requested or context detected', 'User', 'Need help sharing your story? We''ve got a few ideas.',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 X post options that match the Seedling, nonprofit, and creator''s voice. Keep the creator in control and never post automatically.', '',
+  'TPL-CI-NARR-011', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-012', 'Narrative', 'Sharing - LinkedIn post',
+  'LinkedIn post requested or context detected', 'User', 'Need help sharing your story? We''ve got a few ideas.',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 LinkedIn post options that match the Seedling, nonprofit, and creator''s voice. Keep the creator in control and never post automatically.', '',
+  'TPL-CI-NARR-012', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-013', 'Narrative', 'Sharing - Email invitation',
+  'Email invitation requested or context detected', 'User', 'Need help sharing your story? We''ve got a few ideas.',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 Email invitation options that match the Seedling, nonprofit, and creator''s voice. Keep the creator in control and never post automatically.', '',
+  'TPL-CI-NARR-013', '',
+  '', datetime('now'), datetime('now')
+);
+
+INSERT OR REPLACE INTO notification_rules (
+  rule_id, engine, rule_name, trigger, audience, communication_objective, priority,
+  delivery, channel_tier, email_delivery_policy, cooldown, suppression, source_workbook,
+  attention_class, candidate_score, guaranteed_experience, batch_eligible,
+  runtime_memory_dependency, attention_queue_group, rotation_group, timing,
+  merge_policy, default_decision_reason, experience_type, memory_keys,
+  decision_reason_template, candidate_audiences, candidate_experiences,
+  template_id, change_notes, scenario_id, created_at, updated_at
+) VALUES (
+  'CI-NARR-014', 'Narrative', 'Sharing - SMS invitation',
+  'SMS invitation requested or context detected', 'User', 'Need help sharing your story? We''ve got a few ideas.',
+  'User initiated', 'In-App only', 'Tier 4 - Session-Bound',
+  'In-App only. No Push, no Email -- this fires while the user is actively in a live, in-context flow with no meaningful off-app moment to bring them back to.', 'None', 'None',
+  'Seedling_Narrative_Engine_Messaging.xlsx', 'User Initiated', '100',
+  'Yes', 'N/A',
+  'Current user request and editing context', 'Creator Assistance',
+  '', 'On demand', 'N/A',
+  'Respond because the user explicitly requested assistance.', 'Guidance',
+  'CurrentEditingContext', 'Respond only to explicit user request.',
+  'Generate 3 SMS invitation options that match the Seedling, nonprofit, and creator''s voice. Keep the creator in control and never post automatically.', '',
+  'TPL-CI-NARR-014', '',
+  '', datetime('now'), datetime('now')
+);
+
+UPDATE scenarios SET rule_id = 'CI-GOV-001' WHERE id = 'gov-1' OR key = 'GOV-1';
+
+UPDATE scenarios SET rule_id = 'CI-GOV-002' WHERE id = 'gov-2' OR key = 'GOV-2';
+
+UPDATE scenarios SET rule_id = 'CI-GOV-003' WHERE id = 'gov-3' OR key = 'GOV-3';
+
+UPDATE scenarios SET rule_id = 'CI-GOV-004' WHERE id = 'gov-4' OR key = 'GOV-4';
+
+UPDATE scenarios SET rule_id = 'CI-GOV-005' WHERE id = 'gov-5' OR key = 'GOV-5';
+
+UPDATE scenarios SET rule_id = 'CI-GOV-006' WHERE id = 'gov-6' OR key = 'GOV-6';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-001' WHERE id = 'ce-1' OR key = 'CONTRIB-1';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-003' WHERE id = 'ce-2' OR key = 'CONTRIB-2';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-004' WHERE id = 'ce-3' OR key = 'CONTRIB-3';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-005' WHERE id = 'ce-4' OR key = 'CONTRIB-4';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-006' WHERE id = 'ce-5' OR key = 'CONTRIB-5';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-007' WHERE id = 'ce-6' OR key = 'CONTRIB-6';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-008' WHERE id = 'ce-7' OR key = 'CONTRIB-7';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-009' WHERE id = 'ce-8' OR key = 'CONTRIB-8';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-010' WHERE id = 'ce-9' OR key = 'CONTRIB-9';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-011' WHERE id = 'ce-10' OR key = 'CONTRIB-10';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-012' WHERE id = 'ce-11' OR key = 'CONTRIB-11';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-014' WHERE id = 'ce-12' OR key = 'CONTRIB-12';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-015' WHERE id = 'ce-13' OR key = 'CONTRIB-13';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-016' WHERE id = 'ce-14' OR key = 'CONTRIB-14';
+
+UPDATE scenarios SET rule_id = 'CI-CONTR-018' WHERE id = 'ce-16' OR key = 'CONTRIB-16';
+
+UPDATE scenarios SET rule_id = 'CI-PART-001' WHERE id = 'part-1' OR key = 'PART-1';
+
+UPDATE scenarios SET rule_id = 'CI-PART-003' WHERE id = 'part-3' OR key = 'PART-3';
+
+UPDATE scenarios SET rule_id = 'CI-PART-004' WHERE id = 'part-4' OR key = 'PART-4';
+
+UPDATE scenarios SET rule_id = 'CI-PART-005' WHERE id = 'part-5' OR key = 'PART-5';
+
+UPDATE scenarios SET rule_id = 'CI-PART-006' WHERE id = 'part-6' OR key = 'PART-6';
+
+UPDATE scenarios SET rule_id = 'CI-PART-007' WHERE id = 'part-7' OR key = 'PART-7';
+
+UPDATE scenarios SET rule_id = 'CI-PART-008' WHERE id = 'part-8' OR key = 'PART-8';
+
+UPDATE scenarios SET rule_id = 'CI-PART-009' WHERE id = 'part-9' OR key = 'PART-9';
+
+UPDATE scenarios SET rule_id = 'CI-PART-010' WHERE id = 'part-10' OR key = 'PART-10';
+
+UPDATE scenarios SET rule_id = 'CI-PART-011' WHERE id = 'part-11' OR key = 'PART-11';
+
+UPDATE scenarios SET rule_id = 'CI-PART-014' WHERE id = 'part-14' OR key = 'PART-14';
+
+UPDATE scenarios SET rule_id = 'CI-PART-015' WHERE id = 'part-15' OR key = 'PART-15';
+
+UPDATE scenarios SET rule_id = 'CI-PART-031' WHERE id = 'part-31' OR key = 'PART-31';
+
+UPDATE scenarios SET rule_id = 'CI-PART-032' WHERE id = 'part-32' OR key = 'PART-32';
+
+UPDATE scenarios SET rule_id = 'CI-PART-037' WHERE id = 'part-37' OR key = 'PART-37';
+
+UPDATE scenarios SET rule_id = 'CI-PART-039' WHERE id = 'part-39' OR key = 'PART-39';
+
+UPDATE scenarios SET rule_id = 'CI-PART-041' WHERE id = 'part-41' OR key = 'PART-41';
+
+UPDATE scenarios SET rule_id = 'CI-PART-042' WHERE id = 'part-42' OR key = 'PART-42';
+
+UPDATE scenarios SET rule_id = 'CI-PART-057' WHERE id = 'part-57' OR key = 'PART-57';
+
+UPDATE scenarios SET rule_id = 'CI-ID-001' WHERE id = 'id-1' OR key = 'ID-1';
+
+UPDATE scenarios SET rule_id = 'CI-ID-002' WHERE id = 'id-2' OR key = 'ID-2';
+
+UPDATE scenarios SET rule_id = 'CI-ID-003' WHERE id = 'id-3' OR key = 'ID-3';
+
+UPDATE scenarios SET rule_id = 'CI-ID-004' WHERE id = 'id-4' OR key = 'ID-4';
+
+UPDATE scenarios SET rule_id = 'CI-ID-005' WHERE id = 'id-5' OR key = 'ID-5';
+
+UPDATE scenarios SET rule_id = 'CI-ID-008' WHERE id = 'id-8' OR key = 'ID-8';
+
+UPDATE scenarios SET rule_id = 'CI-ID-009' WHERE id = 'id-9' OR key = 'ID-9';
+
+UPDATE scenarios SET rule_id = 'CI-ID-010' WHERE id = 'id-10' OR key = 'ID-10';
+
+UPDATE scenarios SET rule_id = 'CI-ID-013' WHERE id = 'id-13' OR key = 'ID-13';
+
+UPDATE scenarios SET rule_id = 'CI-ID-016' WHERE id = 'id-16' OR key = 'ID-16';
+
+UPDATE scenarios SET rule_id = 'CI-ID-017' WHERE id = 'id-17' OR key = 'ID-17';
+
+UPDATE scenarios SET rule_id = 'CI-ID-021' WHERE id = 'id-21' OR key = 'ID-21';
+
+UPDATE scenarios SET rule_id = 'CI-ID-022' WHERE id = 'id-22' OR key = 'ID-22';
+
+UPDATE scenarios SET rule_id = 'CI-ID-023' WHERE id = 'id-23' OR key = 'ID-23';
+
+UPDATE scenarios SET rule_id = 'CI-ID-024' WHERE id = 'id-24' OR key = 'ID-24';
+
+UPDATE scenarios SET rule_id = 'CI-ID-025' WHERE id = 'id-25' OR key = 'ID-25';
+
+UPDATE scenarios SET rule_id = 'CI-ID-026' WHERE id = 'id-26' OR key = 'ID-26';
+
+UPDATE scenarios SET rule_id = 'CI-ID-027' WHERE id = 'id-27' OR key = 'ID-27';
+
+UPDATE scenarios SET rule_id = 'CI-ID-028' WHERE id = 'id-28' OR key = 'ID-28';
+
+UPDATE scenarios SET rule_id = 'CI-ID-029' WHERE id = 'id-29' OR key = 'ID-29';
+
+UPDATE scenarios SET rule_id = 'CI-ID-035' WHERE id = 'id-35' OR key = 'ID-35';
+
+UPDATE scenarios SET rule_id = 'CI-ID-036' WHERE id = 'id-36' OR key = 'ID-36';
+
+UPDATE scenarios SET rule_id = 'CI-ID-053' WHERE id = 'id-53' OR key = 'ID-53';
+
+UPDATE scenarios SET rule_id = 'CI-ID-056' WHERE id = 'id-56' OR key = 'ID-56';
+
+UPDATE scenarios SET rule_id = 'CI-ID-057' WHERE id = 'id-57' OR key = 'ID-57';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-001' WHERE id = 'opp-1' OR key = 'OPP-1';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-002' WHERE id = 'opp-2' OR key = 'OPP-2';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-003' WHERE id = 'opp-3' OR key = 'OPP-3';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-004' WHERE id = 'opp-4' OR key = 'OPP-4';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-005' WHERE id = 'opp-5' OR key = 'OPP-5';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-007' WHERE id = 'opp-7' OR key = 'OPP-7';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-009' WHERE id = 'opp-9' OR key = 'OPP-9';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-019' WHERE id = 'opp-19' OR key = 'OPP-19';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-020' WHERE id = 'opp-20' OR key = 'OPP-20';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-021' WHERE id = 'opp-21' OR key = 'OPP-21';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-050' WHERE id = 'opp-51' OR key = 'OPP-51';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-051' WHERE id = 'opp-52' OR key = 'OPP-52';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-091' WHERE id = 'opp-92' OR key = 'OPP-92';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-092' WHERE id = 'opp-93' OR key = 'OPP-93';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-093' WHERE id = 'opp-94' OR key = 'OPP-94';
+
+UPDATE scenarios SET rule_id = 'CI-OPP-094' WHERE id = 'opp-95' OR key = 'OPP-95';
+
+UPDATE scenarios SET rule_id = 'CI-DISC-008' WHERE id = 'disc-8' OR key = 'DISC-8';
+
+UPDATE scenarios SET rule_id = 'CI-DISC-009' WHERE id = 'disc-9' OR key = 'DISC-9';
+
+UPDATE scenarios SET rule_id = 'CI-DISC-010' WHERE id = 'disc-10' OR key = 'DISC-10';
