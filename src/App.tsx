@@ -5,6 +5,7 @@ import type { EngineCategoryFilter, EngineMenuItem, ActiveDashboardView } from '
 import { JiraTable } from './components/jira/JiraTable'
 import { RuleBookTable } from './components/jira/RuleBookTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
+import { JiraCreateModal } from './components/jira/JiraCreateModal'
 import { exportScenariosToExcel } from './utils/excel'
 import { scenariosApi } from './api/scenariosApi'
 import { engineSheetsApi } from './api/engineSheetsApi'
@@ -105,6 +106,7 @@ function NotificationApp() {
   const [searchQuery, setSearchQuery] = useState<string>(initialFilters.q)
   const [statusFilter, setStatusFilter] = useState<string>(initialFilters.status)
   const [isImportOpen, setIsImportOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Toast feedback state for sharing links & actions
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -282,6 +284,7 @@ function NotificationApp() {
     })
     // Core fallback defaults if empty
     if (set.size === 0) {
+      set.add('Campaign')
       set.add('Governance')
       set.add('Contribution')
       set.add('Participation')
@@ -292,6 +295,8 @@ function NotificationApp() {
 
     const list = Array.from(set)
     return list.sort((a, b) => {
+      if (a === 'Campaign') return -1
+      if (b === 'Campaign') return 1
       if (a === 'Governance') return -1
       if (b === 'Governance') return 1
       if (a === 'Contribution') return -1
@@ -321,63 +326,14 @@ function NotificationApp() {
     }))
   }, [dynamicEngines, engineCounts])
 
-  // Add new row directly into active engine category (persisted to D1)
-  const handleAddRow = (): NotificationScenario => {
-    const targetEngine = selectedEngine !== 'ALL' ? selectedEngine : 'Governance'
-    let prefix = 'GOV'
-    if (targetEngine === 'Contribution') prefix = 'CONTRIB'
-    else if (targetEngine === 'Participation') prefix = 'PART'
-    else if (targetEngine === 'Identity') prefix = 'ID'
-    else if (targetEngine === 'Opportunity') prefix = 'OPP'
-    else if (targetEngine === 'Discovery') prefix = 'DISC'
-    else if (targetEngine === 'Campaign') prefix = 'CAMP'
-    else {
-      const clean = targetEngine.toUpperCase().replace(/[^A-Z0-9]/g, '')
-      prefix = clean.length > 5 ? clean.slice(0, 5) : clean || 'SCEN'
+  // Create new scenario from Jira modal (persisted to D1 and local state)
+  const handleCreateScenario = (newScenario: NotificationScenario) => {
+    setScenarios((prev) => [newScenario, ...prev])
+    scenariosApi.createScenario(newScenario)
+    if (selectedEngine !== 'ALL' && selectedEngine !== newScenario.engineCategory) {
+      setSelectedEngine(newScenario.engineCategory as EngineCategoryFilter)
     }
-
-    const existingNums = scenarios
-      .filter((s) => (s.engineCategory || '').toLowerCase() === targetEngine.toLowerCase())
-      .map((s) => {
-        const match = s.key.match(new RegExp(`${prefix}-(\\d+)`, 'i'))
-        return match ? parseInt(match[1], 10) : 0
-      })
-    const maxNum = existingNums.length > 0 ? Math.max(...existingNums) : 0
-    const newNum = maxNum + 1
-
-    const newRow: NotificationScenario = {
-      id: `${prefix.toLowerCase()}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      key: `${prefix}-${newNum}`,
-      engineCategory: targetEngine,
-      governanceEvent: `New ${targetEngine} Event`,
-      trigger: '',
-      audience: targetEngine === 'Contribution' ? 'Donor' : 'Community Member',
-      communicationObjective: '',
-      desiredOutcome: '',
-      pushSubject: '',
-      pushBody: '',
-      emailSubject: '',
-      emailBody: '',
-      inAppExperience: '',
-      cta: '',
-      comments: '',
-      status: 'TO DO',
-      priority: 'Medium',
-      environment: 'STAGING',
-      assignee: {
-        name: 'QA Tester',
-        email: 'tester@seedling.org',
-        avatar: '',
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      versionHistory: [],
-      fieldHistory: {},
-    }
-
-    setScenarios((prev) => [...prev, newRow])
-    scenariosApi.createScenario(newRow)
-    return newRow
+    showToast(`Created ${newScenario.key} in ${newScenario.engineCategory} Engine`)
   }
 
   // Handle Excel / Sheets JSON batch import (persisted to D1)
@@ -539,7 +495,7 @@ function NotificationApp() {
       <JiraNavbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onAddRow={handleAddRow}
+        onAddRow={() => setIsCreateModalOpen(true)}
         onImportClick={() => setIsImportOpen(true)}
         onExportClick={() => exportScenariosToExcel(exportTargetScenarios, 'xlsx')}
         selectedEngine={selectedEngine}
@@ -591,7 +547,7 @@ function NotificationApp() {
             onBatchUpdateScenarios={handleBatchUpdateScenarios}
             onUpdateStatus={handleUpdateStatus}
             onDeleteScenario={handleDeleteScenario}
-            onAddRow={handleAddRow}
+            onAddRow={() => setIsCreateModalOpen(true)}
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery('')}
             selectedEngine={selectedEngine}
@@ -608,7 +564,17 @@ function NotificationApp() {
         )}
       </main>
 
-      {/* 3. Excel / Google Sheets Import Modal */}
+      {/* 3. Jira Create Issue / Scenario Modal */}
+      <JiraCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        availableEngines={dynamicEngines}
+        currentEngine={selectedEngine !== 'ALL' ? selectedEngine : 'Campaign'}
+        scenarios={scenarios}
+        onCreateScenario={handleCreateScenario}
+      />
+
+      {/* 4. Excel / Google Sheets Import Modal */}
       {isImportOpen && (
         <ExcelImportModal
           onClose={() => setIsImportOpen(false)}
