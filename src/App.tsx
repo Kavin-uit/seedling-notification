@@ -72,19 +72,7 @@ function loadInitialFilters(): InitialFiltersState {
   }
 }
 
-export default function App() {
-  const isNotificationBugsRoute = useMemo(() => {
-    return (
-      window.location.pathname === '/notification-bugs' ||
-      window.location.pathname === '/notification-bugs/' ||
-      window.location.pathname.startsWith('/notification-bugs') ||
-      new URLSearchParams(window.location.search).get('page') === 'notification-bugs'
-    )
-  }, [])
-
-  if (isNotificationBugsRoute) {
-    return <NotificationBugsPage />
-  }
+function NotificationApp() {
 
   const [scenarios, setScenarios] = useState<NotificationScenario[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -342,6 +330,7 @@ export default function App() {
     else if (targetEngine === 'Identity') prefix = 'ID'
     else if (targetEngine === 'Opportunity') prefix = 'OPP'
     else if (targetEngine === 'Discovery') prefix = 'DISC'
+    else if (targetEngine === 'Campaign') prefix = 'CAMP'
     else {
       const clean = targetEngine.toUpperCase().replace(/[^A-Z0-9]/g, '')
       prefix = clean.length > 5 ? clean.slice(0, 5) : clean || 'SCEN'
@@ -658,4 +647,18 @@ export default function App() {
       )}
     </div>
   )
+}
+
+export default function App() {
+  const isNotificationBugsRoute =
+    window.location.pathname === '/notification-bugs' ||
+    window.location.pathname === '/notification-bugs/' ||
+    window.location.pathname.startsWith('/notification-bugs') ||
+    new URLSearchParams(window.location.search).get('page') === 'notification-bugs'
+
+  if (isNotificationBugsRoute) {
+    return <NotificationBugsPage />
+  }
+
+  return <NotificationApp />
 }

@@ -135,6 +135,15 @@ export const DEFAULT_ENGINE_SHEETS: Record<string, EngineSheetConfig> = {
       'https://docs.google.com/spreadsheets/d/1a6VS21ynlS1lAM9PQVxqUoQGneI_3-pF/export?format=csv',
     enabled: true,
   },
+  Campaign: {
+    engineCategory: 'Campaign',
+    sheetName: 'Campaign Content Sheet',
+    sheetUrl:
+      'https://docs.google.com/spreadsheets/d/1puRDHto_1yuqVqor24t6TtaUcEP3xG5d/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
+    csvExportUrl:
+      'https://docs.google.com/spreadsheets/d/1puRDHto_1yuqVqor24t6TtaUcEP3xG5d/export?format=csv',
+    enabled: true,
+  },
 }
 
 // Helper to convert Google Sheets edit/sharing URL to CSV export URL

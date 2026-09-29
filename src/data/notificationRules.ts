@@ -13185,7 +13185,17 @@ export const SCENARIO_ID_TO_RULE_ID: Record<string, string> = {
   "opp-95": "CI-OPP-094",
   "disc-8": "CI-DISC-008",
   "disc-9": "CI-DISC-009",
-  "disc-10": "CI-DISC-010"
+  "disc-10": "CI-DISC-010",
+  "camp-1": "CI-CAMP-001",
+  "camp-4": "CI-CAMP-004",
+  "camp-5": "CI-CAMP-005",
+  "camp-6": "CI-CAMP-006",
+  "camp-7": "CI-CAMP-007",
+  "camp-8": "CI-CAMP-008",
+  "camp-12": "CI-CAMP-012",
+  "camp-13": "CI-CAMP-013",
+  "camp-17": "CI-CAMP-017",
+  "camp-18": "CI-CAMP-018"
 }
 
 /**
