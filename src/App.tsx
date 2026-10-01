@@ -6,7 +6,9 @@ import { JiraTable } from './components/jira/JiraTable'
 import { RuleBookTable } from './components/jira/RuleBookTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { JiraCreateModal } from './components/jira/JiraCreateModal'
-import { exportScenariosToExcel } from './utils/excel'
+import { exportScenariosToExcel, exportRulesToExcel } from './utils/excel'
+import { filterScenarios } from './utils/scenarioFilters'
+import { ALL_NOTIFICATION_RULES } from './data/notificationRules'
 import { scenariosApi } from './api/scenariosApi'
 import { engineSheetsApi } from './api/engineSheetsApi'
 import { enginesApi } from './api/enginesApi'
@@ -19,8 +21,6 @@ import { SheetVerificationModal } from './components/jira/SheetVerificationModal
 import { ShareFilterModal } from './components/jira/ShareFilterModal'
 import { Loader2, Check } from 'lucide-react'
 import { parseFilterUrlParams, syncFiltersToUrl, buildFilterShareUrl } from './utils/filterShare'
-import { parseStatuses } from './types/notification'
-import { executeSearch } from './utils/aiSearch'
 import { NotificationBugsPage } from './components/NotificationBugsPage'
 
 const FILTERS_STORAGE_KEY = 'seedling_active_filters_v1'
@@ -446,42 +446,80 @@ function NotificationApp() {
     scenariosApi.deleteScenario(id)
   }
 
-  // Filter exported data according to active engine filter or global search
+  // Filter scenarios for export and metrics according to active engine filter, status filter, and global search
   const exportTargetScenarios = useMemo(() => {
-    if (searchQuery.trim()) {
-      return executeSearch(scenarios, searchQuery, false).results
+    return filterScenarios(scenarios, {
+      selectedEngine,
+      statusFilter,
+      searchQuery,
+    })
+  }, [scenarios, selectedEngine, statusFilter, searchQuery])
+
+  // Filtered rules for Master Rule Book
+  const exportTargetRules = useMemo(() => {
+    let list = ALL_NOTIFICATION_RULES
+    if (selectedEngine !== 'ALL') {
+      const eLower = selectedEngine.toLowerCase()
+      list = list.filter((r) => r.engine.toLowerCase() === eLower)
     }
-    return selectedEngine === 'ALL'
-      ? scenarios
-      : scenarios.filter((s) => s.engineCategory === selectedEngine)
-  }, [scenarios, searchQuery, selectedEngine])
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      list = list.filter((r) => {
+        return (
+          r.ruleId.toLowerCase().includes(q) ||
+          r.engine.toLowerCase().includes(q) ||
+          r.ruleName.toLowerCase().includes(q) ||
+          r.trigger.toLowerCase().includes(q) ||
+          r.audience.toLowerCase().includes(q) ||
+          r.communicationObjective.toLowerCase().includes(q) ||
+          r.delivery.toLowerCase().includes(q) ||
+          r.attentionClass.toLowerCase().includes(q) ||
+          r.channelTier.toLowerCase().includes(q) ||
+          r.templateId.toLowerCase().includes(q)
+        )
+      })
+    }
+    return list
+  }, [selectedEngine, searchQuery])
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
-  const activeStatuses =
-    statusFilter && statusFilter !== 'ALL'
+  const activeStatuses = useMemo(() => {
+    return statusFilter && statusFilter !== 'ALL'
       ? statusFilter.split(',').map((s) => s.trim()).filter((s) => s && s !== 'ALL')
       : []
+  }, [statusFilter])
 
-  const matchingCount = useMemo(() => {
-    if (searchQuery.trim()) {
-      return executeSearch(scenarios, searchQuery, false).results.length
-    }
-    return scenarios.filter((s) => {
-      const matchesEngine =
-        selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
-      if (!matchesEngine) return false
-      if (activeStatuses.length === 0) return true
-      const upperActive = parseStatuses(s.status).map((st) => st.trim().toUpperCase())
-      return activeStatuses.some((sel) => {
-        const clean = sel.trim().toUpperCase()
-        if (clean === 'NOT_WORKING_ANY' || clean === 'ALL NOT WORKING') {
-          return upperActive.some((st) => st.includes('NOT WORKING'))
-        }
-        return upperActive.includes(clean)
+  const matchingCount = exportTargetScenarios.length
+
+  const handleExport = () => {
+    if (activeView === 'rulebook') {
+      if (exportTargetRules.length === 0) {
+        showToast('No notification rules to export with current filters')
+        return
+      }
+      exportRulesToExcel(exportTargetRules, 'xlsx', {
+        engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+        searchQuery: searchQuery.trim() || undefined,
       })
-    }).length
-  }, [scenarios, searchQuery, selectedEngine, activeStatuses])
+      showToast(`Exported ${exportTargetRules.length} rule${exportTargetRules.length === 1 ? '' : 's'} to Excel (.xlsx)`)
+    } else {
+      if (exportTargetScenarios.length === 0) {
+        showToast('No scenarios to export with current filters')
+        return
+      }
+      exportScenariosToExcel(exportTargetScenarios, 'xlsx', {
+        engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+        status: statusFilter !== 'ALL' ? statusFilter : undefined,
+        searchQuery: searchQuery.trim() || undefined,
+      })
+      showToast(
+        `Exported ${exportTargetScenarios.length} filtered scenario${
+          exportTargetScenarios.length === 1 ? '' : 's'
+        } to Excel (.xlsx)`
+      )
+    }
+  }
 
   const currentShareUrl = buildFilterShareUrl({
     engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
@@ -497,7 +535,8 @@ function NotificationApp() {
         onSearchChange={setSearchQuery}
         onAddRow={() => setIsCreateModalOpen(true)}
         onImportClick={() => setIsImportOpen(true)}
-        onExportClick={() => exportScenariosToExcel(exportTargetScenarios, 'xlsx')}
+        onExportClick={handleExport}
+        exportCount={activeView === 'rulebook' ? exportTargetRules.length : exportTargetScenarios.length}
         selectedEngine={selectedEngine}
         onSelectEngine={setSelectedEngine}
         onResetAllFilters={handleResetAllFilters}

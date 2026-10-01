@@ -30,6 +30,7 @@ interface JiraNavbarProps {
   onAddRow?: () => void
   onImportClick?: () => void
   onExportClick: () => void
+  exportCount?: number
   selectedEngine: string
   onSelectEngine: (engine: string) => void
   onResetAllFilters?: () => void
@@ -55,6 +56,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   onSearchChange,
   onAddRow,
   onExportClick,
+  exportCount,
   selectedEngine,
   onSelectEngine,
   onResetAllFilters,
@@ -497,7 +499,11 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           type="button"
           onClick={onExportClick}
           className="cursor-pointer bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 sm:px-3 h-8.5 rounded text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs shrink-0"
-          title="Export current table to Excel .xlsx"
+          title={
+            exportCount !== undefined
+              ? `Export ${exportCount} filtered record${exportCount === 1 ? '' : 's'} to Excel .xlsx`
+              : 'Export current table to Excel .xlsx'
+          }
         >
           <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">Export .xlsx</span>

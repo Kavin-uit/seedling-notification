@@ -6,6 +6,7 @@ import {
   SCENARIO_ID_TO_RULE_ID,
   getRuleForScenario,
 } from '../../data/notificationRules'
+import { exportRulesToExcel } from '../../utils/excel'
 import { NotificationRuleModal } from './NotificationRuleModal'
 import {
   Search,
@@ -458,6 +459,25 @@ export const RuleBookTable: React.FC<RuleBookTableProps> = ({
           </span>
 
 
+
+          {/* Export Filtered Rules to Excel */}
+          <button
+            type="button"
+            onClick={() => {
+              exportRulesToExcel(filteredRules, 'xlsx', {
+                engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+                searchQuery: searchQuery.trim() || undefined,
+              })
+              if (onShowToast) {
+                onShowToast(`Exported ${filteredRules.length} filtered rule${filteredRules.length === 1 ? '' : 's'} to Excel (.xlsx)`)
+              }
+            }}
+            className="cursor-pointer h-7 px-2 rounded-[2px] bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1 transition shadow-2xs"
+            title={`Export ${filteredRules.length} filtered rules to Excel (.xlsx)`}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Export .xlsx</span>
+          </button>
 
           {/* Link to Google Sheet */}
           <a

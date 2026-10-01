@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx'
-import type { NotificationScenario, ScenarioStatus } from '../types/notification'
+import type { NotificationRule, NotificationScenario, ScenarioStatus } from '../types/notification'
 
 export interface ParsedRow {
   governanceEvent: string
@@ -16,8 +16,18 @@ export interface ParsedRow {
   status?: ScenarioStatus
 }
 
+export interface ScenarioExportFilterContext {
+  engine?: string
+  status?: string
+  searchQuery?: string
+}
+
 // Convert scenarios to Excel workbook and trigger download
-export function exportScenariosToExcel(scenarios: NotificationScenario[], format: 'xlsx' | 'csv' = 'xlsx') {
+export function exportScenariosToExcel(
+  scenarios: NotificationScenario[],
+  format: 'xlsx' | 'csv' = 'xlsx',
+  filterContext?: ScenarioExportFilterContext
+) {
   const data = scenarios.map((s) => ({
     'Key': s.key,
     'Engine': s.engineCategory || 'Governance',
@@ -39,10 +49,34 @@ export function exportScenariosToExcel(scenarios: NotificationScenario[], format
     'Last Run': s.lastRunDate || 'Never',
   }))
 
-  const worksheet = XLSX.utils.json_to_sheet(data)
+  const headers = [
+    'Key',
+    'Engine',
+    'Status',
+    'Comments',
+    'Event',
+    'Trigger',
+    'Audience',
+    'Communication Objective',
+    'Desired Outcome',
+    'Push Notification Subject Line',
+    'Push Notification',
+    'Email Subject Line',
+    'Email Message',
+    'In-App Experience',
+    'Call to Action',
+    'Environment',
+    'Assignee',
+    'Last Run',
+  ]
+
+  const worksheet =
+    data.length > 0
+      ? XLSX.utils.json_to_sheet(data)
+      : XLSX.utils.aoa_to_sheet([headers])
 
   // Auto-fit column widths
-  const colWidths = Object.keys(data[0] || {}).map((key) => ({
+  const colWidths = headers.map((key) => ({
     wch: Math.max(key.length + 4, 18),
   }))
   worksheet['!cols'] = colWidths
@@ -50,7 +84,95 @@ export function exportScenariosToExcel(scenarios: NotificationScenario[], format
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Notification Scenarios')
 
-  const fileName = `notification_test_scenarios_${new Date().toISOString().slice(0, 10)}.${format}`
+  const parts: string[] = ['notification_test_scenarios']
+  if (filterContext?.engine && filterContext.engine !== 'ALL') {
+    parts.push(filterContext.engine.replace(/[^a-zA-Z0-9_-]/g, '_'))
+  }
+  if (filterContext?.status && filterContext.status !== 'ALL') {
+    parts.push(filterContext.status.replace(/[^a-zA-Z0-9_-]/g, '_'))
+  }
+  if (filterContext?.searchQuery) {
+    parts.push(`search_${filterContext.searchQuery.slice(0, 15).replace(/[^a-zA-Z0-9_-]/g, '_')}`)
+  }
+  parts.push(new Date().toISOString().slice(0, 10))
+  const fileName = `${parts.join('_')}.${format}`
+
+  XLSX.writeFile(workbook, fileName, { bookType: format })
+}
+
+// Convert rulebook rules to Excel workbook and trigger download
+export function exportRulesToExcel(
+  rules: NotificationRule[],
+  format: 'xlsx' | 'csv' = 'xlsx',
+  filterContext?: { engine?: string; searchQuery?: string }
+) {
+  const data = rules.map((r, idx) => ({
+    '#': idx + 1,
+    'Rule ID': r.ruleId,
+    'Engine': r.engine,
+    'Rule Name': r.ruleName,
+    'Trigger': r.trigger,
+    'Audience': r.audience,
+    'Communication Objective': r.communicationObjective,
+    'Priority': r.priority,
+    'Channel Tier': r.channelTier,
+    'Delivery': r.delivery,
+    'Attention Class': r.attentionClass,
+    'Candidate Score': r.candidateScore,
+    'Template ID': r.templateId,
+    'Guaranteed Experience': r.guaranteedExperience,
+    'Batch Eligible': r.batchEligible,
+    'Cooldown': r.cooldown,
+    'Suppression': r.suppression,
+    'Timing': r.timing,
+    'Change Notes': r.changeNotes,
+  }))
+
+  const headers = [
+    '#',
+    'Rule ID',
+    'Engine',
+    'Rule Name',
+    'Trigger',
+    'Audience',
+    'Communication Objective',
+    'Priority',
+    'Channel Tier',
+    'Delivery',
+    'Attention Class',
+    'Candidate Score',
+    'Template ID',
+    'Guaranteed Experience',
+    'Batch Eligible',
+    'Cooldown',
+    'Suppression',
+    'Timing',
+    'Change Notes',
+  ]
+
+  const worksheet =
+    data.length > 0
+      ? XLSX.utils.json_to_sheet(data)
+      : XLSX.utils.aoa_to_sheet([headers])
+
+  const colWidths = headers.map((key) => ({
+    wch: Math.max(key.length + 4, 18),
+  }))
+  worksheet['!cols'] = colWidths
+
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Notification Rules')
+
+  const parts: string[] = ['notification_rules']
+  if (filterContext?.engine && filterContext.engine !== 'ALL') {
+    parts.push(filterContext.engine.replace(/[^a-zA-Z0-9_-]/g, '_'))
+  }
+  if (filterContext?.searchQuery) {
+    parts.push(`search_${filterContext.searchQuery.slice(0, 15).replace(/[^a-zA-Z0-9_-]/g, '_')}`)
+  }
+  parts.push(new Date().toISOString().slice(0, 10))
+  const fileName = `${parts.join('_')}.${format}`
+
   XLSX.writeFile(workbook, fileName, { bookType: format })
 }
 
