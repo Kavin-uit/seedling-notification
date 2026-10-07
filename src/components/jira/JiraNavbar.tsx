@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import {
   Search,
   FileSpreadsheet,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
+import { parseSelectedEngines } from '../../utils/scenarioFilters'
 
 export type EngineCategoryFilter = 'ALL' | string
 export type ActiveDashboardView = 'scenarios' | 'rulebook'
@@ -108,9 +109,75 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
     statusFilter !== 'ALL' ||
     Boolean(searchQuery && searchQuery.trim().length > 0)
 
+  const selectedEngines = useMemo(
+    () => parseSelectedEngines(selectedEngine),
+    [selectedEngine]
+  )
+
   const getEngineDisplayLabel = (name: string) => {
     if (name === 'ALL') return 'All Engines'
     return name.toLowerCase().endsWith('engine') ? name : `${name} Engine`
+  }
+
+  const getEngineButtonLabel = () => {
+    if (!selectedEngine || selectedEngine === 'ALL') return 'All Engines'
+    if (selectedEngines.length === 0) return 'All Engines'
+    if (selectedEngines.length === 1) {
+      const match = engineList.find(
+        (e) => e.name.toLowerCase().replace(/\s+engine$/i, '') === selectedEngines[0]
+      )
+      const name = match ? match.name : selectedEngines[0].charAt(0).toUpperCase() + selectedEngines[0].slice(1)
+      return name.toLowerCase().endsWith('engine') ? name : `${name} Engine`
+    }
+    const names = selectedEngines.map((k) => {
+      const match = engineList.find(
+        (e) => e.name.toLowerCase().replace(/\s+engine$/i, '') === k
+      )
+      return match ? match.name.replace(/\s+engine$/i, '') : k.charAt(0).toUpperCase() + k.slice(1)
+    })
+    return names.join(' + ')
+  }
+
+  const handleToggleEngine = (engName: string) => {
+    const cleanKey = engName.replace(/\s+engine$/i, '').trim().toLowerCase()
+    const currentList = parseSelectedEngines(selectedEngine)
+    const isAlreadySelected = currentList.includes(cleanKey)
+
+    if (isAlreadySelected) {
+      const remaining = currentList.filter((k) => k !== cleanKey)
+      if (remaining.length === 0) {
+        onSelectEngine('ALL')
+      } else {
+        const formatted = remaining
+          .map((k) => {
+            const found = engineList.find(
+              (e) => e.name.toLowerCase().replace(/\s+engine$/i, '') === k
+            )
+            return found ? found.name.replace(/\s+engine$/i, '') : k.charAt(0).toUpperCase() + k.slice(1)
+          })
+          .join(', ')
+        onSelectEngine(formatted)
+      }
+    } else {
+      // Allow user to select up to two engines
+      let nextKeys: string[] = []
+      if (currentList.length >= 2) {
+        // If 2 already selected, replace the 1st with 2nd and append new one (maintaining 2 engines)
+        nextKeys = [currentList[1], cleanKey]
+      } else {
+        nextKeys = [...currentList, cleanKey]
+      }
+
+      const formatted = nextKeys
+        .map((k) => {
+          const found = engineList.find(
+            (e) => e.name.toLowerCase().replace(/\s+engine$/i, '') === k
+          )
+          return found ? found.name.replace(/\s+engine$/i, '') : k.charAt(0).toUpperCase() + k.slice(1)
+        })
+        .join(', ')
+      onSelectEngine(formatted)
+    }
   }
 
   const handleShareEngine = async (engine: string, e: React.MouseEvent) => {
@@ -164,12 +231,23 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
 
   const totalEnginesCount = totalEngines ?? engineList.length
 
-  const activeCount =
-    selectedEngine === 'ALL'
-      ? totalEnginesCount
-      : (engineCounts?.[selectedEngine] ??
-         engineList.find((e) => e.name.toLowerCase() === selectedEngine.toLowerCase())?.count ??
-         (selectedEngine === 'Governance' ? (govCount ?? 0) : selectedEngine === 'Contribution' ? (contribCount ?? 0) : 0))
+  const activeCount = useMemo(() => {
+    if (selectedEngine === 'ALL') return totalEnginesCount
+    if (selectedEngines.length === 0) return totalEnginesCount
+
+    let sum = 0
+    selectedEngines.forEach((k) => {
+      const match = engineList.find(
+        (e) => e.name.toLowerCase().replace(/\s+engine$/i, '') === k
+      )
+      if (match) {
+        sum += match.count
+      } else if (engineCounts?.[k]) {
+        sum += engineCounts[k]
+      }
+    })
+    return sum
+  }, [selectedEngine, selectedEngines, totalEnginesCount, engineList, engineCounts])
 
   return (
     <header className="h-13 bg-[#0747A6] text-white flex items-center justify-between px-3 sm:px-4 select-none shrink-0 border-b border-[#0052CC] shadow-xs gap-2 sm:gap-3 flex-nowrap min-w-0">
@@ -267,7 +345,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
             title={`Select Notification Engine (Currently: ${
               selectedEngine === 'ALL'
                 ? `All ${totalEnginesCount} Engines • ${totalRows} Scenarios`
-                : `${getEngineDisplayLabel(selectedEngine)}`
+                : `${getEngineButtonLabel()}`
             })`}
             aria-label="Filter Notification Engine"
             className={`cursor-pointer h-8 px-2.5 rounded text-xs font-medium flex items-center gap-1.5 transition select-none ${
@@ -278,7 +356,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
           >
             <Layers className="w-3.5 h-3.5 opacity-85 shrink-0" />
             <span className="font-semibold hidden sm:inline">
-              {getEngineDisplayLabel(selectedEngine)}
+              {getEngineButtonLabel()}
             </span>
             <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-white/20 text-white leading-none">
               {activeCount}
@@ -292,29 +370,60 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
 
           {/* Atlassian Jira Dropdown Menu */}
           {isEngineMenuOpen && (
-            <div className="absolute left-0 mt-1 w-68 bg-white rounded-[3px] shadow-[0_4px_16px_-2px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1 z-50 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 max-h-[min(480px,80vh)] overflow-y-auto">
-              <div className="px-3 py-1.5 text-[11px] font-semibold text-[#6B778C] border-b border-[#EBECF0] mb-0.5 flex items-center justify-between sticky top-0 bg-white z-10">
-                <span>Engines</span>
-                <span className="text-[10px] font-normal text-[#6B778C]">Click 🔗 to share</span>
+            <div className="absolute left-0 mt-1 w-72 bg-white rounded-[3px] shadow-[0_4px_16px_-2px_rgba(9,30,66,0.25),0_0_1px_rgba(9,30,66,0.31)] border border-[#DFE1E6] py-1 z-50 text-[#172B4D] animate-in fade-in zoom-in-95 duration-100 max-h-[min(480px,80vh)] overflow-y-auto">
+              <div className="px-3 py-2 text-[11px] font-semibold text-[#6B778C] border-b border-[#EBECF0] mb-0.5 flex items-center justify-between sticky top-0 bg-white z-10 shadow-2xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-[#172B4D]">Engines</span>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-[#DEEBFF] text-[#0747A6]">
+                    {selectedEngines.length === 0
+                      ? 'All'
+                      : `${selectedEngines.length}/2 Selected`}
+                  </span>
+                </div>
+                {selectedEngines.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelectEngine('ALL')
+                    }}
+                    className="text-[10px] text-[#0052CC] hover:underline cursor-pointer font-semibold"
+                  >
+                    Reset to All
+                  </button>
+                ) : (
+                  <span className="text-[10px] font-normal text-[#6B778C]">
+                    Select up to 2
+                  </span>
+                )}
               </div>
 
               {engineList.map((eng) => {
-                const isSelected = selectedEngine === eng.name
+                const cleanKey = eng.name.toLowerCase().replace(/\s+engine$/i, '')
+                const isSelected = selectedEngines.includes(cleanKey)
                 const displayLabel = getEngineDisplayLabel(eng.name)
                 return (
                   <div
                     key={eng.name}
-                    onClick={() => {
-                      onSelectEngine(eng.name)
-                      setIsEngineMenuOpen(false)
-                    }}
+                    onClick={() => handleToggleEngine(eng.name)}
                     className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs group ${
                       isSelected
                         ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
                         : 'text-[#172B4D]'
                     }`}
                   >
-                    <span className="truncate mr-2">{displayLabel}</span>
+                    <div className="flex items-center gap-2 min-w-0 mr-2">
+                      <div
+                        className={`w-4 h-4 rounded-[3px] flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected
+                            ? 'bg-[#0052CC] text-white shadow-2xs'
+                            : 'border border-[#C1C7D0] bg-white group-hover:border-[#0052CC]'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                      <span className="truncate">{displayLabel}</span>
+                    </div>
+
                     <div className="flex items-center gap-1.5 shrink-0">
                       <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]">
                         {eng.count}
@@ -331,9 +440,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                           <Share className="w-3.5 h-3.5" />
                         )}
                       </button>
-                      {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-                      )}
                     </div>
                   </div>
                 )
@@ -355,9 +461,23 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                     : 'text-[#172B4D]'
                 }`}
               >
-                <span>All Engines</span>
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-4 h-4 rounded-[3px] flex items-center justify-center shrink-0 transition-colors ${
+                      selectedEngine === 'ALL'
+                        ? 'bg-[#0052CC] text-white shadow-2xs'
+                        : 'border border-[#C1C7D0] bg-white group-hover:border-[#0052CC]'
+                    }`}
+                  >
+                    {selectedEngine === 'ALL' && <Check className="w-3 h-3 stroke-[3]" />}
+                  </div>
+                  <span>All Engines</span>
+                </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]" title={`${totalEnginesCount} Engines`}>
+                  <span
+                    className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]"
+                    title={`${totalEnginesCount} Engines`}
+                  >
                     {totalEnginesCount}
                   </span>
                   <button
@@ -372,9 +492,6 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                       <Share className="w-3.5 h-3.5" />
                     )}
                   </button>
-                  {selectedEngine === 'ALL' && (
-                    <Check className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-                  )}
                 </div>
               </div>
             </div>

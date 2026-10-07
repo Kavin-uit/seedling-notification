@@ -9,6 +9,25 @@ export interface ScenarioFilterOptions {
   isAiSearch?: boolean
 }
 
+export function parseSelectedEngines(selectedEngine?: string): string[] {
+  if (!selectedEngine || selectedEngine === 'ALL') return []
+  return selectedEngine
+    .split(',')
+    .map((e) => e.trim().replace(/\s+engine$/i, '').toLowerCase())
+    .filter(Boolean)
+}
+
+export function matchesEngineCategory(
+  category: string | undefined,
+  selectedEngine?: string
+): boolean {
+  if (!selectedEngine || selectedEngine === 'ALL') return true
+  const list = parseSelectedEngines(selectedEngine)
+  if (list.length === 0) return true
+  const sEngine = (category || 'Governance').trim().replace(/\s+engine$/i, '').toLowerCase()
+  return list.includes(sEngine)
+}
+
 /**
  * Filter scenarios matching the active engine category, status filter, and global search query.
  * Matches the exact filtering logic displayed in JiraTable and used for Excel export.
@@ -39,11 +58,7 @@ export function filterScenarios(
       : []
 
   return scenarios.filter((s) => {
-    const sEngine = (s.engineCategory || 'Governance').trim()
-    const matchesEngine =
-      selectedEngine === 'ALL' ||
-      sEngine.toLowerCase() === selectedEngine.trim().toLowerCase()
-
+    const matchesEngine = matchesEngineCategory(s.engineCategory, selectedEngine)
     if (!matchesEngine) return false
 
     if (activeStatuses.length === 0) return true

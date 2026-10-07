@@ -35,6 +35,7 @@ import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 import { getRuleForScenario } from '../../data/notificationRules'
+import { matchesEngineCategory } from '../../utils/scenarioFilters'
 
 // Google Gemini Multi-Color Gradient Sparkle Logo
 export const GeminiSparkleIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
@@ -838,7 +839,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     const engineScenarios =
       selectedEngine === 'ALL'
         ? scenarios
-        : scenarios.filter((s) => (s.engineCategory || 'Governance') === selectedEngine)
+        : scenarios.filter((s) => matchesEngineCategory(s.engineCategory, selectedEngine))
 
     const counts: Record<string, number> = {
       ALL: engineScenarios.length,
@@ -865,8 +866,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   // 1. Filter scenarios by engine category & multiple statuses (OR condition)
   const baseFiltered = useMemo(() => {
     return scenarios.filter((s) => {
-      const matchesEngine =
-        selectedEngine === 'ALL' || (s.engineCategory || 'Governance') === selectedEngine
+      const matchesEngine = matchesEngineCategory(s.engineCategory, selectedEngine)
       if (!matchesEngine) return false
 
       if (selectedStatuses.length === 0) return true

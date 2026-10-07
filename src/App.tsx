@@ -7,7 +7,7 @@ import { RuleBookTable } from './components/jira/RuleBookTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { JiraCreateModal } from './components/jira/JiraCreateModal'
 import { exportScenariosToExcel, exportRulesToExcel } from './utils/excel'
-import { filterScenarios } from './utils/scenarioFilters'
+import { filterScenarios, parseSelectedEngines } from './utils/scenarioFilters'
 import { ALL_NOTIFICATION_RULES } from './data/notificationRules'
 import { scenariosApi } from './api/scenariosApi'
 import { engineSheetsApi } from './api/engineSheetsApi'
@@ -459,8 +459,11 @@ function NotificationApp() {
   const exportTargetRules = useMemo(() => {
     let list = ALL_NOTIFICATION_RULES
     if (selectedEngine !== 'ALL') {
-      const eLower = selectedEngine.toLowerCase()
-      list = list.filter((r) => r.engine.toLowerCase() === eLower)
+      const selectedEngines = parseSelectedEngines(selectedEngine)
+      list = list.filter((r) => {
+        const rEng = r.engine.toLowerCase().replace(/\s+engine$/i, '')
+        return selectedEngines.includes(rEng)
+      })
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
