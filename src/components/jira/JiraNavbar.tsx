@@ -67,7 +67,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   govCount,
   contribCount,
   totalRows,
-  ruleBookCount = 409,
+  ruleBookCount = 440,
   productionCount = 0,
   activeView = 'scenarios',
   onChangeView,

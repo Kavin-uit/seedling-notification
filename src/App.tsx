@@ -632,7 +632,7 @@ function NotificationApp() {
         govCount={engineCounts['Governance'] || 0}
         contribCount={engineCounts['Contribution'] || 0}
         totalRows={scenarios.length}
-        ruleBookCount={409}
+        ruleBookCount={ALL_NOTIFICATION_RULES.length}
         productionCount={productionNotifications.length}
         activeView={activeView}
         onChangeView={setActiveView}
