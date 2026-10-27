@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import type { NotificationScenario, ScenarioStatus } from '../../types/notification'
 import { JiraStatusBadge } from './JiraStatusBadge'
 import {
@@ -10,6 +10,10 @@ import {
   MessageSquare,
   FileText,
   BookOpen,
+  Pencil,
+  Check,
+  Loader2,
+  Trash2,
 } from 'lucide-react'
 import { ScenarioAttachmentsSection } from './ScenarioAttachmentsSection'
 
@@ -26,9 +30,19 @@ interface JiraDetailModalProps {
   hasNext?: boolean
   onAttachmentCountChange?: (scenarioId: string, count: number) => void
   onOpenRuleBook?: (scenario: NotificationScenario) => void
+  onUpdateScenario?: (updated: NotificationScenario) => void | Promise<void>
+  onDeleteScenario?: (id: string) => void | Promise<void>
 }
 
-function parseEmailTemplate(scenario: NotificationScenario) {
+interface ParsedEmailParagraph {
+  text: string
+  boldLead?: string
+}
+
+function parseEmailTemplate(scenario: NotificationScenario): {
+  paragraphs: ParsedEmailParagraph[]
+  buttonText: string | null
+} {
   let rawBody = scenario.emailBody?.trim() || ''
   let buttonText: string | null = null
 
@@ -39,36 +53,93 @@ function parseEmailTemplate(scenario: NotificationScenario) {
     rawBody = rawBody.replace(/(?:^|\s+)BOX\s*:\s*[^\n\r]+?(?:\s*$|\.\s*$)/i, '').trim()
   }
 
-  // Parse bold introductory lead (actor name or lead phrase) and remaining body
-  let boldLead = ''
-  let remainingBody = rawBody
-
-  if (rawBody) {
-    // If starting with an actor/placeholder like "(Name)", "[Name]", or "First Last" followed by action verb
-    // e.g. "(Name) has accepted your invitation" or "Narmatha Uit s has accepted your invitation"
-    const actorMatch = rawBody.match(/^((?:\([^\)]+\)|\[[^\]]+\]|[A-Z][A-Za-z0-9\s.]{1,30}))\s+(has\s+[a-z]+|is\s+[a-z]+|accepted|invited|sent|made|commented|joined)\b(.*)$/is)
-    if (actorMatch) {
-      boldLead = actorMatch[1].trim()
-      remainingBody = `${actorMatch[2]} ${actorMatch[3]}`.trim()
-    } else {
-      const firstSentenceMatch = rawBody.match(/^([^.!?]+[.!?])\s*(.*)$/s)
-      if (firstSentenceMatch && firstSentenceMatch[2].trim()) {
-        boldLead = firstSentenceMatch[1].trim()
-        remainingBody = firstSentenceMatch[2].trim()
-      } else {
-        const dashMatch = rawBody.match(/^([^-–—]+[-–—])\s*(.*)$/s)
-        if (dashMatch) {
-          boldLead = dashMatch[1].trim()
-          remainingBody = dashMatch[2].trim()
-        } else {
-          boldLead = ''
-          remainingBody = rawBody
-        }
-      }
-    }
+  if (!rawBody) {
+    return { paragraphs: [], buttonText }
   }
 
-  return { boldLead, remainingBody, buttonText }
+  // Split rawBody into separate paragraphs by double newlines or multiple line breaks
+  const rawParagraphs = rawBody
+    .split(/\r?\n\s*\r?\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+
+  // Parse bold actor lead only if a paragraph explicitly starts with an actor pattern
+  const paragraphs: ParsedEmailParagraph[] = rawParagraphs.map((p) => {
+    const actorMatch = p.match(
+      /^((?:\([^)]+\)|\[[^\]]+\]|[A-Z][A-Za-z0-9\s.]{1,30}))\s+(has\s+[a-z]+|is\s+[a-z]+|accepted|invited|sent|made|commented|joined)\b(.*)$/is
+    )
+    if (actorMatch) {
+      return {
+        boldLead: actorMatch[1].trim(),
+        text: `${actorMatch[2]} ${actorMatch[3]}`.trim(),
+      }
+    }
+    return { text: p }
+  })
+
+  return { paragraphs, buttonText }
+}
+
+function renderEmailText(text: string) {
+  // Tokenize email addresses, URLs, bold labels, and markdown bold
+  const tokenRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|https?:\/\/[^\s]+|www\.[^\s]+|YOUR ENROLLMENT:|AUTO-REPLENISH CHARGE:|\*\*[^*]+\*\*)/g
+  const parts = text.split(tokenRegex)
+
+  return parts.map((part, idx) => {
+    if (!part) return null
+
+    // Clickable Email link
+    if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(part)) {
+      return (
+        <a
+          key={idx}
+          href={`mailto:${part}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-[#0052CC] hover:underline font-normal cursor-pointer"
+          title={`Email ${part}`}
+        >
+          {part}
+        </a>
+      )
+    }
+
+    // Clickable URL link
+    if (/^(https?:\/\/|www\.)/.test(part)) {
+      const url = part.startsWith('www.') ? `https://${part}` : part
+      return (
+        <a
+          key={idx}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="text-[#0052CC] hover:underline font-normal cursor-pointer"
+        >
+          {part}
+        </a>
+      )
+    }
+
+    // Key Section Headers
+    if (part === 'YOUR ENROLLMENT:' || part === 'AUTO-REPLENISH CHARGE:') {
+      return (
+        <strong key={idx} className="font-bold text-[#1C1C1E]">
+          {part}{' '}
+        </strong>
+      )
+    }
+
+    // Markdown bold: **text**
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={idx} className="font-bold text-[#1C1C1E]">
+          {part.slice(2, -2)}
+        </strong>
+      )
+    }
+
+    return <span key={idx}>{part}</span>
+  })
 }
 
 const SeedlingLogoWordmark: React.FC<{ className?: string }> = ({ className = 'h-7 sm:h-[30px] w-auto' }) => (
@@ -102,8 +173,69 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
   hasNext = false,
   onAttachmentCountChange,
   onOpenRuleBook,
+  onUpdateScenario,
+  onDeleteScenario,
 }) => {
   const [isSpecsExpanded, setIsSpecsExpanded] = useState<boolean>(false)
+  const [isEditingCta, setIsEditingCta] = useState<boolean>(false)
+  const [draftCta, setDraftCta] = useState<string>(scenario?.cta || '')
+  const [isSavingCta, setIsSavingCta] = useState<boolean>(false)
+  const [ctaSavedToast, setCtaSavedToast] = useState<boolean>(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false)
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const ctaInputRef = useRef<HTMLInputElement>(null)
+
+  // Sync draftCta when scenario changes
+  useEffect(() => {
+    setDraftCta(scenario?.cta || '')
+    setIsEditingCta(false)
+  }, [scenario?.id, scenario?.cta])
+
+  // Auto focus input when editing starts
+  useEffect(() => {
+    if (isEditingCta) {
+      ctaInputRef.current?.focus()
+      ctaInputRef.current?.select()
+    }
+  }, [isEditingCta])
+
+  const handleSaveCta = async () => {
+    if (!scenario || !onUpdateScenario) return
+    setIsSavingCta(true)
+    const updated: NotificationScenario = {
+      ...scenario,
+      cta: draftCta.trim(),
+      updatedAt: new Date().toISOString(),
+    }
+    try {
+      await onUpdateScenario(updated)
+      setIsEditingCta(false)
+      setCtaSavedToast(true)
+      setTimeout(() => setCtaSavedToast(false), 2000)
+    } catch (err) {
+      console.error('Failed to update CTA:', err)
+    } finally {
+      setIsSavingCta(false)
+    }
+  }
+
+  const handleCancelCta = () => {
+    setDraftCta(scenario?.cta || '')
+    setIsEditingCta(false)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!scenario || !onDeleteScenario) return
+    setIsDeleting(true)
+    try {
+      await onDeleteScenario(scenario.id)
+      setShowDeleteConfirm(false)
+      onClose()
+    } catch (err) {
+      console.error('Failed to delete scenario:', err)
+      setIsDeleting(false)
+    }
+  }
 
   // Keyboard navigation & close on Escape
   useEffect(() => {
@@ -180,6 +312,17 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
               >
                 <BookOpen className="w-3.5 h-3.5 text-[#0052CC]" />
                 <span>Rule Book</span>
+              </button>
+            )}
+            {onDeleteScenario && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-[#DE350B] bg-[#FFEBE6] hover:bg-[#FFBDAD]/40 border border-[#FFBDAD] rounded-[3px] transition-colors shadow-2xs cursor-pointer mr-1"
+                title={`Delete notification (${scenario.key})`}
+              >
+                <Trash2 className="w-3.5 h-3.5 text-[#DE350B]" />
+                <span>Delete</span>
               </button>
             )}
             {onNavigatePrev && (
@@ -306,24 +449,113 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
               {/* 3. Target CTA */}
               <div className="space-y-1.5">
-                <div className="px-0.5">
+                <div className="px-0.5 flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#6B778C]">
                     Target CTA
                   </span>
-                </div>
-
-                <div className="bg-[#F2F2F7]/95 border border-black/5 rounded-[18px] p-3 sm:p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)]">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <ExternalLink className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
-                    <p className="text-[13px] font-semibold text-[#0052CC] break-words select-text">
-                      {scenario.cta || (
-                        <span className="text-[#8E8E93] italic font-normal">
-                          No target CTA specified
-                        </span>
-                      )}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    {ctaSavedToast && (
+                      <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 animate-in fade-in">
+                        <Check className="w-3 h-3 stroke-[2.5]" /> Saved
+                      </span>
+                    )}
+                    {onUpdateScenario && !isEditingCta && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingCta(true)}
+                        className="text-[11px] font-semibold text-[#0052CC] hover:text-[#0747A6] hover:bg-blue-50 px-2 py-0.5 rounded transition inline-flex items-center gap-1 cursor-pointer"
+                        title="Edit Target CTA"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+                    )}
                   </div>
                 </div>
+
+                {isEditingCta ? (
+                  <div className="bg-white border-2 border-[#0052CC] rounded-[18px] p-3 sm:p-3.5 shadow-md space-y-2.5 animate-in fade-in zoom-in-98 duration-100">
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-[#0052CC] shrink-0" />
+                      <input
+                        ref={ctaInputRef}
+                        type="text"
+                        value={draftCta}
+                        onChange={(e) => setDraftCta(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleSaveCta()
+                          } else if (e.key === 'Escape') {
+                            e.preventDefault()
+                            handleCancelCta()
+                          }
+                        }}
+                        placeholder="e.g. take user to campaign for seedling"
+                        className="w-full text-[13px] font-semibold text-[#172B4D] placeholder-slate-400 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:bg-white focus:border-[#0052CC] transition"
+                        disabled={isSavingCta}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[10px] text-[#6B778C]">
+                        Press <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-200 rounded text-[9px] font-mono">Enter</kbd> to save, <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-200 rounded text-[9px] font-mono">Esc</kbd> to cancel
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCancelCta}
+                          disabled={isSavingCta}
+                          className="px-2.5 py-1 text-xs font-medium text-[#5E6C84] hover:text-[#172B4D] hover:bg-slate-100 rounded-[4px] border border-slate-200 transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveCta}
+                          disabled={isSavingCta}
+                          className="px-3 py-1 text-xs font-semibold text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[4px] transition flex items-center gap-1 shadow-2xs cursor-pointer disabled:opacity-50"
+                        >
+                          {isSavingCta ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Check className="w-3 h-3 stroke-[2.5]" />
+                          )}
+                          <span>Save</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => {
+                      if (onUpdateScenario) setIsEditingCta(true)
+                    }}
+                    className={`bg-[#F2F2F7]/95 border border-black/5 rounded-[18px] p-3 sm:p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] transition-all ${
+                      onUpdateScenario
+                        ? 'hover:border-[#0052CC]/40 hover:bg-[#EBEEF5] cursor-pointer group/cta'
+                        : ''
+                    }`}
+                    title={onUpdateScenario ? 'Click to edit Target CTA' : undefined}
+                  >
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <ExternalLink className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                        <p className="text-[13px] font-semibold text-[#0052CC] break-words select-text">
+                          {scenario.cta || (
+                            <span className="text-[#8E8E93] italic font-normal">
+                              No target CTA specified
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      {onUpdateScenario && (
+                        <span className="opacity-0 group-hover/cta:opacity-100 transition-opacity text-slate-400 group-hover/cta:text-[#0052CC] shrink-0 p-1" title="Edit Target CTA">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -369,15 +601,19 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
 
                 {/* Email Body Content */}
                 <div className="px-6 py-6 sm:px-8 sm:py-7 bg-white flex flex-col justify-between flex-1">
-                  {emailTemplate.boldLead || emailTemplate.remainingBody ? (
-                    <p className="text-[14px] sm:text-[14.5px] text-[#1C1C1E] leading-relaxed">
-                      {emailTemplate.boldLead && (
-                        <strong className="font-bold text-[#1C1C1E]">
-                          {emailTemplate.boldLead}{' '}
-                        </strong>
-                      )}
-                      <span>{emailTemplate.remainingBody}</span>
-                    </p>
+                  {emailTemplate.paragraphs.length > 0 ? (
+                    <div className="space-y-3.5 text-[14px] sm:text-[14.5px] text-[#1C1C1E] leading-relaxed select-text">
+                      {emailTemplate.paragraphs.map((p, idx) => (
+                        <p key={idx}>
+                          {p.boldLead && (
+                            <strong className="font-bold text-[#1C1C1E]">
+                              {p.boldLead}{' '}
+                            </strong>
+                          )}
+                          <span>{renderEmailText(p.text)}</span>
+                        </p>
+                      ))}
+                    </div>
                   ) : (
                     <p className="text-xs text-[#8E8E93] italic">
                       No email message configured
@@ -521,6 +757,58 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+          onClick={() => !isDeleting && setShowDeleteConfirm(false)}
+        >
+          <div
+            className="w-full max-w-[340px] rounded-xl bg-white border border-[#DFE1E6] shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 text-center">
+              <div className="w-10 h-10 rounded-full bg-[#FFEBE6] text-[#DE350B] flex items-center justify-center mx-auto mb-3">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-[#172B4D]">
+                Delete "{scenario.key}"?
+              </h3>
+              <p className="mt-1.5 text-xs text-[#5E6C84] leading-relaxed">
+                {scenario.governanceEvent ? `${scenario.governanceEvent}. ` : ''}
+                Are you sure you want to delete this notification? This record will be permanently removed from the database.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 border-t border-[#EBECF0] bg-[#FAFBFC] text-sm font-semibold">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setShowDeleteConfirm(false)}
+                className="py-2.5 text-[#42526E] hover:bg-[#EBECF0] active:bg-[#DFE1E6] border-r border-[#EBECF0] transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="py-2.5 text-white bg-[#DE350B] hover:bg-[#BF2600] active:bg-[#9E2000] transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

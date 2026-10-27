@@ -30,6 +30,8 @@ import {
   Share,
   Eye,
   BookOpen,
+  Plus,
+  Rocket,
 } from 'lucide-react'
 import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
@@ -67,6 +69,8 @@ interface JiraTableProps {
   onUpdateStatus: (id: string, newStatus: ScenarioStatus) => void
   onDeleteScenario: (id: string) => void
   onAddRow: () => NotificationScenario | void
+  onCloneToProduction?: (scenario: NotificationScenario) => void
+  productionScenarioIds?: Set<string> | string[]
   searchQuery: string
   onClearSearch?: () => void
   selectedEngine: string
@@ -111,8 +115,9 @@ export type TableColumnKey =
   | 'comments'
   | 'status'
   | 'action'
+  | 'prodClone'
 
-const COLUMN_STORAGE_KEY = 'seedling_sheet_column_widths_v7'
+const COLUMN_STORAGE_KEY = 'seedling_sheet_column_widths_v8'
 
 const DEFAULT_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
   index: 48,
@@ -131,6 +136,7 @@ const DEFAULT_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
   comments: 220,
   status: 180,
   action: 88,
+  prodClone: 60,
 }
 
 const MIN_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
@@ -150,6 +156,7 @@ const MIN_COLUMN_WIDTHS: Record<TableColumnKey, number> = {
   comments: 120,
   status: 100,
   action: 76,
+  prodClone: 46,
 }
 
 const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -270,6 +277,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   onUpdateStatus,
   onDeleteScenario,
   onAddRow: _onAddRow,
+  onCloneToProduction,
+  productionScenarioIds,
   searchQuery,
   onClearSearch,
   selectedEngine,
@@ -284,6 +293,12 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   onShowToast,
   onOpenShareModal,
 }) => {
+  const productionIdsSet = useMemo(() => {
+    if (!productionScenarioIds) return new Set<string>()
+    if (productionScenarioIds instanceof Set) return productionScenarioIds
+    return new Set(productionScenarioIds)
+  }, [productionScenarioIds])
+
   const [internalStatusFilter, setInternalStatusFilter] = useState<string>('ALL')
   const statusFilter = propsStatusFilter !== undefined ? propsStatusFilter : internalStatusFilter
   const setStatusFilter = (val: string) => {
@@ -513,6 +528,8 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     rect: DOMRect
   } | null>(null)
   const [deletingScenario, setDeletingScenario] = useState<NotificationScenario | null>(null)
+  const [editingCtaId, setEditingCtaId] = useState<string | null>(null)
+  const [editingCtaValue, setEditingCtaValue] = useState<string>('')
   const [copiedToast, setCopiedToast] = useState<string | null>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
@@ -1452,6 +1469,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
             <col style={{ width: `${columnWidths.comments}px` }} />
             <col style={{ width: `${columnWidths.status}px` }} />
             <col style={{ width: `${columnWidths.action}px` }} />
+            <col style={{ width: `${columnWidths.prodClone}px` }} />
           </colgroup>
 
           {/* Header styled like Microsoft Excel / Google Sheets green header */}
@@ -1652,10 +1670,27 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   minWidth: `${columnWidths.action}px`,
                   maxWidth: `${columnWidths.action}px`,
                 }}
-                className="relative px-2 py-2.5 font-semibold text-xs tracking-normal text-center whitespace-nowrap bg-[#107C41] text-white"
+                className="relative px-2 py-2.5 font-semibold text-xs tracking-normal text-center whitespace-nowrap bg-[#107C41] text-white border-r border-[#0D6535]"
               >
                 <span className="block" title="Action">Action</span>
                 {renderResizeHandle('action', 'Action')}
+              </th>
+
+              {/* Add to Production Ready (+) Column */}
+              <th
+                style={{
+                  width: `${columnWidths.prodClone}px`,
+                  minWidth: `${columnWidths.prodClone}px`,
+                  maxWidth: `${columnWidths.prodClone}px`,
+                }}
+                className="relative px-1 py-2.5 font-bold text-center bg-[#0E6C38] text-white select-none whitespace-nowrap"
+                title="Clone to Production Ready: Click + to duplicate notification"
+              >
+                <div className="flex items-center justify-center gap-1">
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span className="text-[10px] uppercase font-bold tracking-wider hidden sm:inline">Prod</span>
+                </div>
+                {renderResizeHandle('prodClone', 'Add to Production')}
               </th>
             </tr>
           </thead>
@@ -1664,7 +1699,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
           <tbody className="divide-y divide-[#E1E4E8] bg-white">
             {filteredScenarios.length === 0 ? (
               <tr>
-                <td colSpan={16} className="py-12 text-center text-[#6B778C]">
+                <td colSpan={17} className="py-12 text-center text-[#6B778C]">
                   <p className="font-semibold text-sm">No matching notification rows</p>
                   <p className="text-xs text-slate-400 mt-1">
                     {isSearchActive
@@ -1934,9 +1969,76 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                       {renderCell('inAppExperience', row.inAppExperience)}
                     </td>
 
-                    {/* Call to Action */}
-                    <td className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden">
-                      {renderCell('cta', row.cta)}
+                    {/* Call to Action (Inline Editable on Double-Click or Pencil Icon) */}
+                    <td
+                      className="px-3 py-2 border-r border-[#E1E4E8] overflow-hidden cursor-pointer relative group/ctacell"
+                      onDoubleClick={(e) => {
+                        e.stopPropagation()
+                        setEditingCtaId(row.id)
+                        setEditingCtaValue(row.cta || '')
+                      }}
+                      title="Double-click to edit CTA"
+                    >
+                      {editingCtaId === row.id ? (
+                        <div
+                          className="flex items-center gap-1.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="text"
+                            autoFocus
+                            value={editingCtaValue}
+                            onChange={(e) => setEditingCtaValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                onUpdateScenario({
+                                  ...row,
+                                  cta: editingCtaValue.trim(),
+                                  updatedAt: new Date().toISOString(),
+                                })
+                                setEditingCtaId(null)
+                                setCopiedToast(`Updated CTA for ${row.key}`)
+                                setTimeout(() => setCopiedToast(null), 2500)
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault()
+                                setEditingCtaId(null)
+                              }
+                            }}
+                            onBlur={() => {
+                              if (editingCtaValue.trim() !== (row.cta || '')) {
+                                onUpdateScenario({
+                                  ...row,
+                                  cta: editingCtaValue.trim(),
+                                  updatedAt: new Date().toISOString(),
+                                })
+                                setCopiedToast(`Updated CTA for ${row.key}`)
+                                setTimeout(() => setCopiedToast(null), 2500)
+                              }
+                              setEditingCtaId(null)
+                            }}
+                            className="w-full text-xs font-medium text-[#172B4D] bg-white border border-[#0052CC] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="truncate flex-1">
+                            {renderCell('cta', row.cta)}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingCtaId(row.id)
+                              setEditingCtaValue(row.cta || '')
+                            }}
+                            className="opacity-0 group-hover/ctacell:opacity-100 p-0.5 text-slate-400 hover:text-[#0052CC] rounded transition shrink-0 cursor-pointer"
+                            title="Edit CTA"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </td>
 
                     {/* Manual Comments (Notes-like UI popover to view and type, with text always visible in the cell) */}
@@ -1997,7 +2099,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                     </td>
 
                     {/* Actions: View Details, History, Copy & Delete */}
-                    <td className="px-2 py-2 text-center whitespace-nowrap overflow-hidden">
+                    <td className="px-2 py-2 text-center whitespace-nowrap overflow-hidden border-r border-[#E1E4E8]">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
@@ -2041,6 +2143,15 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                         </button>
                         <button
                           type="button"
+                          onClick={() => onCloneToProduction?.(row)}
+                          className="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition cursor-pointer"
+                          title={`Clone #${rowNumber} to Production Ready (${row.key})`}
+                          aria-label="Clone to Production"
+                        >
+                          <Plus className="w-3.5 h-3.5 stroke-[2.2]" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleDeleteRow(row)}
                           className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
                           title={`Delete row #${rowNumber} (${row.key})`}
@@ -2048,6 +2159,37 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                    </td>
+
+                    {/* Add / Clone to Production Ready Cell (Last Column) */}
+                    <td className="px-1.5 py-2 text-center whitespace-nowrap overflow-hidden bg-white">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onCloneToProduction?.(row)
+                        }}
+                        className={`inline-flex items-center justify-center w-6.5 h-6.5 rounded-[4px] transition cursor-pointer select-none group/prodbtn ${
+                          productionIdsSet.has(row.id)
+                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 shadow-2xs'
+                            : 'bg-[#F4F5F7] text-slate-700 hover:bg-[#DEEBFF] hover:text-[#0052CC] border border-slate-200 hover:border-[#B3D4FF]'
+                        }`}
+                        title={
+                          productionIdsSet.has(row.id)
+                            ? `In Production Ready (Click + to duplicate again)`
+                            : `Clone #${rowNumber} (${row.key}) to Production Ready`
+                        }
+                        aria-label={`Clone ${row.key} to Production Ready`}
+                      >
+                        {productionIdsSet.has(row.id) ? (
+                          <div className="flex items-center">
+                            <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600 group-hover/prodbtn:hidden" />
+                            <Plus className="w-3.5 h-3.5 stroke-[2.5] text-emerald-700 hidden group-hover/prodbtn:block" />
+                          </div>
+                        ) : (
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        )}
+                      </button>
                     </td>
                   </tr>
                 )
@@ -2218,6 +2360,21 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                 >
                   <Copy className="w-3.5 h-3.5 text-slate-500" />
                   <span>Copy Entire Row</span>
+                </button>
+              </div>
+
+              {/* Clone to Production Ready */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onCloneToProduction?.(contextMenu.scenario)
+                    setContextMenu(null)
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-emerald-50 text-emerald-700 cursor-pointer transition text-left text-xs font-semibold"
+                >
+                  <Rocket className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Clone to Production Ready</span>
                 </button>
               </div>
 
@@ -2535,6 +2692,17 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                   }
                 : null
             )
+          }}
+          onUpdateScenario={(updated: NotificationScenario) => {
+            onUpdateScenario(updated)
+            setDetailScenario((prev) =>
+              prev ? { ...prev, scenario: updated } : null
+            )
+          }}
+          onDeleteScenario={(id: string) => {
+            onDeleteScenario(id)
+            setCopiedToast(`Deleted ${detailScenario.scenario.key}`)
+            setTimeout(() => setCopiedToast(null), 2500)
           }}
           onNavigatePrev={() => {
             const currentIndex = filteredScenarios.findIndex(

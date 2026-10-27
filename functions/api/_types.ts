@@ -209,3 +209,67 @@ export function mapDbRowToScenario(row: ScenarioDbRow, rule?: any) {
     updatedAt: row.updated_at,
   }
 }
+
+export interface ProductionNotificationDbRow {
+  id: string
+  original_scenario_id?: string
+  key: string
+  engine_category: string
+  governance_event: string
+  trigger: string
+  audience: string
+  communication_objective: string
+  desired_outcome: string
+  push_subject: string
+  push_body: string
+  email_subject: string
+  email_body: string
+  in_app_experience: string
+  cta: string
+  comments?: string
+  notes?: string
+  status: string
+  priority: string
+  environment: string
+  rule_id?: string
+  cloned_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export function mapDbRowToProductionNotification(row: ProductionNotificationDbRow, rule?: any) {
+  const validRule = rule && typeof rule === 'object' && 'ruleId' in rule ? rule : undefined
+  return {
+    id: row.id,
+    originalScenarioId: row.original_scenario_id || '',
+    key: row.key,
+    engineCategory: row.engine_category || 'Governance',
+    governanceEvent: row.governance_event,
+    trigger: row.trigger || '',
+    audience: row.audience || '',
+    communicationObjective: row.communication_objective || '',
+    desiredOutcome: row.desired_outcome || '',
+    pushSubject: row.push_subject || '',
+    pushBody: row.push_body || '',
+    emailSubject: row.email_subject || '',
+    emailBody: row.email_body || '',
+    inAppExperience: row.in_app_experience || '',
+    cta: row.cta || '',
+    comments: row.comments || '',
+    notes: row.notes || '',
+    status: row.status || 'READY FOR PROD',
+    priority: row.priority || 'Medium',
+    environment: row.environment || 'PROD',
+    ruleId: row.rule_id || '',
+    rule: validRule,
+    assignee: {
+      name: 'Prod Engineer',
+      email: 'prod@seedling.org',
+      avatar: '',
+    },
+    clonedAt: row.cloned_at || row.created_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+

@@ -94,9 +94,9 @@ export const DEFAULT_ENGINE_SHEETS: Record<string, EngineSheetConfig> = {
     engineCategory: 'Contribution',
     sheetName: 'Contribution Content Sheet',
     sheetUrl:
-      'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
+      'https://docs.google.com/spreadsheets/d/10xRqhys7AVmz3kIaMlFw09k9-lMaog8Y/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
     csvExportUrl:
-      'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/export?format=csv',
+      'https://docs.google.com/spreadsheets/d/10xRqhys7AVmz3kIaMlFw09k9-lMaog8Y/export?format=csv',
     enabled: true,
   },
   Participation: {
@@ -296,7 +296,6 @@ Account Restored,Account reinstated,Commenter,Notify restoration,Full use,Welcom
 const CONTRIBUTION_FALLBACK_SNAPSHOT = `Contribution Event,Trigger,Audience,Communication Objective,Desired Outcome,Push Notification Subject Line,Push Notification,Email Subject Line,Email Message,In-App Experience,Call to Action
 Donation Made via Credit/Debit Card,Donor makes donation,Donor,Thank donor,Positive moment,Thank you! 💚,Your donation moved (Seedling) one step closer to its goal -- thank you!,Thank You! 💚,"Thank you! Your donation moved (Seedling) one step closer to its goal. Every gift counts, and yours just made a real difference.  BOX: View Donation",Your donation is complete -- (Seedling) is one step closer to its goal. Thank you!,take user directly to Seedling
 Annual Giving Summary Ready,Year-end generated,Donor,Support tax reporting,Download summary,Your year in giving is ready 📊,Your annual giving summary is ready -- check out your generosity this past year!,Your Year in Giving Is Ready 📊,Your annual giving summary is ready. Take a look at the impact you made this year -- it's worth celebrating.  BOX: View Summary,Your year-end giving summary is available to download for your records.  BOX: View Summary,take user to annual giving summary download
-ACH Donation Confirmed,Funds settled,Donor,Build trust,Retain confidence,Your ACH donation is confirmed ✅,Your ACH donation has been confirmed.,Your ACH Donation Is Confirmed ✅,Your ACH payment has fully processed and your donation is complete. Thank you for growing good.  BOX: View Donation,Your ACH payment has fully processed and your donation is complete.,take user to donation details
 ACH Donation Failed,Payment declined,Donor,Resolve issue,Retry donation,We hit a snag with your donation,We couldn't process your ACH donation.,We Hit a Snag With Your Donation,We weren't able to process your ACH donation. Please update your payment method or try again so your gift can go through.  BOX: Update Payment,Your ACH payment didn't go through -- please update your payment method or try again.,take user to payment method update screen
 ACH Donation Pending,ACH or delayed payment,Donor,Set expectations,Await settlement,Your donation is on its way,Your ACH donation is being processed.,Your Donation Is on Its Way,Your ACH payment is on its way. We'll let you know as soon as it's confirmed -- no action needed in the meantime.  BOX: View Status,Your ACH payment is on its way. We'll let you know as soon as it's confirmed.,take user to donation status
 Donation Receipt Available,Receipt generated,Donor,Provide documentation,Download receipt,Your receipt is ready 🧾,Your donation receipt is ready.,Your Receipt Is Ready 🧾,Your donation receipt is ready whenever you need it. Download or email it for your records anytime.  BOX: View Receipt,Download or email your official donation receipt anytime.  BOX: View Receipt,take user to donation receipt
@@ -321,7 +320,24 @@ Recurring Donation Resumed,Subscription resumed,Donor,Welcome back,Continue givi
 Recurring Donation Upcoming,Scheduled payment approaching,Donor,Prepare donor,Continue support,Your gift is coming up,Your recurring donation is coming up.,Your Gift Is Coming Up,Your recurring donation is coming up soon. We'll process it automatically -- no action is needed unless you'd like to make changes.  BOX: View Settings,We'll process your scheduled donation soon. No action is needed unless you'd like to make changes.,take user to recurring donation settings
 Refund Issued,Donation refunded,Donor,Explain transaction,Maintain trust,Your refund is on the way,Your refund has been processed.,Your Refund Is on the Way,"Your refund has been issued. Depending on your bank, it may take a few days to appear on your statement.  BOX: View Details","Your refund has been issued. Depending on your bank, it may take a few days to appear.",take user to donation history
 Tax Acknowledgement Ready,IRS acknowledgment prepared,Donor,Provide compliance,Retain records,Your tax document is ready 🧾,Your tax acknowledgement is ready.,Your Tax Document Is Ready 🧾,Your tax acknowledgement is ready whenever you need it for your records.  BOX: View Document,Your tax documentation is available whenever you need it.,take user to tax documents
-Tax Season Reminder,Annual statement available,Donor,Support tax filing,Download documents,Tax season is here,Tax season is here—don't forget your giving records.,Tax Season Is Here,Tax season is here -- don't forget your giving records. Access your donation receipts and annual summary all in one place.  BOX: View Documents,Access your donation receipts and annual summary in one place.,take user to tax documents`
+Tax Season Reminder,Annual statement available,Donor,Support tax filing,Download documents,Tax season is here,Tax season is here—don't forget your giving records.,Tax Season Is Here,Tax season is here -- don't forget your giving records. Access your donation receipts and annual summary all in one place.  BOX: View Documents,Access your donation receipts and annual summary in one place.,take user to tax documents
+Grounds Crew Enrollment Confirmed,"Donor enrolls in The Grounds Crew (if the first monthly contribution processes the same day, it is included in this message)",Donor (parent/guardian for family accounts),"Welcome the new member and deliver the enrollment confirmation required by ToS 4.4 (monthly amount, first charge date, continues monthly until cancelled, how to cancel)",Stay enrolled; meet the Picks,Welcome to The Grounds Crew! 🌱,You're on The Grounds Crew! Each month your gift will support that month's 5 Picks to Click.,Welcome to The Grounds Crew! 🌱,"Welcome to The Grounds Crew! You've made generosity a habit. Each month, your donation to Seedling Social Giving is regranted among that month's 5 Picks to Click -- hand-picked Seedlings that deserve a boost. We'll send you one note each month when your gift goes out and introduce the new Picks -- no flood of notifications, just the good stuff.
+
+YOUR ENROLLMENT: Monthly amount: (Amount). Funding source: (Card ending #### | GreenHouse balance). First contribution: (First Charge Date). Your contribution repeats on or about the same day each month until you cancel. You can change your amount or funding source, or cancel, anytime in the app under The Grounds Crew, or by emailing support@seedlingsocial.org.
+
+[IF FIRST CONTRIBUTION PROCESSED TODAY] Your first gift is already supporting (Seedling 1), (Seedling 2), (Seedling 3), (Seedling 4), and (Seedling 5). Add the card/ACH or GreenHouse closing from Support All 5 Gift Made.  BOX: Meet Your Picks","Welcome to The Grounds Crew! Monthly amount: (Amount), starting (First Charge Date) and repeating monthly until you cancel. Manage or cancel anytime in the app under The Grounds Crew, or email support@seedlingsocial.org.  BOX: Meet Your Picks","take user to Grounds Crew hub (current 5 Picks, amounts, membership settings incl. cancel)"
+Grounds Crew Monthly Gift Processed,Monthly Grounds Crew contribution processed (card charge succeeds or GreenHouse balance applied) for the new month's Picks,Donor (Grounds Crew member),Confirm the month's gift once and introduce the new Picks (replaces the monthly Picks to Click digest for members),Open app to meet new Picks; stay enrolled,Your Grounds Crew gift is out 💚,"Your Grounds Crew gift is now supporting this month's 5 Picks to Click. Come meet them!   [IF AUTO-REPLENISH CHARGED] Your Grounds Crew gift is out, and Auto-Replenish added (Replenish Amount) to your GreenHouse.",Your Grounds Crew Gift Is Out 💚,"Thanks for being on The Grounds Crew! Your (Amount) gift this month is supporting (Seedling 1), (Seedling 2), (Seedling 3), (Seedling 4), and (Seedling 5). Since joining, you've helped (Count) Seedlings grow.
+
+[CARD/ACH-FUNDED closing] Your donation acknowledgment from Seedling Social Giving is saved in your giving history and will be included in your year-end giving summary.
+
+[GREENHOUSE-FUNDED closing] This gift is a grant recommendation from your GreenHouse -- your donation to Seedling Social Giving was already recorded when you added those funds to your GreenHouse, so no new acknowledgment is issued. GreenHouse balance remaining: (Balance).
+
+[IF THIS GIFT TRIGGERED AUTO-REPLENISH -- required notice, ToS 4.3] AUTO-REPLENISH CHARGE: (Replenish Amount) was charged to (Card ending ####) on (Date) to refill your GreenHouse. This is a new donation to Seedling Social Giving; your acknowledgment is saved in your giving history. Change or turn off Auto-Replenish anytime in GreenHouse settings.  BOX: Meet This Month's Picks",Your Grounds Crew gift is now supporting this month's 5 Picks to Click. You've helped (Count) Seedlings grow.  BOX: Meet the Picks,"take user to video intro of the new Picks first, then the Grounds Crew hub listing the 5 Picks"
+Support All 5 Gift Made,Donor completes a Support all 5 gift (all 5 recommendations recorded under one parent_gift_id),Donor (parent/guardian for family accounts),Thank donor once for the whole gift and show five-fold impact,Positive moment; explore The Grounds Crew,You just supported all 5! 💚,Your gift is supporting all 5 Picks to Click -- five Seedlings just moved closer to their goals. Thank you!,You Just Supported All 5! 💚,"Thank you! Your gift of (Amount) is supporting all 5 of (this week's / this month's) Picks to Click: (Seedling 1), (Seedling 2), (Seedling 3), (Seedling 4), and (Seedling 5). Five causes, one generous act -- and every one of them is closer to its goal because of you.
+
+[CARD/ACH-FUNDED closing] Your donation acknowledgment from Seedling Social Giving is saved in your giving history and will be included in your year-end giving summary.
+
+[GREENHOUSE-FUNDED closing] This gift is a grant recommendation from your GreenHouse -- your donation to Seedling Social Giving was already recorded when you added those funds on (Deposit Date), so no new acknowledgment is issued.  BOX: See Your Impact","Thank you! Your gift is supporting all 5 Picks to Click -- five Seedlings are closer to their goals, and that's 5 donations toward your next badge! [GREENHOUSE] Sent from your GreenHouse.  BOX: See Your Impact   |   Secondary line (non-members only): Want to do this every month automatically? Join The Grounds Crew.  BOX: Join The Grounds Crew",take user to Support all 5 impact summary (all 5 Seedlings with amounts, progress bars, and any badges/goals this gift unlocked)`
 
 // In-flight request deduplication map (Single-flight pattern)
 const inFlightSheetRequests = new Map<string, Promise<SheetScenarioRow[]>>()
@@ -538,17 +554,7 @@ export async function verifyEngineScenarios(
       )
     }
 
-    // Try key numeric index match if not found (e.g. GOV-1 -> row 0)
-    if (!matchedSheetRow) {
-      const numMatch = scen.key.match(/\d+/)
-      if (numMatch) {
-        const idx = parseInt(numMatch[0], 10) - 1
-        if (idx >= 0 && idx < sheetRows.length) {
-          matchedSheetRow = sheetRows[idx]
-        }
-      }
-    }
-
+    // If the scenario does not exist in the Google Sheet, skip field verification
     if (!matchedSheetRow) {
       return
     }

@@ -35,8 +35,14 @@ class ScenariosApi {
       if (stored) {
         const parsed = JSON.parse(stored)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Filter out any fake RuleBook scenarios from earlier
-          return parsed.filter((s) => s.engineCategory !== 'RuleBook')
+          // Filter out any fake RuleBook scenarios from earlier and deleted scenarios
+          return parsed.filter(
+            (s) =>
+              s.engineCategory !== 'RuleBook' &&
+              s.id !== 'contrib-2' &&
+              s.id !== 'ce-2' &&
+              s.governanceEvent !== 'ACH Donation Confirmed'
+          )
         }
       }
     } catch {

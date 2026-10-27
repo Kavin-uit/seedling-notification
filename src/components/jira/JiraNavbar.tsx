@@ -8,17 +8,16 @@ import {
   Check,
   Share,
   Plus,
-  PanelLeft,
-  LayoutGrid,
   Table2,
   BookOpen,
+  Rocket,
 } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 import { parseSelectedEngines } from '../../utils/scenarioFilters'
 
 export type EngineCategoryFilter = 'ALL' | string
-export type ActiveDashboardView = 'scenarios' | 'rulebook'
+export type ActiveDashboardView = 'scenarios' | 'rulebook' | 'production'
 
 export interface EngineMenuItem {
   name: string
@@ -42,6 +41,7 @@ interface JiraNavbarProps {
   contribCount?: number
   totalRows: number
   ruleBookCount?: number
+  productionCount?: number
   activeView?: ActiveDashboardView
   onChangeView?: (view: ActiveDashboardView) => void
   verificationSummary?: SheetVerificationSummary | null
@@ -68,6 +68,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   contribCount,
   totalRows,
   ruleBookCount = 409,
+  productionCount = 0,
   activeView = 'scenarios',
   onChangeView,
   verificationSummary,
@@ -251,25 +252,8 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
 
   return (
     <header className="h-13 bg-[#0747A6] text-white flex items-center justify-between px-3 sm:px-4 select-none shrink-0 border-b border-[#0052CC] shadow-xs gap-2 sm:gap-3 flex-nowrap min-w-0">
-      {/* Left side: Navigation icons, Seedling Brand & Engine Switcher */}
+      {/* Left side: Seedling Brand & Engine Switcher */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
-        {/* Sidebar Toggle Icon */}
-        <button
-          type="button"
-          className="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer hidden md:flex items-center justify-center shrink-0"
-          title="Toggle sidebar"
-        >
-          <PanelLeft className="w-4 h-4" />
-        </button>
-
-        {/* App Switcher (9-dot bento grid) */}
-        <button
-          type="button"
-          className="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition cursor-pointer hidden sm:flex items-center justify-center shrink-0"
-          title="Atlassian switch to..."
-        >
-          <LayoutGrid className="w-4 h-4" />
-        </button>
 
         {/* Brand - Click to reset all filters and display all records */}
         <button
@@ -333,6 +317,29 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
               }`}
             >
               {ruleBookCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onChangeView?.('production')}
+            className={`cursor-pointer h-7.5 px-2 sm:px-2.5 rounded-[3px] text-xs font-semibold flex items-center gap-1.5 transition select-none ${
+              activeView === 'production'
+                ? 'bg-white text-[#0747A6] shadow-xs'
+                : 'text-white/80 hover:text-white hover:bg-white/10'
+            }`}
+            title="Production Ready Notifications"
+          >
+            <Rocket className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Production Ready</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                activeView === 'production'
+                  ? 'bg-[#DEEBFF] text-[#0747A6]'
+                  : 'bg-white/20 text-white'
+              }`}
+            >
+              {productionCount}
             </span>
           </button>
         </div>

@@ -1,18 +1,21 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import type { NotificationScenario, ScenarioStatus } from './types/notification'
+import type { NotificationScenario, ScenarioStatus, ProductionNotification } from './types/notification'
 import { JiraNavbar } from './components/jira/JiraNavbar'
 import type { EngineCategoryFilter, EngineMenuItem, ActiveDashboardView } from './components/jira/JiraNavbar'
 import { JiraTable } from './components/jira/JiraTable'
 import { RuleBookTable } from './components/jira/RuleBookTable'
+import { ProductionReadyTable } from './components/jira/ProductionReadyTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { JiraCreateModal } from './components/jira/JiraCreateModal'
 import { exportScenariosToExcel, exportRulesToExcel } from './utils/excel'
 import { filterScenarios, parseSelectedEngines } from './utils/scenarioFilters'
 import { ALL_NOTIFICATION_RULES } from './data/notificationRules'
 import { scenariosApi } from './api/scenariosApi'
+import { productionApi } from './api/productionApi'
 import { engineSheetsApi } from './api/engineSheetsApi'
 import { enginesApi } from './api/enginesApi'
 import { recordScenarioUpdate } from './utils/versionHistory'
+import confetti from 'canvas-confetti'
 import {
   verifyAllEngines,
   type SheetVerificationSummary,
@@ -76,14 +79,16 @@ function loadInitialFilters(): InitialFiltersState {
 function NotificationApp() {
 
   const [scenarios, setScenarios] = useState<NotificationScenario[]>([])
+  const [productionNotifications, setProductionNotifications] = useState<ProductionNotification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [dbEngines, setDbEngines] = useState<string[]>([])
-  // Active view: 'scenarios' (QA test execution) or 'rulebook' (Master Rule Book specification map)
+  // Active view: 'scenarios' (QA test execution), 'rulebook' (Master Rule Book), or 'production' (Production Ready)
   const [activeView, setActiveView] = useState<ActiveDashboardView>(() => {
     try {
       const params = new URLSearchParams(window.location.search)
       const v = params.get('view')
       if (v === 'rulebook') return 'rulebook'
+      if (v === 'production') return 'production'
       const saved = localStorage.getItem(FILTERS_STORAGE_KEY)
       if (saved) {
         const parsed = JSON.parse(saved)
@@ -126,6 +131,8 @@ function NotificationApp() {
       const url = new URL(window.location.href)
       if (activeView === 'rulebook') {
         url.searchParams.set('view', 'rulebook')
+      } else if (activeView === 'production') {
+        url.searchParams.set('view', 'production')
       } else {
         url.searchParams.delete('view')
       }
@@ -172,7 +179,8 @@ function NotificationApp() {
       setSearchQuery(parsed.q)
       try {
         const params = new URLSearchParams(window.location.search)
-        setActiveView(params.get('view') === 'rulebook' ? 'rulebook' : 'scenarios')
+        const v = params.get('view')
+        setActiveView(v === 'rulebook' ? 'rulebook' : v === 'production' ? 'production' : 'scenarios')
       } catch {}
     }
     window.addEventListener('popstate', handlePopState)
@@ -230,14 +238,18 @@ function NotificationApp() {
       scenariosApi.fetchScenarios(),
       engineSheetsApi.fetchEngineSheets(),
       enginesApi.fetchEngines(),
+      productionApi.fetchProductionNotifications(),
     ])
-      .then(([{ scenarios: data }, _sheets, enginesList]) => {
+      .then(([{ scenarios: data }, _sheets, enginesList, { productionNotifications: prodData }]) => {
         if (data && data.length > 0) {
           setScenarios(data)
           runVerification(data, selectedEngineRef.current)
         }
         if (enginesList && enginesList.length > 0) {
           setDbEngines(enginesList)
+        }
+        if (prodData && prodData.length > 0) {
+          setProductionNotifications(prodData)
         }
       })
       .finally(() => {
@@ -282,6 +294,11 @@ function NotificationApp() {
       const trimmed = (s.engineCategory || '').trim()
       if (trimmed) set.add(trimmed)
     })
+    // From production notifications
+    productionNotifications.forEach((p) => {
+      const trimmed = (p.engineCategory || '').trim()
+      if (trimmed) set.add(trimmed)
+    })
     // Core fallback defaults if empty
     if (set.size === 0) {
       set.add('Campaign')
@@ -291,6 +308,7 @@ function NotificationApp() {
       set.add('Identity')
       set.add('Opportunity')
       set.add('Discovery')
+      set.add('Manual')
     }
 
     const list = Array.from(set)
@@ -303,7 +321,7 @@ function NotificationApp() {
       if (b === 'Contribution') return 1
       return a.localeCompare(b)
     })
-  }, [dbEngines, scenarios])
+  }, [dbEngines, scenarios, productionNotifications])
 
   // Count per engine category dynamically
   const engineCounts = useMemo(() => {
@@ -446,6 +464,51 @@ function NotificationApp() {
     scenariosApi.deleteScenario(id)
   }
 
+  // Clone scenario and add to Production Ready
+  const handleCloneToProduction = useCallback(
+    async (scenario: NotificationScenario) => {
+      try {
+        const { productionNotification } = await productionApi.cloneToProduction(scenario)
+        setProductionNotifications((prev) => [
+          productionNotification,
+          ...prev.filter((p) => p.id !== productionNotification.id),
+        ])
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.7 },
+        })
+        showToast(`"${scenario.governanceEvent || scenario.key}" cloned to Production Ready!`)
+      } catch (err) {
+        console.error('Failed to clone notification to production:', err)
+        showToast('Failed to clone notification to production')
+      }
+    },
+    [showToast]
+  )
+
+  // Update production notification
+  const handleUpdateProductionNotification = useCallback(
+    async (item: ProductionNotification) => {
+      setProductionNotifications((prev) => prev.map((p) => (p.id === item.id ? item : p)))
+      await productionApi.updateProductionNotification(item)
+    },
+    []
+  )
+
+  // Delete production notification
+  const handleDeleteProductionNotification = useCallback(
+    async (id: string) => {
+      setProductionNotifications((prev) => prev.filter((p) => p.id !== id))
+      await productionApi.deleteProductionNotification(id)
+    },
+    []
+  )
+
+  const productionScenarioIds = useMemo(() => {
+    return new Set(productionNotifications.map((p) => p.originalScenarioId || p.id))
+  }, [productionNotifications])
+
   // Filter scenarios for export and metrics according to active engine filter, status filter, and global search
   const exportTargetScenarios = useMemo(() => {
     return filterScenarios(scenarios, {
@@ -506,6 +569,21 @@ function NotificationApp() {
         searchQuery: searchQuery.trim() || undefined,
       })
       showToast(`Exported ${exportTargetRules.length} rule${exportTargetRules.length === 1 ? '' : 's'} to Excel (.xlsx)`)
+    } else if (activeView === 'production') {
+      if (productionNotifications.length === 0) {
+        showToast('No production ready notifications to export')
+        return
+      }
+      exportScenariosToExcel(productionNotifications, 'xlsx', {
+        engine: selectedEngine !== 'ALL' ? selectedEngine : undefined,
+        status: statusFilter !== 'ALL' ? statusFilter : undefined,
+        searchQuery: searchQuery.trim() || undefined,
+      })
+      showToast(
+        `Exported ${productionNotifications.length} production notification${
+          productionNotifications.length === 1 ? '' : 's'
+        } to Excel (.xlsx)`
+      )
     } else {
       if (exportTargetScenarios.length === 0) {
         showToast('No scenarios to export with current filters')
@@ -539,7 +617,13 @@ function NotificationApp() {
         onAddRow={() => setIsCreateModalOpen(true)}
         onImportClick={() => setIsImportOpen(true)}
         onExportClick={handleExport}
-        exportCount={activeView === 'rulebook' ? exportTargetRules.length : exportTargetScenarios.length}
+        exportCount={
+          activeView === 'rulebook'
+            ? exportTargetRules.length
+            : activeView === 'production'
+            ? productionNotifications.length
+            : exportTargetScenarios.length
+        }
         selectedEngine={selectedEngine}
         onSelectEngine={setSelectedEngine}
         onResetAllFilters={handleResetAllFilters}
@@ -549,6 +633,7 @@ function NotificationApp() {
         contribCount={engineCounts['Contribution'] || 0}
         totalRows={scenarios.length}
         ruleBookCount={409}
+        productionCount={productionNotifications.length}
         activeView={activeView}
         onChangeView={setActiveView}
         totalEngines={dynamicEngines.length}
@@ -560,7 +645,7 @@ function NotificationApp() {
         onOpenShareModal={() => setIsShareModalOpen(true)}
       />
 
-      {/* 2. Main Excel-like Spreadsheet Grid OR Master Rule Book Table */}
+      {/* 2. Main Excel-like Spreadsheet Grid OR Master Rule Book Table OR Production Ready Table */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {isLoading && scenarios.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center bg-white text-[#42526E] gap-3">
@@ -581,6 +666,15 @@ function NotificationApp() {
             }}
             onShowToast={showToast}
           />
+        ) : activeView === 'production' ? (
+          <ProductionReadyTable
+            productionNotifications={productionNotifications}
+            onUpdateProductionNotification={handleUpdateProductionNotification}
+            onDeleteProductionNotification={handleDeleteProductionNotification}
+            onSwitchToScenarios={() => setActiveView('scenarios')}
+            onShowToast={showToast}
+            availableEngines={dynamicEngines}
+          />
         ) : (
           <JiraTable
             scenarios={scenarios}
@@ -589,6 +683,8 @@ function NotificationApp() {
             onBatchUpdateScenarios={handleBatchUpdateScenarios}
             onUpdateStatus={handleUpdateStatus}
             onDeleteScenario={handleDeleteScenario}
+            onCloneToProduction={handleCloneToProduction}
+            productionScenarioIds={productionScenarioIds}
             onAddRow={() => setIsCreateModalOpen(true)}
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery('')}

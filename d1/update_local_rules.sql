@@ -5,7 +5,6 @@ UPDATE scenarios SET rule_id = 'CI-GOV-004' WHERE id = 'gov-4' OR key = 'GOV-4';
 UPDATE scenarios SET rule_id = 'CI-GOV-005' WHERE id = 'gov-5' OR key = 'GOV-5';
 UPDATE scenarios SET rule_id = 'CI-GOV-006' WHERE id = 'gov-6' OR key = 'GOV-6';
 UPDATE scenarios SET rule_id = 'CI-CONTR-001' WHERE id = 'ce-1' OR key = 'CONTRIB-1';
-UPDATE scenarios SET rule_id = 'CI-CONTR-003' WHERE id = 'ce-2' OR key = 'CONTRIB-2';
 UPDATE scenarios SET rule_id = 'CI-CONTR-004' WHERE id = 'ce-3' OR key = 'CONTRIB-3';
 UPDATE scenarios SET rule_id = 'CI-CONTR-005' WHERE id = 'ce-4' OR key = 'CONTRIB-4';
 UPDATE scenarios SET rule_id = 'CI-CONTR-006' WHERE id = 'ce-5' OR key = 'CONTRIB-5';
@@ -82,3 +81,6 @@ UPDATE scenarios SET rule_id = 'CI-OPP-094' WHERE id = 'opp-95' OR key = 'OPP-95
 UPDATE scenarios SET rule_id = 'CI-DISC-008' WHERE id = 'disc-8' OR key = 'DISC-8';
 UPDATE scenarios SET rule_id = 'CI-DISC-009' WHERE id = 'disc-9' OR key = 'DISC-9';
 UPDATE scenarios SET rule_id = 'CI-DISC-010' WHERE id = 'disc-10' OR key = 'DISC-10';
+UPDATE scenarios SET rule_id = 'CI-CONTR-030' WHERE id = 'ce-17' OR key = 'CONTRIB-17';
+UPDATE scenarios SET rule_id = 'CI-CONTR-031' WHERE id = 'ce-18' OR key = 'CONTRIB-18';
+UPDATE scenarios SET rule_id = 'CI-CONTR-029' WHERE id = 'ce-19' OR key = 'CONTRIB-19';

@@ -166,3 +166,15 @@ export interface ScenarioAttachment {
 
 export type ActiveView = 'table' | 'board' | 'simulator' | 'metrics'
 
+export type ProductionStatus =
+  | 'READY FOR PROD'
+  | 'LIVE IN PROD'
+  | 'STAGING VERIFIED'
+  | 'PENDING REVIEW'
+  | 'DEPLOYED'
+  | (string & {})
+
+export interface ProductionNotification extends NotificationScenario {
+  originalScenarioId?: string
+  clonedAt?: string
+}
