@@ -1,8 +1,8 @@
 -- 1. Update engine_sheets with latest Contribution Engine Sheet URL
 
 UPDATE engine_sheets 
-SET sheet_url = 'https://docs.google.com/spreadsheets/d/1BfxirN7r6XpPDKRyx4ydoornE78He-6n/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
-    csv_export_url = 'https://docs.google.com/spreadsheets/d/1BfxirN7r6XpPDKRyx4ydoornE78He-6n/export?format=csv',
+SET sheet_url = 'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
+    csv_export_url = 'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/export?format=csv',
     updated_at = datetime('now')
 WHERE engine_category = 'Contribution';
 

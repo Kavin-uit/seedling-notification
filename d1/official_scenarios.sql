@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS engine_sheets (
 
 INSERT OR REPLACE INTO engine_sheets VALUES
 ('Governance', 'Governance Content Sheet', 'https://docs.google.com/spreadsheets/d/1WQP9fY_pMUqZG28TX8gGSDL2vtb58ZAP/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true', 'https://docs.google.com/spreadsheets/d/1WQP9fY_pMUqZG28TX8gGSDL2vtb58ZAP/export?format=csv', 1, datetime('now'), datetime('now')),
-('Contribution', 'Contribution Content Sheet', 'https://docs.google.com/spreadsheets/d/1BfxirN7r6XpPDKRyx4ydoornE78He-6n/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true', 'https://docs.google.com/spreadsheets/d/1BfxirN7r6XpPDKRyx4ydoornE78He-6n/export?format=csv', 1, datetime('now'), datetime('now'));
+('Contribution', 'Contribution Content Sheet', 'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true', 'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/export?format=csv', 1, datetime('now'), datetime('now'));
 
 DELETE FROM scenarios;
 

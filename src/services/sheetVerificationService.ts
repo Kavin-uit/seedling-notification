@@ -94,9 +94,9 @@ export const DEFAULT_ENGINE_SHEETS: Record<string, EngineSheetConfig> = {
     engineCategory: 'Contribution',
     sheetName: 'Contribution Content Sheet',
     sheetUrl:
-      'https://docs.google.com/spreadsheets/d/1BfxirN7r6XpPDKRyx4ydoornE78He-6n/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
+      'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/edit?usp=sharing&ouid=102314279700789110504&rtpof=true&sd=true',
     csvExportUrl:
-      'https://docs.google.com/spreadsheets/d/1BfxirN7r6XpPDKRyx4ydoornE78He-6n/export?format=csv',
+      'https://docs.google.com/spreadsheets/d/1AtbvUxwJMRP4C4HxWFtPqEFnsx_EsocC/export?format=csv',
     enabled: true,
   },
   Participation: {
@@ -162,7 +162,8 @@ export function convertToCsvExportUrl(url: string): string {
 // Load registered sheet configs from localStorage or defaults
 export function getRegisteredEngineSheets(): Record<string, EngineSheetConfig> {
   try {
-    const saved = localStorage.getItem('seedling_engine_sheets_v1')
+    localStorage.removeItem('seedling_engine_sheets_v1')
+    const saved = localStorage.getItem('seedling_engine_sheets_v2')
     if (saved) {
       const parsed = JSON.parse(saved)
       const merged: Record<string, EngineSheetConfig> = { ...DEFAULT_ENGINE_SHEETS }
@@ -186,7 +187,7 @@ export function getRegisteredEngineSheets(): Record<string, EngineSheetConfig> {
 
 export function saveRegisteredEngineSheets(configs: Record<string, EngineSheetConfig>): void {
   try {
-    localStorage.setItem('seedling_engine_sheets_v1', JSON.stringify(configs))
+    localStorage.setItem('seedling_engine_sheets_v2', JSON.stringify(configs))
   } catch {
     // Ignore storage error
   }

@@ -1,7 +1,7 @@
 import type { EngineSheetConfig } from '../services/sheetVerificationService'
 import { DEFAULT_ENGINE_SHEETS } from '../services/sheetVerificationService'
 
-const LOCAL_STORAGE_KEY = 'seedling_engine_sheets_v1'
+const LOCAL_STORAGE_KEY = 'seedling_engine_sheets_v2'
 
 class EngineSheetsApi {
   getLocalCache(): Record<string, EngineSheetConfig> {
