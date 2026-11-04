@@ -84,3 +84,7 @@ UPDATE scenarios SET rule_id = 'CI-DISC-010' WHERE id = 'disc-10' OR key = 'DISC
 UPDATE scenarios SET rule_id = 'CI-CONTR-030' WHERE id = 'ce-17' OR key = 'CONTRIB-17';
 UPDATE scenarios SET rule_id = 'CI-CONTR-031' WHERE id = 'ce-18' OR key = 'CONTRIB-18';
 UPDATE scenarios SET rule_id = 'CI-CONTR-029' WHERE id = 'ce-19' OR key = 'CONTRIB-19';
+UPDATE scenarios SET rule_id = 'CI-OPP-171' WHERE id = 'opp-171' OR key = 'OPP-171';
+UPDATE scenarios SET rule_id = 'CI-OPP-172' WHERE id = 'opp-172' OR key = 'OPP-172';
+UPDATE scenarios SET rule_id = 'CI-OPP-173' WHERE id = 'opp-173' OR key = 'OPP-173';
+UPDATE scenarios SET rule_id = 'CI-OPP-174' WHERE id = 'opp-174' OR key = 'OPP-174';
