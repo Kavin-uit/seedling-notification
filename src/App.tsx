@@ -15,6 +15,7 @@ import { productionApi } from './api/productionApi'
 import { engineSheetsApi } from './api/engineSheetsApi'
 import { enginesApi } from './api/enginesApi'
 import { recordScenarioUpdate } from './utils/versionHistory'
+import { addActivityEntry } from './utils/productionActivityLog'
 import confetti from 'canvas-confetti'
 import {
   verifyAllEngines,
@@ -473,6 +474,16 @@ function NotificationApp() {
           productionNotification,
           ...prev.filter((p) => p.id !== productionNotification.id),
         ])
+
+        // Record in activity log
+        addActivityEntry({
+          action: 'ADDED',
+          prodKey: productionNotification.key,
+          governanceEvent: productionNotification.governanceEvent || scenario.governanceEvent || '',
+          engineCategory: productionNotification.engineCategory || scenario.engineCategory || '',
+          ruleId: productionNotification.originalScenarioId,
+        })
+
         confetti({
           particleCount: 50,
           spread: 60,

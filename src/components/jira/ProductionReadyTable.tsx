@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react'
 import type { ProductionNotification, NotificationScenario, ScenarioStatus } from '../../types/notification'
 import { JiraDetailModal } from './JiraDetailModal'
 import { NotificationRuleModal } from './NotificationRuleModal'
+import { ProductionActivityLogModal } from './ProductionActivityLogModal'
 import * as XLSX from 'xlsx'
 import {
   Search,
@@ -114,6 +115,7 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
   const [selectedRuleItem, setSelectedRuleItem] = useState<{ scenario: NotificationScenario; rowNumber: number } | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [activeResizingCol, setActiveResizingCol] = useState<ProdTableColumnKey | null>(null)
+  const [showActivityLog, setShowActivityLog] = useState(false)
 
   // Column widths state
   const [columnWidths, setColumnWidths] = useState<Record<ProdTableColumnKey, number>>(() => {
@@ -318,11 +320,38 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
       {/* 1. Header Toolbar */}
       <div className="bg-[#FAFBFC] border-b border-[#DFE1E6] px-4 py-3 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h1 className="text-base font-bold text-[#172B4D] tracking-tight">
+          <h1 className="text-base font-bold text-[#172B4D] tracking-tight flex items-center gap-1.5">
             Production Ready Notifications
+            {/* ⓘ Activity Log button — intentionally plain, like a hand-made sheet control */}
+            <button
+              type="button"
+              onClick={() => setShowActivityLog(true)}
+              title="View activity log — records each time a notification is added"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '17px',
+                height: '17px',
+                fontSize: '10px',
+                lineHeight: '1',
+                fontFamily: 'Arial, sans-serif',
+                fontWeight: 'bold',
+                border: '1px solid #999',
+                borderRadius: '50%',
+                background: '#fff',
+                color: '#555',
+                cursor: 'pointer',
+                flexShrink: 0,
+                padding: 0,
+                verticalAlign: 'middle',
+              }}
+            >
+              i
+            </button>
           </h1>
           <p className="text-xs text-[#6B778C]">
-            Notifications cloned & approved for production deployment
+            Notifications cloned &amp; approved for production deployment
           </p>
         </div>
 
@@ -811,6 +840,11 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
           onClose={() => setSelectedRuleItem(null)}
           scenario={selectedRuleItem.scenario}
         />
+      )}
+
+      {/* Activity Log Modal */}
+      {showActivityLog && (
+        <ProductionActivityLogModal onClose={() => setShowActivityLog(false)} />
       )}
     </div>
   )
