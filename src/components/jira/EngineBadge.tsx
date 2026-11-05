@@ -23,6 +23,7 @@ const statusOptions: { status: ScenarioStatus; bg: string; text: string }[] = [
   { status: 'EMAIL NOTIFICATION NOT WORKING', bg: 'bg-[#EAE6FF]', text: 'text-[#403294]' },
   { status: 'EMAIL NOTIFICATION NAVIGATION NOT WORKING', bg: 'bg-[#EAE6FF]', text: 'text-[#403294]' },
   { status: 'SMS NOTIFICATION NOT WORKING', bg: 'bg-[#E6FCFF]', text: 'text-[#0065FF]' },
+  { status: 'HIDE', bg: 'bg-[#F4F5F7]', text: 'text-[#5E6C84]' },
 ]
 
 export const EngineBadge: React.FC<EngineBadgeProps> = ({

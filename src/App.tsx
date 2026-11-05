@@ -8,7 +8,7 @@ import { ProductionReadyTable } from './components/jira/ProductionReadyTable'
 import { ExcelImportModal } from './components/jira/ExcelImportModal'
 import { JiraCreateModal } from './components/jira/JiraCreateModal'
 import { exportScenariosToExcel, exportRulesToExcel } from './utils/excel'
-import { filterScenarios, parseSelectedEngines } from './utils/scenarioFilters'
+import { filterScenarios, parseSelectedEngines, isScenarioHidden } from './utils/scenarioFilters'
 import { ALL_NOTIFICATION_RULES } from './data/notificationRules'
 import { scenariosApi } from './api/scenariosApi'
 import { productionApi } from './api/productionApi'
@@ -324,13 +324,19 @@ function NotificationApp() {
     })
   }, [dbEngines, scenarios, productionNotifications])
 
-  // Count per engine category dynamically
+  // Count hidden scenarios
+  const hiddenCount = useMemo(() => {
+    return scenarios.filter(isScenarioHidden).length
+  }, [scenarios])
+
+  // Count per engine category dynamically (excluding HIDE scenarios)
   const engineCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     dynamicEngines.forEach((e) => {
       counts[e] = 0
     })
     scenarios.forEach((s) => {
+      if (isScenarioHidden(s)) return
       const cat = (s.engineCategory || 'Governance').trim()
       counts[cat] = (counts[cat] || 0) + 1
     })
@@ -449,6 +455,11 @@ function NotificationApp() {
     scenariosApi.updateScenario(recorded).catch((err) => {
       console.error('Failed to persist status change:', err)
     })
+    if (newStatus === 'HIDE') {
+      showToast(`"${target.governanceEvent || target.key}" moved to Hidden Notifications`)
+    } else if (target.status === 'HIDE') {
+      showToast(`"${target.governanceEvent || target.key}" restored to ${target.engineCategory} Engine`)
+    }
   }
 
   // Rollback scenario row (persisted to D1)
@@ -642,7 +653,8 @@ function NotificationApp() {
         engineCounts={engineCounts}
         govCount={engineCounts['Governance'] || 0}
         contribCount={engineCounts['Contribution'] || 0}
-        totalRows={scenarios.length}
+        totalRows={scenarios.length - hiddenCount}
+        hiddenCount={hiddenCount}
         ruleBookCount={ALL_NOTIFICATION_RULES.length}
         productionCount={productionNotifications.length}
         activeView={activeView}

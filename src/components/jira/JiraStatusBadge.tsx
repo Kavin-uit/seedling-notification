@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { ScenarioStatus } from '../../types/notification'
 import { parseStatuses, serializeStatuses } from '../../types/notification'
-import { ChevronDown, CheckCircle2, AlertCircle, Clock, Check, X } from 'lucide-react'
+import { ChevronDown, CheckCircle2, AlertCircle, Clock, Check, X, EyeOff } from 'lucide-react'
 
 interface JiraStatusBadgeProps {
   status: ScenarioStatus
@@ -87,6 +87,13 @@ const statusConfig: Record<
     label: 'SMS NOTIFICATION NOT WORKING',
     icon: <AlertCircle className="w-3 h-3 text-[#0065FF]" />,
   },
+  'HIDE': {
+    bg: 'bg-[#F4F5F7] hover:bg-[#EBECF0]',
+    text: 'text-[#5E6C84]',
+    border: 'border-[#C1C7D0]',
+    label: 'HIDE',
+    icon: <EyeOff className="w-3 h-3 text-[#5E6C84]" />,
+  },
 }
 
 export function getStatusBadgeConfig(status?: string): {
@@ -101,6 +108,15 @@ export function getStatusBadgeConfig(status?: string): {
     return statusConfig[s as keyof typeof statusConfig]
   }
   const clean = s.toUpperCase()
+  if (clean === 'HIDE' || clean === 'HIDDEN') {
+    return {
+      bg: 'bg-[#F4F5F7] hover:bg-[#EBECF0]',
+      text: 'text-[#5E6C84]',
+      border: 'border-[#C1C7D0]',
+      label: 'HIDE',
+      icon: <EyeOff className="w-3 h-3 text-[#5E6C84]" />,
+    }
+  }
   if (clean.includes('TEST') || clean.includes('PASS')) {
     return {
       bg: 'bg-[#E3FCEF] hover:bg-[#ABF5D1]',

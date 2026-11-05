@@ -10,7 +10,7 @@ export interface ScenarioFilterOptions {
 }
 
 export function parseSelectedEngines(selectedEngine?: string): string[] {
-  if (!selectedEngine || selectedEngine === 'ALL') return []
+  if (!selectedEngine || selectedEngine === 'ALL' || selectedEngine === '__HIDDEN__' || selectedEngine.toLowerCase() === 'hidden') return []
   return selectedEngine
     .split(',')
     .map((e) => e.trim().replace(/\s+engine$/i, '').toLowerCase())
@@ -22,10 +22,18 @@ export function matchesEngineCategory(
   selectedEngine?: string
 ): boolean {
   if (!selectedEngine || selectedEngine === 'ALL') return true
+  if (selectedEngine === '__HIDDEN__' || selectedEngine.toLowerCase() === 'hidden') return false
   const list = parseSelectedEngines(selectedEngine)
   if (list.length === 0) return true
   const sEngine = (category || 'Governance').trim().replace(/\s+engine$/i, '').toLowerCase()
   return list.includes(sEngine)
+}
+
+export function isScenarioHidden(s: NotificationScenario): boolean {
+  const statuses = parseStatuses(s.status)
+  return statuses.some(
+    (st) => st.trim().toUpperCase() === 'HIDE' || st.trim().toUpperCase() === 'HIDDEN'
+  )
 }
 
 /**
@@ -43,12 +51,25 @@ export function filterScenarios(
     isAiSearch = false,
   } = options
 
-  // 1. When global search query is entered, search globally across all scenarios
+  const isHiddenView = selectedEngine === '__HIDDEN__' || selectedEngine.toLowerCase() === 'hidden'
+
+  // 1. When global search query is entered, search across appropriate subset
   if (searchQuery && searchQuery.trim().length > 0) {
-    return executeSearch(scenarios, searchQuery, Boolean(isAiSearch)).results
+    const allMatches = executeSearch(scenarios, searchQuery, Boolean(isAiSearch)).results
+    if (isHiddenView) {
+      return allMatches.filter(isScenarioHidden)
+    }
+    return allMatches.filter((s) => !isScenarioHidden(s))
   }
 
-  // 2. Otherwise filter by engine and status(es)
+  // 2. Hidden Notifications View: return ONLY scenarios marked as HIDE / HIDDEN
+  if (isHiddenView) {
+    return scenarios.filter(isScenarioHidden)
+  }
+
+  // 3. Normal View: Always exclude HIDE / HIDDEN scenarios
+  const activeScenarios = scenarios.filter((s) => !isScenarioHidden(s))
+
   const activeStatuses =
     statusFilter && statusFilter !== 'ALL'
       ? statusFilter
@@ -57,7 +78,7 @@ export function filterScenarios(
           .filter((s) => s && s !== 'ALL')
       : []
 
-  return scenarios.filter((s) => {
+  return activeScenarios.filter((s) => {
     const matchesEngine = matchesEngineCategory(s.engineCategory, selectedEngine)
     if (!matchesEngine) return false
 

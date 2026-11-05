@@ -37,7 +37,7 @@ import { executeSearch } from '../../utils/aiSearch'
 import { rollbackToVersion, rollbackFieldToVersion } from '../../utils/versionHistory'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
 import { getRuleForScenario } from '../../data/notificationRules'
-import { matchesEngineCategory } from '../../utils/scenarioFilters'
+import { matchesEngineCategory, isScenarioHidden } from '../../utils/scenarioFilters'
 
 // Google Gemini Multi-Color Gradient Sparkle Logo
 export const GeminiSparkleIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
@@ -852,11 +852,14 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   }, [])
 
   // Count scenarios per status within currently selected engine
+  const isHiddenView = selectedEngine === '__HIDDEN__' || selectedEngine.toLowerCase() === 'hidden'
+
   const statusCounts = useMemo(() => {
-    const engineScenarios =
-      selectedEngine === 'ALL'
-        ? scenarios
-        : scenarios.filter((s) => matchesEngineCategory(s.engineCategory, selectedEngine))
+    const engineScenarios = isHiddenView
+      ? scenarios.filter(isScenarioHidden)
+      : selectedEngine === 'ALL'
+      ? scenarios.filter((s) => !isScenarioHidden(s))
+      : scenarios.filter((s) => !isScenarioHidden(s) && matchesEngineCategory(s.engineCategory, selectedEngine))
 
     const counts: Record<string, number> = {
       ALL: engineScenarios.length,
@@ -882,7 +885,11 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
   // 1. Filter scenarios by engine category & multiple statuses (OR condition)
   const baseFiltered = useMemo(() => {
+    if (isHiddenView) {
+      return scenarios.filter(isScenarioHidden)
+    }
     return scenarios.filter((s) => {
+      if (isScenarioHidden(s)) return false
       const matchesEngine = matchesEngineCategory(s.engineCategory, selectedEngine)
       if (!matchesEngine) return false
 
@@ -899,7 +906,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
         return upperActiveList.includes(cleanSel)
       })
     })
-  }, [scenarios, selectedEngine, selectedStatuses])
+  }, [scenarios, selectedEngine, selectedStatuses, isHiddenView])
 
   // 2. Global Search: When search query is entered, search GLOBALLY across ALL scenarios,
   // completely bypassing active engine and status filters as explicitly requested.
@@ -914,9 +921,16 @@ export const JiraTable: React.FC<JiraTableProps> = ({
     return executeSearch(scenarios, searchQuery, Boolean(isAiSearch))
   }, [scenarios, searchQuery, isAiSearch, isSearchActive])
 
-  // When search query is entered, display matching scenarios globally across all engines.
+  // When search query is entered, display matching scenarios (respecting hidden mode).
   // When search is empty, display baseFiltered (respecting current engine and status filters).
-  const filteredScenarios = isSearchActive ? matchingScenarios : baseFiltered
+  const filteredScenarios = useMemo(() => {
+    if (isSearchActive) {
+      return isHiddenView
+        ? matchingScenarios.filter(isScenarioHidden)
+        : matchingScenarios.filter((s) => !isScenarioHidden(s))
+    }
+    return baseFiltered
+  }, [isSearchActive, matchingScenarios, baseFiltered, isHiddenView])
 
   const matchingRowIds = useMemo(() => {
     return new Set(matchingScenarios.map((s) => s.id))
@@ -992,7 +1006,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
 
   // Header label based on engine category
   const eventColumnHeader =
-    selectedEngine !== 'ALL'
+    isHiddenView
+      ? 'Hidden Notification Event'
+      : selectedEngine !== 'ALL'
       ? `${selectedEngine} Event`
       : 'Event'
 
@@ -1007,6 +1023,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       'EMAIL NOTIFICATION NOT WORKING',
       'EMAIL NOTIFICATION NAVIGATION NOT WORKING',
       'SMS NOTIFICATION NOT WORKING',
+      'HIDE',
     ]
     const seen = new Set<string>(base)
     scenarios.forEach((s) => {
@@ -1035,6 +1052,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
       else if (clean.includes('PUSH')) dotColor = 'bg-[#FF5630]'
       else if (clean.includes('EMAIL')) dotColor = 'bg-[#6554C0]'
       else if (clean.includes('SMS')) dotColor = 'bg-[#00B8D9]'
+      else if (clean === 'HIDE' || clean === 'HIDDEN') dotColor = 'bg-[#6B778C]'
 
       items.push({
         label: st,
@@ -1083,7 +1101,9 @@ export const JiraTable: React.FC<JiraTableProps> = ({
               }`}
             >
               <span>
-                {selectedEngine !== 'ALL'
+                {isHiddenView
+                  ? 'Hidden Notifications'
+                  : selectedEngine !== 'ALL'
                   ? `${selectedEngine.toLowerCase().endsWith('engine') ? selectedEngine : `${selectedEngine} Engine`} Sheet`
                   : 'All Engine Categories'}
               </span>

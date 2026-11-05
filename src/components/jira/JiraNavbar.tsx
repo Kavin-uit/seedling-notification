@@ -11,6 +11,7 @@ import {
   Table2,
   BookOpen,
   Rocket,
+  EyeOff,
 } from 'lucide-react'
 import type { SheetVerificationSummary } from '../../services/sheetVerificationService'
 import { buildFilterShareUrl, copyShareUrlToClipboard } from '../../utils/filterShare'
@@ -40,6 +41,7 @@ interface JiraNavbarProps {
   govCount?: number
   contribCount?: number
   totalRows: number
+  hiddenCount?: number
   ruleBookCount?: number
   productionCount?: number
   activeView?: ActiveDashboardView
@@ -67,6 +69,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   govCount,
   contribCount,
   totalRows,
+  hiddenCount = 0,
   ruleBookCount = 440,
   productionCount = 0,
   activeView = 'scenarios',
@@ -121,6 +124,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   }
 
   const getEngineButtonLabel = () => {
+    if (selectedEngine === '__HIDDEN__' || selectedEngine.toLowerCase() === 'hidden') return 'Hidden Notifications'
     if (!selectedEngine || selectedEngine === 'ALL') return 'All Engines'
     if (selectedEngines.length === 0) return 'All Engines'
     if (selectedEngines.length === 1) {
@@ -233,6 +237,7 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
   const totalEnginesCount = totalEngines ?? engineList.length
 
   const activeCount = useMemo(() => {
+    if (selectedEngine === '__HIDDEN__' || selectedEngine.toLowerCase() === 'hidden') return hiddenCount
     if (selectedEngine === 'ALL') return totalEnginesCount
     if (selectedEngines.length === 0) return totalEnginesCount
 
@@ -451,6 +456,43 @@ export const JiraNavbar: React.FC<JiraNavbarProps> = ({
                   </div>
                 )
               })}
+
+              {/* Hidden Notifications */}
+              <div
+                onClick={() => {
+                  onSelectEngine('__HIDDEN__')
+                  setIsEngineMenuOpen(false)
+                }}
+                className={`w-full px-3 py-1.5 flex items-center justify-between hover:bg-[#F4F5F7] transition cursor-pointer text-xs border-t border-[#EBECF0] mt-0.5 group ${
+                  selectedEngine === '__HIDDEN__'
+                    ? 'bg-[#EBECF0] font-semibold text-[#0052CC]'
+                    : 'text-[#172B4D]'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-4 h-4 rounded-[3px] flex items-center justify-center shrink-0 transition-colors ${
+                      selectedEngine === '__HIDDEN__'
+                        ? 'bg-[#0052CC] text-white shadow-2xs'
+                        : 'border border-[#C1C7D0] bg-white group-hover:border-[#0052CC]'
+                    }`}
+                  >
+                    {selectedEngine === '__HIDDEN__' && <Check className="w-3 h-3 stroke-[3]" />}
+                  </div>
+                  <span className="flex items-center gap-1.5">
+                    <EyeOff className="w-3.5 h-3.5 text-[#6B778C]" />
+                    <span>Hidden Notifications</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span
+                    className="text-[11px] font-bold px-1.5 py-0.2 rounded-full bg-[#DFE1E6] text-[#42526E]"
+                    title={`${hiddenCount} Hidden Notifications`}
+                  >
+                    {hiddenCount}
+                  </span>
+                </div>
+              </div>
 
               {/* All Engines - Reset all filters */}
               <div
