@@ -650,16 +650,26 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
                         : 'bg-[#FAFBFC] hover:bg-slate-50/80'
                     }`}
                   >
-                    {/* Index */}
+                    {/* Index — shows row number; on row hover shows eye icon to open detail */}
                     <td
                       style={{
                         width: `${columnWidths.index}px`,
                         minWidth: `${columnWidths.index}px`,
                         maxWidth: `${columnWidths.index}px`,
                       }}
-                      className="px-2 py-2 font-mono text-[11px] text-center text-slate-500 border-r border-[#E1E4E8] bg-inherit sticky left-0 z-10 shadow-[1px_0_0_0_#E1E4E8]"
+                      className="px-1 py-0 text-center border-r border-[#E1E4E8] bg-inherit sticky left-0 z-10 shadow-[1px_0_0_0_#E1E4E8]"
                     >
-                      {rowNumber}
+                      <button
+                        type="button"
+                        onClick={() => setDetailItem({ scenario: row, rowNumber })}
+                        title={`View details for ${row.key}`}
+                        className="w-full h-full min-h-[32px] flex items-center justify-center cursor-pointer"
+                      >
+                        <span className="font-mono text-[11px] text-slate-500 group-hover:hidden">
+                          {rowNumber}
+                        </span>
+                        <Eye className="w-3.5 h-3.5 text-slate-400 hidden group-hover:block hover:text-[#0052CC] transition-colors" />
+                      </button>
                     </td>
 
                     {/* Key */}
