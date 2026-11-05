@@ -81,6 +81,23 @@ const PROD_STATUS_OPTIONS = [
   'PENDING REVIEW',
 ]
 
+// Returns inline style object for each production status — distinct colours per state
+const getStatusStyle = (status: string): React.CSSProperties => {
+  switch ((status || '').toUpperCase()) {
+    case 'LIVE IN PROD':
+      return { background: '#dcfce7', color: '#14532d', border: '1px solid #86efac' } // green
+    case 'DEPLOYED':
+      return { background: '#dbeafe', color: '#1e3a8a', border: '1px solid #93c5fd' } // blue
+    case 'STAGING VERIFIED':
+      return { background: '#fef9c3', color: '#713f12', border: '1px solid #fde047' } // yellow
+    case 'PENDING REVIEW':
+      return { background: '#fee2e2', color: '#7f1d1d', border: '1px solid #fca5a5' } // red
+    case 'READY FOR PROD':
+    default:
+      return { background: '#f3e8ff', color: '#581c87', border: '1px solid #c084fc' } // purple
+  }
+}
+
 interface ProductionReadyTableProps {
   productionNotifications: ProductionNotification[]
   onUpdateProductionNotification: (item: ProductionNotification) => void
@@ -730,7 +747,8 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
                           })
                           onShowToast?.(`Updated ${row.key} status to ${newStatus}`)
                         }}
-                        className="text-[11px] font-semibold py-1 px-2 rounded-[3px] bg-emerald-50 text-emerald-800 border border-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                        className="text-[11px] font-semibold py-1 px-2 rounded-[3px] focus:outline-none cursor-pointer"
+                        style={getStatusStyle(row.status || 'READY FOR PROD')}
                       >
                         {PROD_STATUS_OPTIONS.map((st) => (
                           <option key={st} value={st}>
