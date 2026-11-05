@@ -188,6 +188,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
     maxHeight: string
   } | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
 
   const activeStatuses = parseStatuses(status)
 
@@ -229,16 +230,23 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
 
   useEffect(() => {
     if (!isOpen) return
-    const handleClose = () => setIsOpen(false)
+    const handleScroll = (e: Event) => {
+      // Do not close if the scroll occurred inside the popover itself
+      if (popoverRef.current && e.target && popoverRef.current.contains(e.target as Node)) {
+        return
+      }
+      setIsOpen(false)
+    }
+    const handleResize = () => setIsOpen(false)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsOpen(false)
     }
-    window.addEventListener('scroll', handleClose, true)
-    window.addEventListener('resize', handleClose)
+    window.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', handleResize)
     document.addEventListener('keydown', handleKeyDown)
     return () => {
-      window.removeEventListener('scroll', handleClose, true)
-      window.removeEventListener('resize', handleClose)
+      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('resize', handleResize)
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [isOpen])
@@ -344,6 +352,7 @@ export const JiraStatusBadge: React.FC<JiraStatusBadgeProps & { availableStatuse
             }}
           />
           <div
+            ref={popoverRef}
             style={{
               position: 'fixed',
               top: coords.top,
