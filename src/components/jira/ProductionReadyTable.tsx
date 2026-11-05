@@ -79,6 +79,7 @@ const PROD_STATUS_OPTIONS = [
   'STAGING VERIFIED',
   'DEPLOYED',
   'PENDING REVIEW',
+  'HIDDEN',
 ]
 
 // Returns inline style object for each production status — distinct colours per state
@@ -92,6 +93,8 @@ const getStatusStyle = (status: string): React.CSSProperties => {
       return { background: '#fef9c3', color: '#713f12', border: '1px solid #fde047' } // yellow
     case 'PENDING REVIEW':
       return { background: '#fee2e2', color: '#7f1d1d', border: '1px solid #fca5a5' } // red
+    case 'HIDDEN':
+      return { background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' } // slate/grey
     case 'READY FOR PROD':
     default:
       return { background: '#f3e8ff', color: '#581c87', border: '1px solid #c084fc' } // purple
@@ -194,19 +197,30 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
   }, [columnWidths])
 
   // Filtering
+  const HIDDEN_ENGINE_KEY = '__HIDDEN__'
+  const isHiddenView = selectedEngine === HIDDEN_ENGINE_KEY
+
   const filteredNotifications = useMemo(() => {
     let result = [...productionNotifications]
 
-    if (selectedEngine !== 'ALL') {
-      result = result.filter(
-        (n) => n.engineCategory.toLowerCase() === selectedEngine.toLowerCase()
-      )
-    }
+    if (isHiddenView) {
+      // Hidden view: show ONLY hidden notifications regardless of other filters
+      result = result.filter((n) => (n.status || '').toUpperCase() === 'HIDDEN')
+    } else {
+      // Normal view: always suppress HIDDEN notifications
+      result = result.filter((n) => (n.status || '').toUpperCase() !== 'HIDDEN')
 
-    if (statusFilter !== 'ALL') {
-      result = result.filter(
-        (n) => (n.status || '').toLowerCase() === statusFilter.toLowerCase()
-      )
+      if (selectedEngine !== 'ALL') {
+        result = result.filter(
+          (n) => n.engineCategory.toLowerCase() === selectedEngine.toLowerCase()
+        )
+      }
+
+      if (statusFilter !== 'ALL') {
+        result = result.filter(
+          (n) => (n.status || '').toLowerCase() === statusFilter.toLowerCase()
+        )
+      }
     }
 
     if (searchQuery.trim()) {
@@ -230,12 +244,19 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
     }
 
     return result
-  }, [productionNotifications, selectedEngine, statusFilter, searchQuery])
+  }, [productionNotifications, selectedEngine, statusFilter, searchQuery, isHiddenView])
 
-  // Engine counts
+  // Engine counts (excludes HIDDEN from normal engines; tracks hidden count separately)
+  const hiddenCount = useMemo(
+    () => productionNotifications.filter((n) => (n.status || '').toUpperCase() === 'HIDDEN').length,
+    [productionNotifications]
+  )
+  const visibleCount = productionNotifications.length - hiddenCount
+
   const engineCounts = useMemo(() => {
     const map: Record<string, number> = {}
     productionNotifications.forEach((n) => {
+      if ((n.status || '').toUpperCase() === 'HIDDEN') return // exclude hidden from engine counts
       const eng = n.engineCategory || 'Unassigned'
       map[eng] = (map[eng] || 0) + 1
     })
@@ -399,29 +420,38 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
           <select
             value={selectedEngine}
             onChange={(e) => setSelectedEngine(e.target.value)}
-            className="h-8 px-2.5 text-xs bg-white border border-[#DFE1E6] rounded-[3px] text-[#172B4D] font-medium focus:outline-none focus:border-[#0052CC] cursor-pointer"
+            className={`h-8 px-2.5 text-xs bg-white border rounded-[3px] font-medium focus:outline-none focus:border-[#0052CC] cursor-pointer ${
+              isHiddenView
+                ? 'border-slate-400 text-slate-600 bg-slate-50'
+                : 'border-[#DFE1E6] text-[#172B4D]'
+            }`}
           >
-            <option value="ALL">All Engines ({productionNotifications.length})</option>
+            <option value="ALL">All Engines ({visibleCount})</option>
             {availableEngines.map((eng) => (
               <option key={eng} value={eng}>
                 {eng} ({engineCounts[eng] || 0})
               </option>
             ))}
+            <option value="__HIDDEN__" style={{ color: '#475569', fontStyle: 'italic' }}>
+              🚫 Hidden Notifications ({hiddenCount})
+            </option>
           </select>
 
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-8 px-2.5 text-xs bg-white border border-[#DFE1E6] rounded-[3px] text-[#172B4D] font-medium focus:outline-none focus:border-[#0052CC] cursor-pointer"
-          >
-            <option value="ALL">All Statuses</option>
-            {PROD_STATUS_OPTIONS.map((st) => (
-              <option key={st} value={st}>
-                {st}
-              </option>
-            ))}
-          </select>
+          {/* Status Filter — hidden when in Hidden Notifications view */}
+          {!isHiddenView && (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-8 px-2.5 text-xs bg-white border border-[#DFE1E6] rounded-[3px] text-[#172B4D] font-medium focus:outline-none focus:border-[#0052CC] cursor-pointer"
+            >
+              <option value="ALL">All Statuses</option>
+              {PROD_STATUS_OPTIONS.filter(st => st !== 'HIDDEN').map((st) => (
+                <option key={st} value={st}>
+                  {st}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* Export to Excel */}
           <button
@@ -755,7 +785,11 @@ export const ProductionReadyTable: React.FC<ProductionReadyTableProps> = ({
                             ...row,
                             status: newStatus,
                           })
-                          onShowToast?.(`Updated ${row.key} status to ${newStatus}`)
+                          if (newStatus === 'HIDDEN') {
+                            onShowToast?.(`${row.key} hidden — find it under Hidden Notifications in the engine filter`)
+                          } else {
+                            onShowToast?.(`Updated ${row.key} status to ${newStatus}`)
+                          }
                         }}
                         className="text-[11px] font-semibold py-1 px-2 rounded-[3px] focus:outline-none cursor-pointer"
                         style={getStatusStyle(row.status || 'READY FOR PROD')}
