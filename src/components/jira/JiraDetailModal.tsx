@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import type { NotificationScenario, ScenarioStatus } from '../../types/notification'
 import { JiraStatusBadge } from './JiraStatusBadge'
+import { ConditionTimingBadge } from './ConditionTimingBadge'
 import {
   X,
   ChevronLeft,
@@ -299,6 +300,7 @@ export const JiraDetailModal: React.FC<JiraDetailModalProps> = ({
                 />
               </div>
             )}
+            <ConditionTimingBadge scenario={scenario} />
           </div>
 
           {/* Quick Actions & Navigation */}
