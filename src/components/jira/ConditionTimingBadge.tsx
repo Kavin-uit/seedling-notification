@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import type { NotificationScenario } from '../../types/notification'
 import { getNotificationTiming } from '../../utils/notificationTiming'
-import { Clock, Zap, Calendar, Eye, Info, X, ShieldCheck } from 'lucide-react'
+import { Clock, Calendar, Eye, Info, X, ShieldCheck } from 'lucide-react'
 
 interface ConditionTimingBadgeProps {
   scenario: NotificationScenario | null
@@ -38,7 +38,7 @@ export const ConditionTimingBadge: React.FC<ConditionTimingBadgeProps> = ({
   const renderIcon = () => {
     switch (timingInfo.badgeVariant) {
       case 'immediate':
-        return <Zap className="w-3 h-3 text-emerald-600 shrink-0" />
+        return <Clock className="w-3 h-3 text-emerald-600 shrink-0" />
       case 'scheduled':
         return <Calendar className="w-3 h-3 text-blue-600 shrink-0" />
       case 'passive':
