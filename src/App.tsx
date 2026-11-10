@@ -509,6 +509,40 @@ function NotificationApp() {
     [showToast]
   )
 
+  // Remove scenario from Production Ready (Uncheck)
+  const handleRemoveFromProduction = useCallback(
+    async (scenario: NotificationScenario) => {
+      try {
+        const matching = productionNotifications.filter(
+          (p) =>
+            p.originalScenarioId === scenario.id ||
+            p.id === scenario.id ||
+            (p.key && scenario.key && (p.key === scenario.key || p.key === `PROD-${scenario.key}`))
+        )
+
+        const idsToRemove = matching.map((p) => p.id)
+
+        if (idsToRemove.length === 0) {
+          const fallbackMatches = productionNotifications.filter(
+            (p) => p.governanceEvent && scenario.governanceEvent && p.governanceEvent === scenario.governanceEvent
+          )
+          idsToRemove.push(...fallbackMatches.map((p) => p.id))
+        }
+
+        if (idsToRemove.length > 0) {
+          setProductionNotifications((prev) => prev.filter((p) => !idsToRemove.includes(p.id)))
+          await Promise.all(idsToRemove.map((id) => productionApi.deleteProductionNotification(id)))
+        }
+
+        showToast(`"${scenario.governanceEvent || scenario.key}" removed from Production Ready`)
+      } catch (err) {
+        console.error('Failed to remove notification from production:', err)
+        showToast('Failed to remove notification from production')
+      }
+    },
+    [productionNotifications, showToast]
+  )
+
   // Update production notification
   const handleUpdateProductionNotification = useCallback(
     async (item: ProductionNotification) => {
@@ -707,6 +741,7 @@ function NotificationApp() {
             onUpdateStatus={handleUpdateStatus}
             onDeleteScenario={handleDeleteScenario}
             onCloneToProduction={handleCloneToProduction}
+            onRemoveFromProduction={handleRemoveFromProduction}
             productionScenarioIds={productionScenarioIds}
             onAddRow={() => setIsCreateModalOpen(true)}
             searchQuery={searchQuery}

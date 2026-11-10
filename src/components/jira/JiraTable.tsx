@@ -70,6 +70,7 @@ interface JiraTableProps {
   onDeleteScenario: (id: string) => void
   onAddRow: () => NotificationScenario | void
   onCloneToProduction?: (scenario: NotificationScenario) => void
+  onRemoveFromProduction?: (scenario: NotificationScenario) => void
   productionScenarioIds?: Set<string> | string[]
   searchQuery: string
   onClearSearch?: () => void
@@ -278,6 +279,7 @@ export const JiraTable: React.FC<JiraTableProps> = ({
   onDeleteScenario,
   onAddRow: _onAddRow,
   onCloneToProduction,
+  onRemoveFromProduction,
   productionScenarioIds,
   searchQuery,
   onClearSearch,
@@ -2181,30 +2183,38 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                       </div>
                     </td>
 
-                    {/* Add / Clone to Production Ready Cell (Last Column) */}
+                    {/* Add / Clone / Uncheck Production Ready Cell (Last Column) */}
                     <td className="px-1.5 py-2 text-center whitespace-nowrap overflow-hidden bg-white">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation()
-                          onCloneToProduction?.(row)
+                          if (productionIdsSet.has(row.id)) {
+                            onRemoveFromProduction?.(row)
+                          } else {
+                            onCloneToProduction?.(row)
+                          }
                         }}
                         className={`inline-flex items-center justify-center w-6.5 h-6.5 rounded-[4px] transition cursor-pointer select-none group/prodbtn ${
                           productionIdsSet.has(row.id)
-                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 shadow-2xs'
+                            ? 'bg-emerald-50 text-emerald-700 hover:bg-rose-50 hover:text-rose-600 border border-emerald-300 hover:border-rose-300 shadow-2xs'
                             : 'bg-[#F4F5F7] text-slate-700 hover:bg-[#DEEBFF] hover:text-[#0052CC] border border-slate-200 hover:border-[#B3D4FF]'
                         }`}
                         title={
                           productionIdsSet.has(row.id)
-                            ? `In Production Ready (Click + to duplicate again)`
+                            ? `In Production Ready — click to uncheck & remove from Production`
                             : `Clone #${rowNumber} (${row.key}) to Production Ready`
                         }
-                        aria-label={`Clone ${row.key} to Production Ready`}
+                        aria-label={
+                          productionIdsSet.has(row.id)
+                            ? `Remove ${row.key} from Production Ready`
+                            : `Clone ${row.key} to Production Ready`
+                        }
                       >
                         {productionIdsSet.has(row.id) ? (
-                          <div className="flex items-center">
+                          <div className="flex items-center justify-center">
                             <Check className="w-3.5 h-3.5 stroke-[2.5] text-emerald-600 group-hover/prodbtn:hidden" />
-                            <Plus className="w-3.5 h-3.5 stroke-[2.5] text-emerald-700 hidden group-hover/prodbtn:block" />
+                            <X className="w-3.5 h-3.5 stroke-[2.5] text-rose-600 hidden group-hover/prodbtn:block" />
                           </div>
                         ) : (
                           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -2383,19 +2393,46 @@ export const JiraTable: React.FC<JiraTableProps> = ({
                 </button>
               </div>
 
-              {/* Clone to Production Ready */}
+              {/* Clone / Uncheck Production Ready */}
               <div className="py-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onCloneToProduction?.(contextMenu.scenario)
-                    setContextMenu(null)
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-emerald-50 text-emerald-700 cursor-pointer transition text-left text-xs font-semibold"
-                >
-                  <Rocket className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Clone to Production Ready</span>
-                </button>
+                {productionIdsSet.has(contextMenu.scenario.id) ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onRemoveFromProduction?.(contextMenu.scenario)
+                        setContextMenu(null)
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-rose-50 text-rose-600 cursor-pointer transition text-left text-xs font-semibold"
+                    >
+                      <X className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Uncheck from Production Ready</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onCloneToProduction?.(contextMenu.scenario)
+                        setContextMenu(null)
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-emerald-50 text-emerald-700 cursor-pointer transition text-left text-xs font-semibold"
+                    >
+                      <Rocket className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Clone Another Copy to Production</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onCloneToProduction?.(contextMenu.scenario)
+                      setContextMenu(null)
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-emerald-50 text-emerald-700 cursor-pointer transition text-left text-xs font-semibold"
+                  >
+                    <Rocket className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Clone to Production Ready</span>
+                  </button>
+                )}
               </div>
 
               {/* Version History & Rollback */}
